@@ -1,0 +1,34 @@
+name: Fix Home Footer 2
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: ${{ !contains(github.event.head_commit.message, '[footer-fix-2]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add canonical footer hook
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('script.js')
+          s = p.read_text(encoding='utf-8')
+          marker = '/* HOME CANONICAL FOOTER FIX */'
+          if marker not in s:
+              s += '''\n\n/* HOME CANONICAL FOOTER FIX */\n(function(){\n  const footer = document.querySelector('footer.footer');\n  if (!footer) return;\n  footer.outerHTML = `<div id="site-footer"></div>`;\n  const host = document.getElementById('site-footer');\n  if (host) host.innerHTML = `<footer class="footer"><div class="container footer-grid"><img src="assets/logo-bruniano.svg" alt="Bruniano" class="footer-logo"><div><strong>BRUNIANO</strong><p>Fisioterapia &amp; Riabilitazione</p></div><div class="footer-links"><a href="trattamenti.html">Trattamenti</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} Bruniano</span><span><a href="privacy.html">Privacy</a> · <a href="cookie.html">Cookie</a></span><span>Sito realizzato da <strong>Renderlab</strong></span><span><a href="admin/" class="operator-link">Operatori</a></span></div></footer>`;\n})();\n'''
+              p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit and remove fixer
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add script.js .github/workflows/fix-home-footer-2.yml
+          git commit -m "Fix Home canonical footer [footer-fix-2]"
+          git rm .github/workflows/fix-home-footer-2.yml
+          git commit -m "Remove one-shot footer fixer [footer-fix-2]"
+          git push
