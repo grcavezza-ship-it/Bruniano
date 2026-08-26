@@ -1,4 +1,5 @@
 import { db, send, getQuery } from './_db.js';
+import { requireAdmin } from './_auth.js';
 
 async function getCurricula(sql) {
   const rows = await sql`SELECT value FROM site_settings WHERE key = 'team_curricula' LIMIT 1`;
@@ -19,6 +20,7 @@ export default async function handler(req, res) {
     const sql = db();
     if (req.method === 'GET') {
       const admin = String(getQuery(req).admin || '') === '1';
+      if (admin && !(await requireAdmin(req, res))) return;
       const rows = admin
         ? await sql`SELECT id,name,role,specialty,bio,photo_url,sort_order,is_published,created_at,updated_at FROM team_members ORDER BY sort_order ASC,created_at ASC`
         : await sql`SELECT id,name,role,specialty,bio,photo_url,sort_order,is_published,created_at,updated_at FROM team_members WHERE is_published = true ORDER BY sort_order ASC,created_at ASC`;
@@ -26,6 +28,8 @@ export default async function handler(req, res) {
       const curricula = await getCurricula(sql);
       return send(res, { items: rows.map(item => ({ ...item, curriculum: curricula[item.id] || {} })) });
     }
+
+    if (!(await requireAdmin(req, res))) return;
 
     if (req.method === 'POST' || req.method === 'PUT') {
       const body = req.body || {};
