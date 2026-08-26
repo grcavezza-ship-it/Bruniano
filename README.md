@@ -1,30 +1,32 @@
 # Bruniano — sito web e mini-CMS
 
-Base progetto per il sito del centro Bruniano.
+Sito custom per Bruniano con area amministrativa.
 
 ## Funzioni
-- Home istituzionale premium e responsive
-- Trattamenti e tecnologie
-- Galleria dello studio e degli ambienti
+- Home, trattamenti, tecnologie, studio
+- Galleria foto/video
 - Team gestibile da pannello
-- Promozioni gestibili con data di pubblicazione/scadenza
-- Recensioni Google collegate al Profilo dell'attività
-- Blog / approfondimenti gestibili da pannello
+- Promozioni con date e scadenza
+- Recensioni Google
+- Blog / approfondimenti
 - Contatti e Google Maps
-- Prenotazione tramite WhatsApp
+- Prenotazione WhatsApp
 
-## Architettura
-- Frontend statico, senza CMS esposto pubblicamente
-- GitHub per codice e versionamento
-- Cloudflare Pages previsto per deploy/CDN/HTTPS
-- Supabase previsto per database, autenticazione admin e storage
-- Nessuna raccolta di dati sanitari tramite il sito
+## Stack
+- GitHub: codice e versionamento
+- Cloudflare Workers Static Assets: hosting
+- Cloudflare Worker: API backend
+- Cloudflare D1: database SQL
+- Cloudflare R2: foto e video
+- Cloudflare Access / Zero Trust: protezione admin
 
-## Stato attuale
-La UI del sito e la struttura del mini-CMS sono state predisposte. Restano da collegare il progetto Supabase, le credenziali pubbliche di configurazione e gli asset reali (foto/video del centro e dati definitivi del team).
+## Sicurezza
+Le scritture API richiedono un contesto Cloudflare Access. In produzione `/admin/*` deve essere protetto da una Cloudflare Access Application. Nessun secret privato deve essere committato.
 
-## Dati presenti nei materiali forniti
-- Sede: Via Nazionale delle Puglie, 283 — San Vitaliano (NA)
+## Stato
+Frontend e mini-CMS sono già predisposti. D1/R2/Workers sono configurati nel repository; resta da creare il database D1, il bucket R2 e collegare il pannello alle API.
+
+## Dati del materiale cliente
+- Via Nazionale delle Puglie, 283 — San Vitaliano (NA)
 - Prenotazioni: +39 334 3755885
 - Telefono: +39 081 2352977
-- Servizi citati nella brochure: Tecar, Laser Ixyon, Onde d'Urto, Terapia Manuale, Crio Ultrasuoni, TENS/EMS, riabilitazione ortopedica/post-traumatica/strumentale/neurologica/cardiologica/respiratoria, terapia posturale, allenamento funzionale, ginnastica per la terza età e massaggio sportivo.
