@@ -1,4 +1,5 @@
 import { db, send, getQuery } from './_db.js';
+import { requireAdmin } from './_auth.js';
 
 const slugify = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || crypto.randomUUID();
 
@@ -8,14 +9,18 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const { slug, admin } = getQuery(req);
       if (slug) {
-        const rows = await sql`SELECT * FROM blog_posts WHERE slug = ${slug} LIMIT 1`;
-        return rows[0] ? send(res, rows[0]) : send(res, { error: 'Not found' }, 404);
+        const rows = await sql`SELECT id,slug,title,excerpt,content,cover_image_url,category,meta_description,author,published_at,is_published,created_at,updated_at FROM blog_posts WHERE slug = ${slug} LIMIT 1`;
+        if (!rows[0] || !rows[0].is_published) return send(res, { error: 'Not found' }, 404);
+        return send(res, rows[0]);
       }
+      if (admin === '1' && !await requireAdmin(req, res, sql)) return;
       const rows = admin === '1'
         ? await sql`SELECT * FROM blog_posts ORDER BY COALESCE(published_at, created_at) DESC`
         : await sql`SELECT id, slug, title, excerpt, cover_image_url, category, author, published_at FROM blog_posts WHERE is_published = true ORDER BY COALESCE(published_at, created_at) DESC`;
       return send(res, { items: rows });
     }
+
+    if (!await requireAdmin(req, res, sql)) return;
     const body = req.body || {};
     if (req.method === 'POST') {
       const title = String(body.title || '').trim(), content = String(body.content || '').trim();
@@ -39,6 +44,6 @@ export default async function handler(req, res) {
     return send(res, { error: 'Method not allowed' }, 405);
   } catch (error) {
     console.error('Blog API error:', error);
-    return send(res, { error: error?.message || 'Internal server error' }, 500);
+    return send(res, { error: 'Internal server error' }, 500);
   }
 }
