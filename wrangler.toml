@@ -1,0 +1,18 @@
+name = "bruniano"
+main = "src/worker.js"
+compatibility_date = "2026-08-26"
+
+[assets]
+directory = "."
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "bruniano"
+database_id = "REPLACE_AFTER_CREATE"
+migrations_dir = "db/migrations"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "bruniano-media"
