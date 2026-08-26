@@ -1,200 +1,35 @@
 const state = { team: [], promos: [], blog: [] };
-
+const DEMO_TEAM = { id:'demo-medico-01', name:'Dott.ssa Sofia Bianchi', qualification:'Fisioterapista', specialty:'Riabilitazione ortopedica e terapia manuale', photo:'https://images.pexels.com/photos/5998482/pexels-photo-5998482.jpeg?auto=compress&cs=tinysrgb&w=900', bio:'Professionista specializzata nei percorsi di recupero funzionale e nella presa in carico personalizzata.', cv:{ profile:'Fisioterapista con esperienza in riabilitazione ortopedica e terapia manuale.', education:['Laurea in Fisioterapia','Formazione avanzata in terapia manuale'], experience:['Percorsi riabilitativi post-traumatici','Recupero funzionale e rieducazione al movimento'], certifications:['Terapia manuale','Riabilitazione ortopedica'] } };
 const $ = (id) => document.getElementById(id);
 const esc = (value) => String(value ?? '').replace(/[&<>\"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[s]));
 
-async function api(url, options = {}) {
-  const response = await fetch(url, { headers: { 'content-type': 'application/json', ...(options.headers || {}) }, ...options });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-  return data;
-}
+async function api(url, options = {}) { const response = await fetch(url, { headers: { 'content-type': 'application/json', ...(options.headers || {}) }, ...options }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`); return data; }
+function setStatus(message, error = false) { $('system-status').textContent = message; $('system-status').style.color = error ? '#c0392b' : ''; }
 
-function setStatus(message, error = false) {
-  $('system-status').textContent = message;
-  $('system-status').style.color = error ? '#c0392b' : '';
-}
+function loadDemoTeam(){ state.team=[{...DEMO_TEAM,cv:{...DEMO_TEAM.cv,education:[...DEMO_TEAM.cv.education],experience:[...DEMO_TEAM.cv.experience],certifications:[...DEMO_TEAM.cv.certifications]}}]; renderTeam(); }
+function renderTeam(){ const list=$('team-list'); if(!list)return; list.innerHTML=state.team.map(person=>`<article class="team-admin-card"><img class="team-admin-photo" src="${esc(person.photo)}" alt="Foto dimostrativa di ${esc(person.name)}"><div><span class="specialty">${esc(person.qualification)}</span><h3>${esc(person.name)}</h3><p><strong>${esc(person.specialty)}</strong></p><p>${esc(person.bio)}</p><div class="team-admin-actions"><button class="mini" data-cv="${person.id}">Apri curriculum</button><button class="mini" data-edit-team="${person.id}">Modifica scheda</button></div></div></article>`).join(''); $('count-team').textContent='0'; }
+function openCV(person){ $('cv-name').textContent=person.name; $('cv-specialty').textContent=`${person.qualification} · ${person.specialty}`; const cv=person.cv||{}; $('cv-body').innerHTML=`<div class="content-card"><h3>Profilo</h3><p>${esc(cv.profile||person.bio)}</p><h3>Formazione</h3><ul>${(cv.education||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul><h3>Esperienza</h3><ul>${(cv.experience||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul><h3>Certificazioni e competenze</h3><ul>${(cv.certifications||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`; $('team-cv-modal').classList.add('open'); $('team-cv-modal').setAttribute('aria-hidden','false'); }
+function editTeam(person){ const form=$('team-form'); form.classList.remove('hidden'); form.innerHTML=`<div class="panel-title"><div><p>SCHEDA PROFESSIONISTA</p><h3>Modifica ${esc(person.name)}</h3></div><button class="mini" type="button" id="close-team-form">Chiudi</button></div><form id="team-editor"><div class="team-form-grid"><label>Nome e cognome<input id="t-name" value="${esc(person.name)}"></label><label>Qualifica<input id="t-qualification" value="${esc(person.qualification)}"></label><label>Specializzazione<input id="t-specialty" value="${esc(person.specialty)}"></label><label>Foto URL<input id="t-photo" value="${esc(person.photo)}"></label><label class="full">Breve biografia<textarea id="t-bio">${esc(person.bio)}</textarea></label><label class="full">Profilo curriculum<textarea id="t-profile">${esc(person.cv?.profile||'')}</textarea></label><label>Formazione<textarea id="t-education">${esc((person.cv?.education||[]).join('\n'))}</textarea></label><label>Esperienza<textarea id="t-experience">${esc((person.cv?.experience||[]).join('\n'))}</textarea></label><label>Certificazioni<textarea id="t-certifications">${esc((person.cv?.certifications||[]).join('\n'))}</textarea></label></div><div class="form-actions"><button class="primary" type="submit">Salva anteprima</button><span id="team-save-status"></span></div></form>`; $('close-team-form').onclick=()=>form.classList.add('hidden'); $('team-editor').onsubmit=e=>{e.preventDefault(); person.name=$('t-name').value;person.qualification=$('t-qualification').value;person.specialty=$('t-specialty').value;person.photo=$('t-photo').value;person.bio=$('t-bio').value;person.cv={profile:$('t-profile').value,education:$('t-education').value.split('\n').map(x=>x.trim()).filter(Boolean),experience:$('t-experience').value.split('\n').map(x=>x.trim()).filter(Boolean),certifications:$('t-certifications').value.split('\n').map(x=>x.trim()).filter(Boolean)};renderTeam();form.classList.add('hidden');}; }
 
-function renderBlog() {
-  const list = $('blog-list');
-  list.innerHTML = state.blog.length ? state.blog.map(post => `
-    <div class="managed-item">
-      <div><strong>${esc(post.title)}</strong><small>${esc(post.category || 'Senza categoria')} · ${post.is_published ? 'Pubblicato' : 'Bozza'}</small></div>
-      <div class="managed-actions">
-        <button class="mini" data-edit-post="${post.id}">Modifica</button>
-        <button class="mini" data-delete-post="${post.id}">Elimina</button>
-      </div>
-    </div>`).join('') : '<div class="form-card note">Nessun articolo presente. Crea il primo articolo dal pulsante + Nuovo articolo.</div>';
-  $('count-blog').textContent = state.blog.filter(post => post.is_published).length;
-}
+function renderBlog() { const list = $('blog-list'); list.innerHTML = state.blog.length ? state.blog.map(post => `<div class="managed-item"><div><strong>${esc(post.title)}</strong><small>${esc(post.category || 'Senza categoria')} · ${post.is_published ? 'Pubblicato' : 'Bozza'}</small></div><div class="managed-actions"><button class="mini" data-edit-post="${post.id}">Modifica</button><button class="mini" data-delete-post="${post.id}">Elimina</button></div></div>`).join('') : '<div class="form-card note">Nessun articolo presente. Crea il primo articolo dal pulsante + Nuovo articolo.</div>'; $('count-blog').textContent = state.blog.filter(post => post.is_published).length; }
+function resetPostForm() { $('blog-form').reset(); $('blog-id').value = ''; $('blog-form-title').textContent = 'Nuovo articolo'; $('blog-form-status').textContent = ''; $('blog-content').innerHTML = ''; }
+function fillPostForm(post) { $('blog-id').value = post.id; $('blog-title').value = post.title || ''; $('blog-slug').value = post.slug || ''; $('blog-category').value = post.category || ''; $('blog-author').value = post.author || ''; $('blog-published-at').value = post.published_at ? new Date(post.published_at).toISOString().slice(0,16) : ''; $('blog-excerpt').value = post.excerpt || ''; $('blog-content').innerHTML = post.content || ''; $('blog-cover').value = post.cover_image_url || ''; $('blog-meta').value = post.meta_description || ''; $('blog-is-published').checked = Boolean(post.is_published); $('blog-form-title').textContent = 'Modifica articolo'; document.querySelector('[data-panel="blog"]').click(); window.scrollTo({ top: document.getElementById('panel-blog').offsetTop - 30, behavior: 'smooth' }); }
+async function loadBlog() { try { const data = await api('/api/blog?admin=1'); state.blog = data.items || []; renderBlog(); setStatus('Backend collegato'); } catch (error) { state.blog = []; renderBlog(); setStatus('Backend non configurato', true); } }
+function ensureSelectionInsideEditor() { const editor = $('blog-content'); if (document.activeElement !== editor && !editor.contains(document.activeElement)) editor.focus(); }
+function execEditor(command, value = null) { ensureSelectionInsideEditor(); document.execCommand(command, false, value); $('blog-content').focus(); }
+function insertLink() { ensureSelectionInsideEditor(); const url = prompt('Inserisci URL del link'); if (!url) return; execEditor('createLink', url); }
+function insertImage() { ensureSelectionInsideEditor(); const url = prompt("Inserisci URL dell'immagine"); if (!url) return; execEditor('insertImage', url); }
+function setupEditor() { document.querySelectorAll('.editor-btn').forEach(button => { button.addEventListener('mousedown', event => event.preventDefault()); button.addEventListener('click', () => { const cmd=button.dataset.cmd,block=button.dataset.block,action=button.dataset.action;if(action==='link')return insertLink();if(action==='image')return insertImage();if(block)return execEditor('formatBlock',block);if(cmd==='formatBlock')return execEditor(cmd,button.dataset.value);if(cmd)execEditor(cmd); }); }); $('blog-content').addEventListener('paste',event=>{event.preventDefault();execEditor('insertText',event.clipboardData?.getData('text/plain')||'');}); }
+async function savePost(event) { event.preventDefault(); const status=$('blog-form-status');status.textContent='Salvataggio…';const content=$('blog-content').innerHTML.trim();const payload={id:$('blog-id').value||undefined,title:$('blog-title').value,slug:$('blog-slug').value,category:$('blog-category').value,author:$('blog-author').value,published_at:$('blog-published-at').value?new Date($('blog-published-at').value).toISOString():null,excerpt:$('blog-excerpt').value,content,cover_image_url:$('blog-cover').value,meta_description:$('blog-meta').value,is_published:$('blog-is-published').checked};try{const saved=await api('/api/blog',{method:payload.id?'PUT':'POST',body:JSON.stringify(payload)});const index=state.blog.findIndex(post=>post.id===saved.id);if(index>=0)state.blog[index]=saved;else state.blog.unshift(saved);renderBlog();fillPostForm(saved);status.textContent='Articolo salvato';setStatus('Backend collegato');}catch(error){status.textContent=error.message;setStatus('Errore backend',true);} }
+async function deletePost(id) { if(!confirm('Eliminare definitivamente questo articolo?'))return;try{await api('/api/blog',{method:'DELETE',body:JSON.stringify({id})});state.blog=state.blog.filter(post=>post.id!==id);renderBlog();resetPostForm();}catch(error){alert(error.message);} }
 
-function resetPostForm() {
-  $('blog-form').reset();
-  $('blog-id').value = '';
-  $('blog-form-title').textContent = 'Nuovo articolo';
-  $('blog-form-status').textContent = '';
-  $('blog-content').innerHTML = '';
-}
+document.querySelectorAll('.dash-card').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.dash-card').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.getElementById(`panel-${btn.dataset.panel}`).classList.add('active');}));
 
-function fillPostForm(post) {
-  $('blog-id').value = post.id;
-  $('blog-title').value = post.title || '';
-  $('blog-slug').value = post.slug || '';
-  $('blog-category').value = post.category || '';
-  $('blog-author').value = post.author || '';
-  $('blog-published-at').value = post.published_at ? new Date(post.published_at).toISOString().slice(0,16) : '';
-  $('blog-excerpt').value = post.excerpt || '';
-  $('blog-content').innerHTML = post.content || '';
-  $('blog-cover').value = post.cover_image_url || '';
-  $('blog-meta').value = post.meta_description || '';
-  $('blog-is-published').checked = Boolean(post.is_published);
-  $('blog-form-title').textContent = 'Modifica articolo';
-  document.querySelector('[data-panel="blog"]').click();
-  window.scrollTo({ top: document.getElementById('panel-blog').offsetTop - 30, behavior: 'smooth' });
-}
+autoStub('add-team',()=>editTeam({id:'new-demo',name:'Nuovo professionista',qualification:'Qualifica',specialty:'Specializzazione',photo:'https://images.pexels.com/photos/5998482/pexels-photo-5998482.jpeg?auto=compress&cs=tinysrgb&w=900',bio:'',cv:{profile:'',education:[],experience:[],certifications:[]}}));
+autoStub('add-gallery',()=>alert('La gestione Galleria verrà collegata allo storage media del CMS.'));autoStub('add-promo',()=>alert('La gestione Promozioni verrà collegata allo stesso backend del CMS.'));
+$('team-list').addEventListener('click',event=>{const cv=event.target.closest('[data-cv]');const edit=event.target.closest('[data-edit-team]');const person=state.team.find(x=>x.id===(cv?.dataset.cv||edit?.dataset.editTeam));if(cv&&person)openCV(person);if(edit&&person)editTeam(person);});
+$('cv-close').onclick=()=>{$('team-cv-modal').classList.remove('open');$('team-cv-modal').setAttribute('aria-hidden','true');};$('team-cv-modal').addEventListener('click',e=>{if(e.target.id==='team-cv-modal')$('cv-close').click();});
 
-async function loadBlog() {
-  try {
-    const data = await api('/api/blog?admin=1');
-    state.blog = data.items || [];
-    renderBlog();
-    setStatus('Backend collegato');
-  } catch (error) {
-    state.blog = [];
-    renderBlog();
-    setStatus('Backend non configurato', true);
-  }
-}
-
-function ensureSelectionInsideEditor() {
-  const editor = $('blog-content');
-  if (document.activeElement !== editor && !editor.contains(document.activeElement)) editor.focus();
-}
-
-function execEditor(command, value = null) {
-  ensureSelectionInsideEditor();
-  document.execCommand(command, false, value);
-  $('blog-content').focus();
-}
-
-function insertLink() {
-  ensureSelectionInsideEditor();
-  const url = prompt('Inserisci URL del link');
-  if (!url) return;
-  execEditor('createLink', url);
-}
-
-function insertImage() {
-  ensureSelectionInsideEditor();
-  const url = prompt('Inserisci URL dell\'immagine');
-  if (!url) return;
-  execEditor('insertImage', url);
-}
-
-function setupEditor() {
-  document.querySelectorAll('.editor-btn').forEach(button => {
-    button.addEventListener('mousedown', event => event.preventDefault());
-    button.addEventListener('click', () => {
-      const cmd = button.dataset.cmd;
-      const block = button.dataset.block;
-      const action = button.dataset.action;
-      if (action === 'link') return insertLink();
-      if (action === 'image') return insertImage();
-      if (block) return execEditor('formatBlock', block);
-      if (cmd === 'formatBlock') return execEditor(cmd, button.dataset.value);
-      if (cmd) execEditor(cmd);
-    });
-  });
-
-  $('blog-content').addEventListener('paste', event => {
-    event.preventDefault();
-    const text = event.clipboardData?.getData('text/plain') || '';
-    execEditor('insertText', text);
-  });
-
-  $('blog-content').addEventListener('keydown', event => {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
-      event.preventDefault();
-      execEditor('bold');
-    }
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'i') {
-      event.preventDefault();
-      execEditor('italic');
-    }
-  });
-}
-
-async function savePost(event) {
-  event.preventDefault();
-  const status = $('blog-form-status');
-  status.textContent = 'Salvataggio…';
-  const content = $('blog-content').innerHTML.trim();
-  $('blog-content-html').value = content;
-
-  const payload = {
-    id: $('blog-id').value || undefined,
-    title: $('blog-title').value,
-    slug: $('blog-slug').value,
-    category: $('blog-category').value,
-    author: $('blog-author').value,
-    published_at: $('blog-published-at').value ? new Date($('blog-published-at').value).toISOString() : null,
-    excerpt: $('blog-excerpt').value,
-    content,
-    cover_image_url: $('blog-cover').value,
-    meta_description: $('blog-meta').value,
-    is_published: $('blog-is-published').checked
-  };
-
-  try {
-    const saved = await api('/api/blog', { method: payload.id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
-    const index = state.blog.findIndex(post => post.id === saved.id);
-    if (index >= 0) state.blog[index] = saved; else state.blog.unshift(saved);
-    renderBlog();
-    fillPostForm(saved);
-    status.textContent = 'Articolo salvato';
-    setStatus('Backend collegato');
-  } catch (error) {
-    status.textContent = error.message;
-    setStatus('Errore backend', true);
-  }
-}
-
-async function deletePost(id) {
-  if (!confirm('Eliminare definitivamente questo articolo?')) return;
-  try {
-    await api('/api/blog', { method: 'DELETE', body: JSON.stringify({ id }) });
-    state.blog = state.blog.filter(post => post.id !== id);
-    renderBlog();
-    resetPostForm();
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-document.querySelectorAll('.dash-card').forEach(btn => btn.addEventListener('click', () => {
-  document.querySelectorAll('.dash-card').forEach(x => x.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(`panel-${btn.dataset.panel}`).classList.add('active');
-}));
-
-autoStub('add-team', () => alert('La gestione Team verrà collegata allo stesso backend del CMS.'));
-autoStub('add-gallery', () => alert('La gestione Galleria verrà collegata allo storage media del CMS.'));
-autoStub('add-promo', () => alert('La gestione Promozioni verrà collegata allo stesso backend del CMS.'));
-
-document.getElementById('new-post').addEventListener('click', () => { resetPostForm(); document.querySelector('[data-panel="blog"]').click(); });
-document.getElementById('cancel-post').addEventListener('click', resetPostForm);
-document.getElementById('blog-form').addEventListener('submit', savePost);
-document.getElementById('blog-list').addEventListener('click', (event) => {
-  const edit = event.target.closest('[data-edit-post]');
-  const del = event.target.closest('[data-delete-post]');
-  if (edit) fillPostForm(state.blog.find(post => post.id === edit.dataset.editPost));
-  if (del) deletePost(del.dataset.deletePost);
-});
-document.getElementById('refresh-reviews').addEventListener('click', () => setStatus('Google Reviews da collegare'));
-
-function autoStub(id, fn) { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); }
-
-$('last-check').textContent = `Ultimo controllo: ${new Date().toLocaleString('it-IT')}`;
-setupEditor();
-loadBlog();
+document.getElementById('new-post').addEventListener('click',()=>{resetPostForm();document.querySelector('[data-panel="blog"]').click();});document.getElementById('cancel-post').addEventListener('click',resetPostForm);document.getElementById('blog-form').addEventListener('submit',savePost);document.getElementById('blog-list').addEventListener('click',event=>{const edit=event.target.closest('[data-edit-post]'),del=event.target.closest('[data-delete-post]');if(edit)fillPostForm(state.blog.find(post=>post.id===edit.dataset.editPost));if(del)deletePost(del.dataset.deletePost);});document.getElementById('refresh-reviews').addEventListener('click',()=>setStatus('Google Reviews da collegare'));
+function autoStub(id,fn){const el=document.getElementById(id);if(el)el.addEventListener('click',fn);}
+$('last-check').textContent=`Ultimo controllo: ${new Date().toLocaleString('it-IT')}`;setupEditor();loadDemoTeam();loadBlog();
