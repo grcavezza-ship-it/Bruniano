@@ -1,5 +1,46 @@
 /* Homepage media layer. */
 .hero-real-card{position:relative;min-height:565px;border-radius:38px;overflow:hidden;background:#0a43bd;box-shadow:var(--shadow)}
-.hero-real-card>img{width:100%;height:100%;min-height:565px;object-fit:cover}.hero-real-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,21,47,.04) 20%,rgba(7,21,47,.72) 100%)}.demo-badge{position:absolute;top:22px;left:22px;z-index:4;padding:8px 11px;border-radius:999px;background:rgba(7,21,47,.78);color:#fff;font-size:9px;font-weight:900;letter-spacing:.14em;backdrop-filter:blur(10px)}.hero-real-content{position:absolute;left:36px;right:36px;bottom:36px;z-index:3;color:#fff;display:flex;flex-direction:column;align-items:flex-start;max-width:520px}.hero-real-content>span{font-size:10px;letter-spacing:.16em;font-weight:900;color:#b9d1ff}.hero-real-content strong{font-size:clamp(28px,4vw,48px);line-height:1.02;letter-spacing:-.045em;margin:8px 0 12px}.hero-real-content small{font-size:11px;line-height:1.55;color:rgba(255,255,255,.78);max-width:360px}.machine-photo,.machine-video{position:relative;min-height:290px;overflow:hidden}.machine-photo{background-size:cover;background-position:center}.machine-photo:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,21,47,.05) 25%,rgba(7,21,47,.58) 100%)}.machine-video{background:#07152f}.machine-video video{display:block;width:100%;height:100%;min-height:290px;object-fit:cover}.machine-video:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,21,47,.02) 25%,rgba(7,21,47,.34) 100%);pointer-events:none}.machine-photo .machine-badge,.machine-photo .image-credit-note,.machine-photo .visual-play,.machine-video .machine-badge{z-index:2}.machine-badge{position:absolute;top:18px;left:18px;padding:7px 9px;border-radius:999px;background:rgba(7,21,47,.74);color:#fff;font-size:8px;font-weight:900;letter-spacing:.12em;backdrop-filter:blur(8px)}.image-credit-note{position:absolute;right:18px;bottom:18px;font-size:9px;color:#fff;padding:6px 8px;border-radius:8px;background:rgba(7,21,47,.58);backdrop-filter:blur(8px)}.visual-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border:0;border-radius:50%;background:#fff;color:var(--blue);display:grid;place-items:center;font-size:19px;padding-left:3px;box-shadow:0 15px 42px rgba(0,0,0,.2);cursor:default}.tech-showcase-footer{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:32px;padding-top:24px;border-top:1px solid #e6ebf2}.tech-showcase-footer p{margin:0;color:var(--muted);font-size:14px}.real-photo{background-size:cover!important;background-position:center!important}.real-photo:after{background:linear-gradient(to top,rgba(7,21,47,.62),rgba(7,21,47,.04) 62%)}.home-gallery .gallery-tile{min-height:100%}@media(max-width:900px){.hero-real-card,.hero-real-card>img{min-height:460px}.hero-real-content{left:26px;right:26px;bottom:26px}.tech-showcase-footer{align-items:flex-start;flex-direction:column}}@media(max-width:600px){.hero-real-card,.hero-real-card>img{min-height:410px}.demo-badge{top:14px;left:14px;font-size:8px}.hero-real-content{left:20px;right:20px;bottom:20px}.hero-real-content strong{font-size:32px}.machine-photo,.machine-video{min-height:230px}.machine-video video{min-height:230px}}
-/* Brand qualifier from the brochure: Bruniano remains primary, the descriptor is secondary. */
-.brand{gap:9px}.brand::after{content:'CENTRO MEDICO SPECIALISTICO';display:block;align-self:flex-end;margin:0 0 13px;max-width:118px;font-size:7px;line-height:1.15;letter-spacing:.12em;font-weight:900;color:#707a89;white-space:normal}.footer-grid>div:nth-child(2) p{font-size:12px;color:rgba(255,255,255,.62);letter-spacing:.02em}.footer-grid>div:nth-child(2) p::after{content:'Centro Medico Specialistico';display:block;margin-top:5px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.42)}@media(max-width:900px){.brand::after{max-width:100px;font-size:6px;margin-bottom:10px}}@media(max-width:600px){.brand::after{max-width:86px;font-size:5.5px;letter-spacing:.08em;margin-bottom:9px}}
+.hero-real-card>img{width:100%;height:100%;min-height:565px;object-fit:cover}
+.hero-real-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,21,47,.04) 20%,rgba(7,21,47,.72) 100%)}
+.demo-badge{position:absolute;top:22px;left:22px;z-index:4;padding:8px 11px;border-radius:999px;background:rgba(7,21,47,.78);color:#fff;font-size:9px;font-weight:900;letter-spacing:.14em;backdrop-filter:blur(10px)}
+.hero-real-content{position:absolute;left:36px;right:36px;bottom:36px;z-index:3;color:#fff;display:flex;flex-direction:column;align-items:flex-start;max-width:520px}
+.hero-real-content>span{font-size:10px;letter-spacing:.16em;font-weight:900;color:#b9d1ff}
+.hero-real-content strong{font-size:clamp(28px,4vw,48px);line-height:1.02;letter-spacing:-.045em;margin:8px 0 12px}
+.hero-real-content small{font-size:11px;line-height:1.55;color:rgba(255,255,255,.78);max-width:360px}
+.machine-photo,.machine-video{position:relative;min-height:290px;overflow:hidden}
+.machine-photo{background-size:cover;background-position:center}
+.machine-photo:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,21,47,.05) 25%,rgba(7,21,47,.58) 100%)}
+.machine-video{background:#07152f}
+.machine-video video{display:block;width:100%;height:100%;min-height:290px;object-fit:cover}
+.machine-video:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,21,47,.02) 25%,rgba(7,21,47,.34) 100%);pointer-events:none}
+.machine-photo .machine-badge,.machine-photo .image-credit-note,.machine-photo .visual-play,.machine-video .machine-badge{z-index:2}
+.machine-badge{position:absolute;top:18px;left:18px;padding:7px 9px;border-radius:999px;background:rgba(7,21,47,.74);color:#fff;font-size:8px;font-weight:900;letter-spacing:.12em;backdrop-filter:blur(8px)}
+.image-credit-note{position:absolute;right:18px;bottom:18px;font-size:9px;color:#fff;padding:6px 8px;border-radius:8px;background:rgba(7,21,47,.58);backdrop-filter:blur(8px)}
+.visual-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border:0;border-radius:50%;background:#fff;color:var(--blue);display:grid;place-items:center;font-size:19px;padding-left:3px;box-shadow:0 15px 42px rgba(0,0,0,.2);cursor:default}
+.tech-showcase-footer{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:32px;padding-top:24px;border-top:1px solid #e6ebf2}
+.tech-showcase-footer p{margin:0;color:var(--muted);font-size:14px}
+.real-photo{background-size:cover!important;background-position:center!important}
+.real-photo:after{background:linear-gradient(to top,rgba(7,21,47,.62),rgba(7,21,47,.04) 62%)}
+.home-gallery .gallery-tile{min-height:100%}
+
+/* Brand qualifier: keep the original Bruniano mark primary and make the descriptor clearly readable beside it. */
+.brand{gap:12px}
+.brand::after{content:'CENTRO MEDICO SPECIALISTICO';display:block;align-self:center;max-width:150px;font-size:9px;line-height:1.18;letter-spacing:.11em;font-weight:900;color:#707a89;white-space:normal;text-transform:uppercase}
+
+@media(max-width:900px){
+  .hero-real-card,.hero-real-card>img{min-height:460px}
+  .hero-real-content{left:26px;right:26px;bottom:26px}
+  .tech-showcase-footer{align-items:flex-start;flex-direction:column}
+  .brand{gap:13px}
+  .brand::after{max-width:150px;font-size:8.5px;line-height:1.18;letter-spacing:.1em}
+}
+@media(max-width:600px){
+  .hero-real-card,.hero-real-card>img{min-height:410px}
+  .demo-badge{top:14px;left:14px;font-size:8px}
+  .hero-real-content{left:20px;right:20px;bottom:20px}
+  .hero-real-content strong{font-size:32px}
+  .machine-photo,.machine-video{min-height:230px}
+  .machine-video video{min-height:230px}
+  .brand{gap:12px}
+  .brand::after{max-width:125px;font-size:8px;line-height:1.2;letter-spacing:.09em}
+}
