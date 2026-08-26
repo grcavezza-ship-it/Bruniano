@@ -1,0 +1,39 @@
+/* Homepage media layer: temporary demo visuals until Bruniano's own photos/videos are connected. */
+.hero-real-card{position:relative;min-height:565px;border-radius:38px;overflow:hidden;background:#0a43bd;box-shadow:var(--shadow)}
+.hero-real-card>img{width:100%;height:100%;min-height:565px;object-fit:cover}
+.hero-real-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,21,47,.04) 20%,rgba(7,21,47,.72) 100%)}
+.demo-badge{position:absolute;top:22px;left:22px;z-index:4;padding:8px 11px;border-radius:999px;background:rgba(7,21,47,.78);color:#fff;font-size:9px;font-weight:900;letter-spacing:.14em;backdrop-filter:blur(10px)}
+.hero-real-content{position:absolute;left:36px;right:36px;bottom:36px;z-index:3;color:#fff;display:flex;flex-direction:column;align-items:flex-start;max-width:520px}
+.hero-real-content>span{font-size:10px;letter-spacing:.16em;font-weight:900;color:#b9d1ff}
+.hero-real-content strong{font-size:clamp(28px,4vw,48px);line-height:1.02;letter-spacing:-.045em;margin:8px 0 12px}
+.hero-real-content small{font-size:11px;line-height:1.55;color:rgba(255,255,255,.78);max-width:360px}
+.machine-photo{background-size:cover;background-position:center;min-height:290px}
+.machine-photo:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,21,47,.05) 25%,rgba(7,21,47,.58) 100%)}
+.machine-photo .machine-badge,.machine-photo .image-credit-note,.machine-photo .visual-play{z-index:2}
+.image-credit-note{position:absolute;right:18px;bottom:18px;font-size:9px;color:#fff;padding:6px 8px;border-radius:8px;background:rgba(7,21,47,.58);backdrop-filter:blur(8px)}
+.visual-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border:0;border-radius:50%;background:#fff;color:var(--blue);display:grid;place-items:center;font-size:19px;padding-left:3px;box-shadow:0 15px 42px rgba(0,0,0,.2);cursor:default}
+.video-demo{background:#f4f7fb}
+.video-demo-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:64px;align-items:center}
+.video-demo-grid h2{font-size:clamp(38px,4.5vw,60px);line-height:1.04;letter-spacing:-.045em;margin:0 0 22px}
+.video-demo-grid h2 span{color:#9aa5b5}
+.video-demo-copy{max-width:520px;color:var(--muted);font-size:16px;line-height:1.75}
+.video-frame{position:relative;border-radius:30px;overflow:hidden;background:#07152f;box-shadow:var(--shadow);aspect-ratio:16/10}
+.video-frame iframe{width:100%;height:100%;border:0;display:block}
+.demo-video-label{position:absolute;left:16px;bottom:16px;padding:8px 10px;border-radius:999px;background:rgba(7,21,47,.8);color:#fff;font-size:9px;font-weight:900;letter-spacing:.12em;backdrop-filter:blur(10px)}
+.real-photo{background-size:cover!important;background-position:center!important}
+.real-photo:after{background:linear-gradient(to top,rgba(7,21,47,.62),rgba(7,21,47,.04) 62%)}
+.home-gallery .gallery-tile{min-height:100%}
+@media(max-width:900px){
+  .hero-real-card,.hero-real-card>img{min-height:460px}
+  .hero-real-content{left:26px;right:26px;bottom:26px}
+  .video-demo-grid{grid-template-columns:1fr;gap:36px}
+}
+@media(max-width:600px){
+  .hero-real-card,.hero-real-card>img{min-height:410px}
+  .demo-badge{top:14px;left:14px;font-size:8px}
+  .hero-real-content{left:20px;right:20px;bottom:20px}
+  .hero-real-content strong{font-size:32px}
+  .machine-photo{min-height:230px}
+  .video-demo-grid h2{font-size:40px}
+  .video-frame{border-radius:22px}
+}
