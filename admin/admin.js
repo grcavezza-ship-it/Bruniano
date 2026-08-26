@@ -33,6 +33,7 @@ function resetPostForm() {
   $('blog-id').value = '';
   $('blog-form-title').textContent = 'Nuovo articolo';
   $('blog-form-status').textContent = '';
+  $('blog-content').innerHTML = '';
 }
 
 function fillPostForm(post) {
@@ -43,7 +44,7 @@ function fillPostForm(post) {
   $('blog-author').value = post.author || '';
   $('blog-published-at').value = post.published_at ? new Date(post.published_at).toISOString().slice(0,16) : '';
   $('blog-excerpt').value = post.excerpt || '';
-  $('blog-content').value = post.content || '';
+  $('blog-content').innerHTML = post.content || '';
   $('blog-cover').value = post.cover_image_url || '';
   $('blog-meta').value = post.meta_description || '';
   $('blog-is-published').checked = Boolean(post.is_published);
@@ -65,10 +66,71 @@ async function loadBlog() {
   }
 }
 
+function ensureSelectionInsideEditor() {
+  const editor = $('blog-content');
+  if (document.activeElement !== editor && !editor.contains(document.activeElement)) editor.focus();
+}
+
+function execEditor(command, value = null) {
+  ensureSelectionInsideEditor();
+  document.execCommand(command, false, value);
+  $('blog-content').focus();
+}
+
+function insertLink() {
+  ensureSelectionInsideEditor();
+  const url = prompt('Inserisci URL del link');
+  if (!url) return;
+  execEditor('createLink', url);
+}
+
+function insertImage() {
+  ensureSelectionInsideEditor();
+  const url = prompt('Inserisci URL dell\'immagine');
+  if (!url) return;
+  execEditor('insertImage', url);
+}
+
+function setupEditor() {
+  document.querySelectorAll('.editor-btn').forEach(button => {
+    button.addEventListener('mousedown', event => event.preventDefault());
+    button.addEventListener('click', () => {
+      const cmd = button.dataset.cmd;
+      const block = button.dataset.block;
+      const action = button.dataset.action;
+      if (action === 'link') return insertLink();
+      if (action === 'image') return insertImage();
+      if (block) return execEditor('formatBlock', block);
+      if (cmd === 'formatBlock') return execEditor(cmd, button.dataset.value);
+      if (cmd) execEditor(cmd);
+    });
+  });
+
+  $('blog-content').addEventListener('paste', event => {
+    event.preventDefault();
+    const text = event.clipboardData?.getData('text/plain') || '';
+    execEditor('insertText', text);
+  });
+
+  $('blog-content').addEventListener('keydown', event => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
+      event.preventDefault();
+      execEditor('bold');
+    }
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'i') {
+      event.preventDefault();
+      execEditor('italic');
+    }
+  });
+}
+
 async function savePost(event) {
   event.preventDefault();
   const status = $('blog-form-status');
   status.textContent = 'Salvataggio…';
+  const content = $('blog-content').innerHTML.trim();
+  $('blog-content-html').value = content;
+
   const payload = {
     id: $('blog-id').value || undefined,
     title: $('blog-title').value,
@@ -77,11 +139,12 @@ async function savePost(event) {
     author: $('blog-author').value,
     published_at: $('blog-published-at').value ? new Date($('blog-published-at').value).toISOString() : null,
     excerpt: $('blog-excerpt').value,
-    content: $('blog-content').value,
+    content,
     cover_image_url: $('blog-cover').value,
     meta_description: $('blog-meta').value,
     is_published: $('blog-is-published').checked
   };
+
   try {
     const saved = await api('/api/blog', { method: payload.id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
     const index = state.blog.findIndex(post => post.id === saved.id);
@@ -133,4 +196,5 @@ document.getElementById('refresh-reviews').addEventListener('click', () => setSt
 function autoStub(id, fn) { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); }
 
 $('last-check').textContent = `Ultimo controllo: ${new Date().toLocaleString('it-IT')}`;
+setupEditor();
 loadBlog();
