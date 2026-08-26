@@ -11,6 +11,42 @@ document.querySelectorAll("[data-whatsapp]").forEach((link) => {
   link.rel = "noopener noreferrer";
 });
 
+function setupBrandLockup() {
+  const style = document.createElement("style");
+  style.textContent = `
+    .brand{display:flex;align-items:center;flex:0 0 auto;text-decoration:none}
+    .brand-lockup{display:flex;align-items:center;gap:12px;min-height:54px}
+    .brand-symbol{width:48px;height:48px;display:block;flex:0 0 48px}
+    .brand-name{font-family:Manrope,system-ui,sans-serif;font-size:35px;line-height:1;font-weight:800;letter-spacing:-.065em;color:#111a2c}
+    .brand-divider{width:1px;height:38px;background:#d8dde6;margin:0 10px 0 6px}
+    .brand-tagline{font-family:Manrope,system-ui,sans-serif;font-size:12px;line-height:1.12;font-weight:800;letter-spacing:.10em;color:#687385;white-space:nowrap}
+    .brand-tagline br{display:block}
+    .brand::after{content:none!important}
+    @media(max-width:900px){
+      .brand-lockup{gap:10px;min-height:52px}
+      .brand-symbol{width:46px;height:46px;flex-basis:46px}
+      .brand-name{font-size:30px}
+      .brand-divider{height:34px;margin:0 8px 0 3px}
+      .brand-tagline{font-size:10px;letter-spacing:.085em}
+    }
+    @media(max-width:600px){
+      .brand-lockup{gap:9px}
+      .brand-symbol{width:42px;height:42px;flex-basis:42px}
+      .brand-name{font-size:27px}
+      .brand-divider{height:31px;margin:0 6px 0 1px}
+      .brand-tagline{font-size:9px;letter-spacing:.075em}
+      .nav-wrap{gap:12px}
+    }
+  `;
+  document.head.appendChild(style);
+
+  document.querySelectorAll(".brand").forEach((brand) => {
+    brand.innerHTML = `<span class="brand-lockup"><img src="assets/logo-symbol.svg" alt="" class="brand-symbol"><span class="brand-name">bruniano</span><span class="brand-divider" aria-hidden="true"></span><span class="brand-tagline">CENTRO MEDICO<br>SPECIALISTICO</span></span>`;
+  });
+}
+
+setupBrandLockup();
+
 const menuToggle = document.querySelector(".menu-toggle");
 const mobileNav = document.querySelector(".mobile-nav");
 if (menuToggle && mobileNav) {
