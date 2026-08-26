@@ -1,17 +1,19 @@
-const WHATSAPP_NUMBER = ""; // Inserire il numero dello studio in formato internazionale, es. 393XXXXXXXXX
+const WHATSAPP_NUMBER = "393343755885";
 const WHATSAPP_MESSAGE = "Buongiorno, vorrei ricevere informazioni e prenotare un appuntamento presso Bruniano.";
 
-function whatsappUrl() {
-  if (!WHATSAPP_NUMBER) return "#contatti";
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+function whatsappUrl(message = WHATSAPP_MESSAGE) {
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
+
+const style = document.createElement("link");
+style.rel = "stylesheet";
+style.href = "site-v2.css";
+document.head.appendChild(style);
 
 document.querySelectorAll("[data-whatsapp]").forEach((link) => {
   link.href = whatsappUrl();
-  if (WHATSAPP_NUMBER) {
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-  }
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
 });
 
 const menuToggle = document.querySelector(".menu-toggle");
@@ -27,4 +29,5 @@ if (menuToggle && mobileNav) {
   }));
 }
 
-document.getElementById("year").textContent = new Date().getFullYear();
+const year = document.getElementById("year");
+if (year) year.textContent = new Date().getFullYear();
