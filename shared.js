@@ -1,9 +1,7 @@
 const header = document.getElementById("site-header");
-const footer = document.getElementById("site-footer");
 
-/* The shared stylesheet is loaded before first paint from styles.css. Keeping it out of JS prevents layout shifts. */
-
-/* Shared site header: intentionally kept identical to the homepage header. */
+/* Shared layout is rendered once, from one source of truth, so every public page
+   has exactly the same header and footer. */
 if (header) {
   header.innerHTML = `<header class="site-header" id="top">
   <div class="container nav-wrap">
@@ -19,8 +17,22 @@ if (header) {
   </nav>
 </header>`;
 }
-if (footer) {
-  footer.innerHTML = `<footer class="footer"><div class="container footer-grid"><img src="assets/logo-bruniano.svg" alt="Bruniano" class="footer-logo"><div><strong>BRUNIANO</strong><p>Fisioterapia & Riabilitazione</p></div><div class="footer-links"><a href="trattamenti.html">Trattamenti</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} Bruniano</span><span><a href="privacy.html">Privacy</a> · <a href="cookie.html">Cookie</a></span><span>Sito realizzato da <strong>Renderlab</strong></span><span><a href="admin/" class="operator-link">Operatori</a></span></div></footer>`;
+
+const footerMarkup = `<footer class="footer"><div class="container footer-grid"><img src="assets/logo-bruniano.svg" alt="Bruniano" class="footer-logo"><div><strong>BRUNIANO</strong><p>Fisioterapia & Riabilitazione</p></div><div class="footer-links"><a href="trattamenti.html">Trattamenti</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} Bruniano</span><span><a href="privacy.html">Privacy</a> · <a href="cookie.html">Cookie</a></span><span>Sito realizzato da <strong>Renderlab</strong></span><span><a href="admin/" class="operator-link">Operatori</a></span></div></footer>`;
+
+/* Replace any legacy/static footer with the canonical one. If a page only has
+   the old placeholder, reuse it; otherwise create the shared footer at the end. */
+const footerPlaceholder = document.getElementById("site-footer");
+const legacyFooter = document.querySelector("footer.footer");
+const footerHost = footerPlaceholder || legacyFooter;
+if (footerHost) {
+  if (footerHost.tagName === "FOOTER") footerHost.outerHTML = footerMarkup;
+  else footerHost.innerHTML = footerMarkup;
+} else {
+  const host = document.createElement("div");
+  host.id = "site-footer";
+  host.innerHTML = footerMarkup;
+  document.body.appendChild(host);
 }
 
 function setupStudioGallery(){
