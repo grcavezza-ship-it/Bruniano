@@ -1,8 +1,21 @@
 const header = document.getElementById("site-header");
 const footer = document.getElementById("site-footer");
 
+/* Shared site header: intentionally kept identical to the homepage header. */
 if (header) {
-  header.innerHTML = `<header class="site-header"><div class="container nav-wrap"><a class="brand" href="index.html" aria-label="Bruniano home"><span class="brand-lockup"><img src="assets/logo-symbol.svg" alt="" class="brand-symbol"><span class="brand-name">bruniano</span><span class="brand-divider" aria-hidden="true"></span><span class="brand-tagline">CENTRO MEDICO<br>SPECIALISTICO</span></span></a><nav class="desktop-nav"><a href="trattamenti.html">Trattamenti</a><a href="studio.html">Lo studio</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a></nav><a class="button button-small button-primary" data-whatsapp href="#">Prenota</a><button class="menu-toggle" aria-label="Apri menu" aria-expanded="false"><span></span><span></span></button></div><nav class="mobile-nav"><a href="trattamenti.html">Trattamenti</a><a href="studio.html">Lo studio</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a><a data-whatsapp href="#">Prenota su WhatsApp</a></nav></header>`;
+  header.innerHTML = `<header class="site-header" id="top">
+  <div class="container nav-wrap">
+    <a class="brand" href="index.html" aria-label="Bruniano home"><img src="assets/logo-bruniano.svg" alt="Bruniano" class="brand-logo"></a>
+    <nav class="desktop-nav" aria-label="Navigazione principale">
+      <a href="trattamenti.html">Trattamenti</a><a href="studio.html">Lo studio</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a>
+    </nav>
+    <a class="button button-small button-primary" data-whatsapp href="#">Prenota</a>
+    <button class="menu-toggle" aria-label="Apri menu" aria-expanded="false"><span></span><span></span></button>
+  </div>
+  <nav class="mobile-nav" aria-label="Menu mobile">
+    <a href="trattamenti.html">Trattamenti</a><a href="studio.html">Lo studio</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a><a data-whatsapp href="#">Prenota su WhatsApp</a>
+  </nav>
+</header>`;
 }
 if (footer) {
   footer.innerHTML = `<footer class="footer"><div class="container footer-grid"><img src="assets/logo-bruniano.svg" alt="Bruniano" class="footer-logo"><div><strong>BRUNIANO</strong><p>Fisioterapia & Riabilitazione</p></div><div class="footer-links"><a href="trattamenti.html">Trattamenti</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} Bruniano</span><span><a href="privacy.html">Privacy</a> · <a href="cookie.html">Cookie</a></span><span>Sito realizzato da <strong>Renderlab</strong></span><span><a href="admin/" class="operator-link">Operatori</a></span></div></footer>`;
