@@ -1,10 +1,83 @@
-const { sql } = require('./_db');
-function send(res,status,body){res.status(status).json(body)}
-async function getCurricula(){const r=await sql`SELECT value FROM site_settings WHERE key='team_curricula' LIMIT 1`;if(!r.length)return{};try{return JSON.parse(r[0].value||'{}')}catch{return{}}}
-async function saveCurricula(c){await sql`INSERT INTO site_settings (key,value,updated_at) VALUES ('team_curricula',${JSON.stringify(c)},now()) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value,updated_at=now()`}
-module.exports=async(req,res)=>{try{
-if(req.method==='GET'){const admin=req.query?.admin==='1';const rows=await sql`SELECT id,name,role,specialty,bio,photo_url,sort_order,is_published,created_at,updated_at FROM team_members ${admin?sql``:sql`WHERE is_published=true`} ORDER BY sort_order ASC,created_at ASC`;const c=await getCurricula();return send(res,200,{items:rows.map(x=>({...x,curriculum:c[x.id]||{}}))})}
-if(req.method==='POST'||req.method==='PUT'){const b=req.body||{},id=b.id||null,name=String(b.name||'').trim();if(!name)return send(res,400,{error:'Nome obbligatorio'});const role=String(b.role||'').trim(),specialty=String(b.specialty||'').trim(),bio=String(b.bio||'').trim(),photoUrl=String(b.photo_url||'').trim(),sortOrder=Number.isFinite(Number(b.sort_order))?Number(b.sort_order):0,isPublished=Boolean(b.is_published);let saved;if(id){const r=await sql`UPDATE team_members SET name=${name},role=${role},specialty=${specialty},bio=${bio},photo_url=${photoUrl},sort_order=${sortOrder},is_published=${isPublished},updated_at=now() WHERE id=${id} RETURNING *`;if(!r.length)return send(res,404,{error:'Professionista non trovato'});saved=r[0]}else{const r=await sql`INSERT INTO team_members(name,role,specialty,bio,photo_url,sort_order,is_published) VALUES(${name},${role},${specialty},${bio},${photoUrl},${sortOrder},${isPublished}) RETURNING *`;saved=r[0]}const c=await getCurricula();c[saved.id]=b.curriculum||{};await saveCurricula(c);return send(res,id?200:201,{...saved,curriculum:c[saved.id]})}
-if(req.method==='DELETE'){const id=req.body?.id;if(!id)return send(res,400,{error:'ID obbligatorio'});await sql`DELETE FROM team_members WHERE id=${id}`;const c=await getCurricula();delete c[id];await saveCurricula(c);return send(res,200,{ok:true})}
-res.setHeader('Allow','GET,POST,PUT,DELETE');return send(res,405,{error:'Metodo non consentito'})
-}catch(e){console.error(e);return send(res,500,{error:'Errore nella gestione del team'})}}
+import { db, json } from './_db.js';
+
+async function getCurricula(sql) {
+  const rows = await sql`SELECT value FROM site_settings WHERE key = 'team_curricula' LIMIT 1`;
+  if (!rows.length) return {};
+  try { return JSON.parse(rows[0].value || '{}'); } catch { return {}; }
+}
+
+async function saveCurricula(sql, curricula) {
+  await sql`
+    INSERT INTO site_settings (key, value, updated_at)
+    VALUES ('team_curricula', ${JSON.stringify(curricula)}, now())
+    ON CONFLICT (key) DO UPDATE
+    SET value = EXCLUDED.value, updated_at = now()
+  `;
+}
+
+export default async function handler(req) {
+  try {
+    const sql = db();
+    const url = new URL(req.url);
+
+    if (req.method === 'GET') {
+      const admin = url.searchParams.get('admin') === '1';
+      const rows = admin
+        ? await sql`SELECT id,name,role,specialty,bio,photo_url,sort_order,is_published,created_at,updated_at FROM team_members ORDER BY sort_order ASC,created_at ASC`
+        : await sql`SELECT id,name,role,specialty,bio,photo_url,sort_order,is_published,created_at,updated_at FROM team_members WHERE is_published = true ORDER BY sort_order ASC,created_at ASC`;
+      const curricula = await getCurricula(sql);
+      return json({ items: rows.map(item => ({ ...item, curriculum: curricula[item.id] || {} })) });
+    }
+
+    if (req.method === 'POST' || req.method === 'PUT') {
+      const body = await req.json();
+      const id = body.id || null;
+      const name = String(body.name || '').trim();
+      if (!name) return json({ error: 'Nome obbligatorio' }, 400);
+      const role = String(body.role || '').trim();
+      const specialty = String(body.specialty || '').trim();
+      const bio = String(body.bio || '').trim();
+      const photoUrl = String(body.photo_url || '').trim();
+      const sortOrder = Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : 0;
+      const isPublished = Boolean(body.is_published);
+
+      let saved;
+      if (id) {
+        const rows = await sql`
+          UPDATE team_members
+          SET name=${name}, role=${role}, specialty=${specialty}, bio=${bio}, photo_url=${photoUrl},
+              sort_order=${sortOrder}, is_published=${isPublished}, updated_at=now()
+          WHERE id=${id} RETURNING *
+        `;
+        if (!rows.length) return json({ error: 'Professionista non trovato' }, 404);
+        saved = rows[0];
+      } else {
+        const rows = await sql`
+          INSERT INTO team_members(name,role,specialty,bio,photo_url,sort_order,is_published)
+          VALUES(${name},${role},${specialty},${bio},${photoUrl},${sortOrder},${isPublished}) RETURNING *
+        `;
+        saved = rows[0];
+      }
+
+      const curricula = await getCurricula(sql);
+      curricula[saved.id] = body.curriculum || {};
+      await saveCurricula(sql, curricula);
+      return json({ ...saved, curriculum: curricula[saved.id] }, id ? 200 : 201);
+    }
+
+    if (req.method === 'DELETE') {
+      const body = await req.json();
+      if (!body.id) return json({ error: 'ID obbligatorio' }, 400);
+      await sql`DELETE FROM team_members WHERE id=${body.id}`;
+      const curricula = await getCurricula(sql);
+      delete curricula[body.id];
+      await saveCurricula(sql, curricula);
+      return json({ ok: true });
+    }
+
+    return json({ error: 'Method not allowed' }, 405);
+  } catch (error) {
+    console.error(error);
+    return json({ error: error.message || 'Errore nella gestione del team' }, 500);
+  }
+}
