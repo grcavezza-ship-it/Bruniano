@@ -18,13 +18,18 @@ async function saveCurricula(sql, curricula) {
 export default async function handler(req) {
   try {
     const sql = db();
-    const url = new URL(req.url);
 
     if (req.method === 'GET') {
+      const url = new URL(req.url);
       const admin = url.searchParams.get('admin') === '1';
       const rows = admin
         ? await sql`SELECT id,name,role,specialty,bio,photo_url,sort_order,is_published,created_at,updated_at FROM team_members ORDER BY sort_order ASC,created_at ASC`
         : await sql`SELECT id,name,role,specialty,bio,photo_url,sort_order,is_published,created_at,updated_at FROM team_members WHERE is_published = true ORDER BY sort_order ASC,created_at ASC`;
+
+      // Do not make a public Team request depend on the curriculum settings table
+      // when there are no published professionals.
+      if (!rows.length) return json({ items: [] });
+
       const curricula = await getCurricula(sql);
       return json({ items: rows.map(item => ({ ...item, curriculum: curricula[item.id] || {} })) });
     }
