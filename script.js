@@ -5,11 +5,6 @@ function whatsappUrl(message = WHATSAPP_MESSAGE) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
-const style = document.createElement("link");
-style.rel = "stylesheet";
-style.href = "site-v2.css";
-document.head.appendChild(style);
-
 document.querySelectorAll("[data-whatsapp]").forEach((link) => {
   link.href = whatsappUrl();
   link.target = "_blank";
