@@ -8,307 +8,34 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="site-v2.css">
 <style>
-/* ─────────────────────────────────────────────
-   BRUNIANO / TRATTAMENTI — editorial treatment page
-   ───────────────────────────────────────────── */
-.treatments-page{overflow:hidden}
+.treatments-page{overflow-x:hidden}
 .treatments-hero{position:relative;padding:112px 0 88px;background:linear-gradient(135deg,#f7faff 0%,#fff 50%,#eef5ff 100%)}
 .treatments-hero:before{content:"";position:absolute;width:560px;height:560px;border-radius:50%;right:-230px;top:-220px;background:rgba(37,96,245,.08);filter:blur(8px)}
 .treatments-hero:after{content:"";position:absolute;width:280px;height:280px;border-radius:50%;left:-180px;bottom:-170px;background:rgba(37,96,245,.055)}
-.treatments-hero .container{position:relative;z-index:1}
-.treatments-hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);gap:68px;align-items:center}
-.treatments-kicker{display:flex;align-items:center;gap:12px;font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--b2);margin-bottom:24px}
-.treatments-kicker:before{content:"";width:26px;height:2px;background:var(--b2);border-radius:2px}
-.treatments-hero h1{font-size:clamp(54px,6vw,88px);line-height:.96;letter-spacing:-.06em;max-width:780px;margin:0 0 28px}
-.treatments-hero h1 em{color:var(--b2);font-style:normal}
-.treatments-lead{max-width:680px;font-size:20px;line-height:1.6;color:#657083;margin:0 0 30px}
-.treatments-hero-actions{display:flex;gap:12px;flex-wrap:wrap}
-.treatments-visual{position:relative;min-height:485px;border-radius:34px;overflow:hidden;background:#cfd9e9;box-shadow:0 30px 80px rgba(19,38,74,.14)}
-.treatments-visual img{width:100%;height:100%;min-height:485px;object-fit:cover;display:block;filter:saturate(.9)}
-.treatments-visual:after{content:"";position:absolute;inset:auto 0 0 0;height:40%;background:linear-gradient(transparent,rgba(6,21,48,.68))}
-.treatments-visual-copy{position:absolute;z-index:2;left:26px;right:26px;bottom:24px;color:white}
-.treatments-visual-copy small{font-size:10px;letter-spacing:.16em;font-weight:900;text-transform:uppercase;opacity:.75}
-.treatments-visual-copy strong{display:block;font-size:27px;line-height:1.08;margin-top:6px;max-width:340px;letter-spacing:-.03em}
-
-.treatments-index{padding:18px 0;border-bottom:1px solid var(--line2);background:#fff;position:sticky;top:0;z-index:30}
-.treatments-index .container{display:flex;gap:10px;overflow:auto;scrollbar-width:none}
-.treatments-index .container::-webkit-scrollbar{display:none}
-.treatment-index-link{flex:0 0 auto;text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:10px 15px;font-size:11px;font-weight:800;color:#667287;background:white}
-.treatment-index-link:hover{border-color:#b9c7df;color:var(--b2)}
-
-.section-intro{max-width:760px;margin-bottom:48px}
-.section-intro .eyebrow{margin-bottom:14px}
-.section-intro h2{font-size:clamp(38px,4.2vw,62px);line-height:1;letter-spacing:-.05em;margin:0 0 18px}
-.section-intro h2 em{font-style:normal;color:var(--b2)}
-.section-intro p{font-size:18px;line-height:1.65;color:var(--muted2);margin:0}
-
-.technology-section{padding:100px 0 90px;background:#fff}
-.technology-feature{display:grid;grid-template-columns:1.02fr .98fr;gap:0;border:1px solid var(--line2);border-radius:32px;overflow:hidden;background:#f8fbff;box-shadow:var(--shadow2);margin-bottom:22px}
-.technology-feature.reverse{grid-template-columns:.98fr 1.02fr}
-.technology-feature.reverse .technology-media{order:2}
-.technology-feature.reverse .technology-copy{order:1}
-.technology-media{min-height:430px;position:relative;overflow:hidden;background:#dfe7f3}
-.technology-media img,.technology-media video{width:100%;height:100%;min-height:430px;object-fit:cover;display:block}
-.technology-media video{background:#dfe7f3}
-.media-badge{position:absolute;left:22px;top:22px;padding:8px 12px;border-radius:999px;background:rgba(8,24,55,.82);color:#fff;font-size:9px;letter-spacing:.15em;font-weight:900;text-transform:uppercase;backdrop-filter:blur(6px)}
-.technology-copy{padding:52px 54px;display:flex;flex-direction:column;justify-content:center}
-.technology-number{font-size:11px;color:var(--b2);letter-spacing:.14em;font-weight:900}
-.technology-copy h3{font-size:44px;line-height:1;letter-spacing:-.05em;margin:10px 0 16px}
-.technology-copy h3 span{color:var(--b2)}
-.technology-copy .technology-summary{font-size:18px;line-height:1.65;color:#56647a;margin:0 0 22px}
-.technology-points{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 28px;padding:0;list-style:none}
-.technology-points li{font-size:13px;line-height:1.45;color:#334259;padding:12px 13px;border-radius:15px;background:#fff;border:1px solid #e4ebf4}
-.technology-points li:before{content:"✓";font-weight:900;color:#2fbd71;margin-right:7px}
-.technology-note{font-size:12px;line-height:1.55;color:#778397;margin:0}
-.technology-cta{margin-top:25px}
-
-.services-section{padding:105px 0;background:#f5f8fc}
-.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.service-card{background:#fff;border:1px solid var(--line2);border-radius:28px;overflow:hidden;box-shadow:var(--shadow2)}
-.service-image{height:245px;overflow:hidden;background:#dce6f3}
-.service-image img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
-.service-card:hover .service-image img{transform:scale(1.035)}
-.service-body{padding:27px}
-.service-body .eyebrow{margin:0 0 9px}
-.service-body h3{font-size:26px;line-height:1.05;letter-spacing:-.035em;margin:0 0 12px}
-.service-body p{color:#657083;line-height:1.65;font-size:14px;margin:0 0 17px}
-.service-list{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:7px}
-.service-list li{padding:7px 9px;border-radius:999px;background:#f2f6fb;color:#506077;font-size:11px;font-weight:700}
-
-.path-section{padding:110px 0;background:#fff}
-.path-grid{display:grid;grid-template-columns:.82fr 1.18fr;gap:70px;align-items:start}
-.path-visual{position:sticky;top:100px;border-radius:32px;overflow:hidden;min-height:500px;background:#dbe5f2;box-shadow:var(--shadow2)}
-.path-visual img{width:100%;height:100%;min-height:500px;object-fit:cover;display:block}
-.path-visual-copy{position:absolute;left:24px;bottom:23px;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.35)}
-.path-visual-copy small{font-size:10px;font-weight:900;letter-spacing:.15em}
-.path-visual-copy strong{display:block;font-size:27px;line-height:1.05;margin-top:6px}
-.path-steps{display:flex;flex-direction:column}
-.path-step{display:grid;grid-template-columns:70px 1fr;gap:22px;padding:28px 0;border-top:1px solid var(--line2)}
-.path-step:first-child{border-top:0;padding-top:0}
-.path-num{width:54px;height:54px;border-radius:18px;background:#edf3ff;color:var(--b2);display:grid;place-items:center;font-weight:900;font-size:13px}
-.path-step h3{font-size:23px;line-height:1.1;margin:2px 0 8px;letter-spacing:-.025em}
-.path-step p{font-size:14px;line-height:1.65;color:#687588;margin:0}
-
-.info-band{padding:90px 0;background:#081a38;color:#fff}
-.info-band-grid{display:grid;grid-template-columns:1fr 1fr;gap:55px;align-items:center}
-.info-band h2{font-size:clamp(38px,4.5vw,59px);line-height:.98;letter-spacing:-.05em;margin:0 0 18px}
-.info-band h2 em{font-style:normal;color:#5e91ff}
-.info-band p{color:#b5c2d6;font-size:16px;line-height:1.7;margin:0;max-width:600px}
-.info-items{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.info-item{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);border-radius:20px;padding:20px}
-.info-item strong{display:block;font-size:13px;margin-bottom:7px}
-.info-item span{font-size:12px;line-height:1.5;color:#b4c0d1}
-
-.final-cta{padding:100px 0}
-.final-cta-inner{border-radius:34px;background:linear-gradient(135deg,#edf4ff,#f8fbff);border:1px solid #dbe6f5;padding:58px;display:flex;justify-content:space-between;align-items:center;gap:35px}
-.final-cta h2{font-size:clamp(38px,4.4vw,58px);line-height:1;letter-spacing:-.05em;margin:0 0 13px}
-.final-cta h2 em{font-style:normal;color:var(--b2)}
-.final-cta p{margin:0;color:#687588;line-height:1.6;max-width:650px}
-
-@media(max-width:950px){
- .treatments-hero-grid,.technology-feature,.technology-feature.reverse,.path-grid,.info-band-grid{grid-template-columns:1fr}
- .technology-feature.reverse .technology-media,.technology-feature.reverse .technology-copy{order:initial}
- .treatments-visual,.treatments-visual img{min-height:390px}
- .path-visual{position:relative;top:auto;min-height:380px}.path-visual img{min-height:380px}
- .services-grid{grid-template-columns:1fr 1fr}
- .technology-copy{padding:42px}
-}
-@media(max-width:650px){
- .treatments-hero{padding:76px 0 55px}
- .treatments-hero h1{font-size:52px}
- .treatments-lead{font-size:17px}
- .treatments-visual,.treatments-visual img{min-height:310px}
- .technology-section,.services-section,.path-section{padding:72px 0}
- .technology-copy{padding:32px 24px}.technology-copy h3{font-size:36px}
- .technology-points{grid-template-columns:1fr}
- .services-grid{grid-template-columns:1fr}
- .service-image{height:235px}
- .path-step{grid-template-columns:55px 1fr;gap:15px}.path-num{width:48px;height:48px}
- .info-items{grid-template-columns:1fr}
- .final-cta{padding:72px 0}.final-cta-inner{padding:34px 25px;display:block}.final-cta .button{margin-top:24px;width:100%}
-}
+.treatments-hero .container{position:relative;z-index:1}.treatments-hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);gap:68px;align-items:center}.treatments-kicker{display:flex;align-items:center;gap:12px;font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--b2);margin-bottom:24px}.treatments-kicker:before{content:"";width:26px;height:2px;background:var(--b2);border-radius:2px}.treatments-hero h1{font-size:clamp(54px,6vw,88px);line-height:.96;letter-spacing:-.06em;max-width:780px;margin:0 0 28px}.treatments-hero h1 em{color:var(--b2);font-style:normal}.treatments-lead{max-width:680px;font-size:20px;line-height:1.6;color:#657083;margin:0 0 30px}.treatments-hero-actions{display:flex;gap:12px;flex-wrap:wrap}.treatments-visual{position:relative;min-height:485px;border-radius:34px;overflow:hidden;background:#cfd9e9;box-shadow:0 30px 80px rgba(19,38,74,.14)}.treatments-visual img{width:100%;height:100%;min-height:485px;object-fit:cover;display:block;filter:saturate(.9)}.treatments-visual:after{content:"";position:absolute;inset:auto 0 0 0;height:40%;background:linear-gradient(transparent,rgba(6,21,48,.68))}.treatments-visual-copy{position:absolute;z-index:2;left:26px;right:26px;bottom:24px;color:white}.treatments-visual-copy small{font-size:10px;letter-spacing:.16em;font-weight:900;text-transform:uppercase;opacity:.75}.treatments-visual-copy strong{display:block;font-size:27px;line-height:1.08;margin-top:6px;max-width:340px;letter-spacing:-.03em}
+.treatments-index{padding:18px 0;border-bottom:1px solid var(--line2);background:#fff;position:sticky;top:0;z-index:30}.treatments-index .container{display:flex;gap:10px;overflow:auto;scrollbar-width:none}.treatments-index .container::-webkit-scrollbar{display:none}.treatment-index-link{flex:0 0 auto;text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:10px 15px;font-size:11px;font-weight:800;color:#667287;background:white}.treatment-index-link:hover{border-color:#b9c7df;color:var(--b2)}
+.section-intro{max-width:760px;margin-bottom:48px}.section-intro .eyebrow{margin-bottom:14px}.section-intro h2{font-size:clamp(38px,4.2vw,62px);line-height:1;letter-spacing:-.05em;margin:0 0 18px}.section-intro h2 em{font-style:normal;color:var(--b2)}.section-intro p{font-size:18px;line-height:1.65;color:var(--muted2);margin:0}
+.technology-section{padding:100px 0 90px;background:#fff}.technology-feature{display:grid;grid-template-columns:1.02fr .98fr;gap:0;border:1px solid var(--line2);border-radius:32px;overflow:hidden;background:#f8fbff;box-shadow:var(--shadow2);margin-bottom:22px}.technology-feature.reverse{grid-template-columns:.98fr 1.02fr}.technology-feature.reverse .technology-media{order:2}.technology-feature.reverse .technology-copy{order:1}.technology-media{min-height:430px;position:relative;overflow:hidden;background:#dfe7f3}.technology-media img,.technology-media video{width:100%;height:100%;min-height:430px;object-fit:cover;display:block}.technology-media video{background:#dfe7f3}.media-badge{position:absolute;left:22px;top:22px;padding:8px 12px;border-radius:999px;background:rgba(8,24,55,.82);color:#fff;font-size:9px;letter-spacing:.15em;font-weight:900;text-transform:uppercase;backdrop-filter:blur(6px)}.technology-copy{padding:52px 54px;display:flex;flex-direction:column;justify-content:center}.technology-number{font-size:11px;color:var(--b2);letter-spacing:.14em;font-weight:900}.technology-copy h3{font-size:44px;line-height:1;letter-spacing:-.05em;margin:10px 0 16px}.technology-copy h3 span{color:var(--b2)}.technology-copy .technology-summary{font-size:18px;line-height:1.65;color:#56647a;margin:0 0 22px}.technology-points{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 28px;padding:0;list-style:none}.technology-points li{font-size:13px;line-height:1.45;color:#334259;padding:12px 13px;border-radius:15px;background:#fff;border:1px solid #e4ebf4}.technology-points li:before{content:"✓";font-weight:900;color:#2fbd71;margin-right:7px}.technology-note{font-size:12px;line-height:1.55;color:#778397;margin:0}
+.services-section{padding:105px 0;background:#f5f8fc}.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.service-card{background:#fff;border:1px solid var(--line2);border-radius:28px;overflow:hidden;box-shadow:var(--shadow2)}.service-image{height:245px;overflow:hidden;background:#dce6f3}.service-image img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}.service-card:hover .service-image img{transform:scale(1.035)}.service-body{padding:27px}.service-body .eyebrow{margin:0 0 9px}.service-body h3{font-size:26px;line-height:1.05;letter-spacing:-.035em;margin:0 0 12px}.service-body p{color:#657083;line-height:1.65;font-size:14px;margin:0 0 17px}.service-list{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:7px}.service-list li{padding:7px 9px;border-radius:999px;background:#f2f6fb;color:#506077;font-size:11px;font-weight:700}
+.path-section{padding:110px 0;background:#fff}.path-grid{display:grid;grid-template-columns:.82fr 1.18fr;gap:70px;align-items:start}.path-visual{position:sticky;top:100px;border-radius:32px;overflow:hidden;min-height:500px;background:#dbe5f2;box-shadow:var(--shadow2)}.path-visual img{width:100%;height:100%;min-height:500px;object-fit:cover;display:block}.path-visual-copy{position:absolute;left:24px;bottom:23px;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.35)}.path-visual-copy small{font-size:10px;font-weight:900;letter-spacing:.15em}.path-visual-copy strong{display:block;font-size:27px;line-height:1.05;margin-top:6px}.path-steps{display:flex;flex-direction:column}.path-step{display:grid;grid-template-columns:70px 1fr;gap:22px;padding:28px 0;border-top:1px solid var(--line2)}.path-step:first-child{border-top:0;padding-top:0}.path-num{width:54px;height:54px;border-radius:18px;background:#edf3ff;color:var(--b2);display:grid;place-items:center;font-weight:900;font-size:13px}.path-step h3{font-size:23px;line-height:1.1;margin:2px 0 8px;letter-spacing:-.025em}.path-step p{font-size:14px;line-height:1.65;color:#687588;margin:0}
+.info-band{padding:90px 0;background:#081a38;color:#fff}.info-band-grid{display:grid;grid-template-columns:1fr 1fr;gap:55px;align-items:center}.info-band h2{font-size:clamp(38px,4.5vw,59px);line-height:.98;letter-spacing:-.05em;margin:0 0 18px}.info-band h2 em{font-style:normal;color:#5e91ff}.info-band p{color:#b5c2d6;font-size:16px;line-height:1.7;margin:0;max-width:600px}.info-items{display:grid;grid-template-columns:1fr 1fr;gap:12px}.info-item{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);border-radius:20px;padding:20px}.info-item strong{display:block;font-size:13px;margin-bottom:7px}.info-item span{font-size:12px;line-height:1.5;color:#b4c0d1}
+.final-cta{padding:100px 0}.final-cta-inner{border-radius:34px;background:linear-gradient(135deg,#edf4ff,#f8fbff);border:1px solid #dbe6f5;padding:58px;display:flex;justify-content:space-between;align-items:center;gap:35px}.final-cta h2{font-size:clamp(38px,4.4vw,58px);line-height:1;letter-spacing:-.05em;margin:0 0 13px}.final-cta h2 em{font-style:normal;color:var(--b2)}.final-cta p{margin:0;color:#687588;line-height:1.6;max-width:650px}
+@media(max-width:950px){.treatments-hero-grid,.technology-feature,.technology-feature.reverse,.path-grid,.info-band-grid{grid-template-columns:1fr}.technology-feature.reverse .technology-media,.technology-feature.reverse .technology-copy{order:initial}.treatments-visual,.treatments-visual img{min-height:390px}.path-visual{position:relative;top:auto;min-height:380px}.path-visual img{min-height:380px}.services-grid{grid-template-columns:1fr 1fr}.technology-copy{padding:42px}}
+@media(max-width:650px){.treatments-hero{padding:76px 0 55px}.treatments-hero h1{font-size:52px}.treatments-lead{font-size:17px}.treatments-visual,.treatments-visual img{min-height:310px}.technology-section,.services-section,.path-section{padding:72px 0}.technology-copy{padding:32px 24px}.technology-copy h3{font-size:36px}.technology-points{grid-template-columns:1fr}.services-grid{grid-template-columns:1fr}.service-image{height:235px}.path-step{grid-template-columns:55px 1fr;gap:15px}.path-num{width:48px;height:48px}.info-items{grid-template-columns:1fr}.final-cta{padding:72px 0}.final-cta-inner{padding:34px 25px;display:block}.final-cta .button{margin-top:24px;width:100%}}
 </style>
 </head>
 <body class="treatments-page">
 <div id="site-header"></div>
 <main>
-<section class="treatments-hero">
- <div class="container treatments-hero-grid">
-  <div>
-   <p class="treatments-kicker">CENTRO MEDICO SPECIALISTICO · TRATTAMENTI</p>
-   <h1>La terapia giusta,<br><em>per il tuo percorso.</em></h1>
-   <p class="treatments-lead">A Bruniano il trattamento non è un protocollo uguale per tutti. Terapie strumentali, manuali e riabilitative vengono integrate all'interno di un percorso costruito sulla persona, sulle sue esigenze e sugli obiettivi di recupero.</p>
-   <div class="treatments-hero-actions">
-    <a class="button button-primary button-large" data-whatsapp href="#">Parla con noi su WhatsApp ↗</a>
-    <a class="button button-large" href="#tecnologie">Scopri le tecnologie ↓</a>
-   </div>
-  </div>
-  <div class="treatments-visual">
-   <img src="https://www.fisioterapiaitalia.com/upload/tecarterapia-piede-napoli-1536x838.jpg" alt="Trattamento fisioterapico con tecnologia strumentale" loading="eager">
-   <div class="treatments-visual-copy"><small>Un approccio integrato</small><strong>Tecnologia, competenza e attenzione alla persona.</strong></div>
-  </div>
- </div>
-</section>
-
-<nav class="treatments-index" aria-label="Indice trattamenti">
- <div class="container">
-  <a class="treatment-index-link" href="#tecnologie">Tecnologie</a>
-  <a class="treatment-index-link" href="#tecar">Tecar</a>
-  <a class="treatment-index-link" href="#laser">Laser Ixyon</a>
-  <a class="treatment-index-link" href="#onde">Onde d'urto</a>
-  <a class="treatment-index-link" href="#manuali">Terapia manuale</a>
-  <a class="treatment-index-link" href="#riabilitazione">Riabilitazione</a>
-  <a class="treatment-index-link" href="#percorso">Il percorso</a>
- </div>
-</nav>
-
-<section class="technology-section" id="tecnologie">
- <div class="container">
-  <div class="section-intro">
-   <p class="eyebrow">TECNOLOGIE AVANZATE</p>
-   <h2>Non basta avere una macchina.<br><em>Conta come viene usata.</em></h2>
-   <p>Le tecnologie sono strumenti all'interno di un percorso fisioterapico. La scelta della modalità di trattamento viene adattata alla situazione della persona e integrata, quando indicato, con terapia manuale ed esercizio.</p>
-  </div>
-
-  <article class="technology-feature" id="tecar">
-   <div class="technology-media">
-    <video autoplay muted loop playsinline preload="metadata" poster="https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto:good,c_limit,w_1280/v1787742244/Tecar.jpg">
-     <source src="https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742244/Tecar.mp4" type="video/mp4">
-    </video>
-    <span class="media-badge">VIDEO REALE BRUNIANO</span>
-   </div>
-   <div class="technology-copy">
-    <span class="technology-number">01 / TECNOLOGIA STRUMENTALE</span>
-    <h3>Tecar <span>Human Tecar.</span></h3>
-    <p class="technology-summary">La Tecar utilizza energia elettromagnetica a radiofrequenza per supportare il lavoro sui tessuti e può essere inserita nei percorsi dedicati a dolore, infiammazione e recupero funzionale.</p>
-    <ul class="technology-points"><li>Approccio mirato</li><li>Integrabile con terapia manuale</li><li>Utilizzabile in diversi percorsi muscolo-scheletrici</li><li>Trattamento personalizzato dal professionista</li></ul>
-    <p class="technology-note">Le modalità e l'opportunità del trattamento vengono definite dopo la valutazione della persona.</p>
-    <div class="technology-cta"><a class="text-link" data-whatsapp href="#">Chiedi informazioni sulla Tecar →</a></div>
-   </div>
-  </article>
-
-  <article class="technology-feature reverse" id="laser">
-   <div class="technology-media">
-    <img src="https://physiopretoria.co.za/corpus/content/media/2019/02/Laser6.jpg" alt="Seduta di laserterapia in fisioterapia" loading="lazy">
-    <span class="media-badge">IMMAGINE DIMOSTRATIVA</span>
-   </div>
-   <div class="technology-copy">
-    <span class="technology-number">02 / TECNOLOGIA STRUMENTALE</span>
-    <h3>Laser <span>Ixyon.</span></h3>
-    <p class="technology-summary">La laserterapia utilizza energia luminosa per supportare i processi biologici dei tessuti e viene proposta all'interno di percorsi mirati alla gestione del dolore, degli stati infiammatori e al recupero.</p>
-    <ul class="technology-points"><li>Azione antinfiammatoria</li><li>Azione antalgica</li><li>Biostimolazione</li><li>Dosaggio definito in base al percorso</li></ul>
-    <p class="technology-note">La seduta viene eseguita dal professionista secondo parametri e indicazioni coerenti con il quadro clinico.</p>
-    <div class="technology-cta"><a class="text-link" data-whatsapp href="#">Chiedi informazioni sul Laser Ixyon →</a></div>
-   </div>
-  </article>
-
-  <article class="technology-feature" id="onde">
-   <div class="technology-media">
-    <video autoplay muted loop playsinline preload="metadata" poster="https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto:good,c_limit,w_1280/v1787742226/WhatsApp_Video_2026-08-17_at_11.50.58.jpg">
-     <source src="https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742226/WhatsApp_Video_2026-08-17_at_11.50.58.mp4" type="video/mp4">
-    </video>
-    <span class="media-badge">VIDEO DI RIFERIMENTO</span>
-   </div>
-   <div class="technology-copy">
-    <span class="technology-number">03 / TECNOLOGIA STRUMENTALE</span>
-    <h3>Onde <span>d'urto.</span></h3>
-    <p class="technology-summary">Impulsi acustici applicati in modo mirato. Nella brochure Bruniano questa tecnologia è associata, tra gli altri utilizzi, a calcificazioni e problematiche muscolo-scheletriche.</p>
-    <ul class="technology-points"><li>Applicazione mirata</li><li>Percorsi per tendinopatie</li><li>Calcificazioni</li><li>Problematiche muscolo-scheletriche selezionate</li></ul>
-    <p class="technology-note">Il video presente in questa fase è un riferimento visivo provvisorio e verrà sostituito con il materiale Bruniano definitivo.</p>
-    <div class="technology-cta"><a class="text-link" data-whatsapp href="#">Chiedi informazioni sulle Onde d'urto →</a></div>
-   </div>
-  </article>
- </div>
-</section>
-
-<section class="services-section" id="manuali">
- <div class="container">
-  <div class="section-intro">
-   <p class="eyebrow">OLTRE LA TECNOLOGIA</p>
-   <h2>Le mani, il movimento,<br><em>il recupero.</em></h2>
-   <p>La tecnologia è solo una parte del percorso. Bruniano affianca le terapie strumentali con attività manuali e riabilitative pensate per accompagnare la persona dal controllo dei sintomi al recupero della funzione.</p>
-  </div>
-  <div class="services-grid">
-   <article class="service-card">
-    <div class="service-image"><img src="https://www.asiermerino.com/galeria_seccion/pEF1Lmgv_IMG_8943.jpg" alt="Terapia manuale in ambiente fisioterapico" loading="lazy"></div>
-    <div class="service-body">
-     <p class="eyebrow">TERAPIA MANUALE</p>
-     <h3>Il trattamento parte dall'ascolto.</h3>
-     <p>La terapia manuale utilizza il contatto e il movimento per lavorare su mobilità, tessuti e funzione. La tecnica viene scelta e adattata dal professionista in base alla risposta della persona.</p>
-     <ul class="service-list"><li>Mobilità</li><li>Tessuti molli</li><li>Dolore</li><li>Funzione</li></ul>
-    </div>
-   </article>
-   <article class="service-card" id="riabilitazione">
-    <div class="service-image"><img src="https://www.pjazzamedics.com/uploads/PjLPbHs7/768x0_640x0/physiotherapy__msi___png.webp" alt="Percorso di fisioterapia e riabilitazione" loading="lazy"></div>
-    <div class="service-body">
-     <p class="eyebrow">RIABILITAZIONE</p>
-     <h3>Recuperare funzione, non solo movimento.</h3>
-     <p>Per percorsi ortopedici, post-traumatici e di recupero funzionale, la riabilitazione combina valutazione, trattamento ed esercizio terapeutico con progressione personalizzata.</p>
-     <ul class="service-list"><li>Ortopedica</li><li>Post-traumatica</li><li>Funzionale</li><li>Neurologica</li><li>Cardio-respiratoria</li></ul>
-    </div>
-   </article>
-   <article class="service-card" id="posturale">
-    <div class="service-image"><img src="https://images.squarespace-cdn.com/content/v1/5da67777f263fa52cde78e50/1577384764970-THC5H15CKU69ALRAS32C/PTCameron-0090.jpg" alt="Esercizio e lavoro posturale in fisioterapia" loading="lazy"></div>
-    <div class="service-body">
-     <p class="eyebrow">POSTURA E MOVIMENTO</p>
-     <h3>Portare il recupero nella vita reale.</h3>
-     <p>Il lavoro posturale e l'esercizio aiutano a trasformare il recupero in movimento consapevole, controllo e capacità funzionale. Può essere individuale o inserito in attività di gruppo.</p>
-     <ul class="service-list"><li>Posturale</li><li>Movimento</li><li>Funzionale</li><li>Terza età</li><li>Sport</li></ul>
-    </div>
-   </article>
-  </div>
- </div>
-</section>
-
-<section class="path-section" id="percorso">
- <div class="container path-grid">
-  <div class="path-visual">
-   <img src="https://www.centromorra.it/uploads/2016/01/tecarterapia-napoli-1024x681.jpg" alt="Trattamento fisioterapico in studio" loading="lazy">
-   <div class="path-visual-copy"><small>IL METODO BRUNIANO</small><strong>Prima la persona.<br>Poi la tecnologia.</strong></div>
-  </div>
-  <div>
-   <div class="section-intro">
-    <p class="eyebrow">COME FUNZIONA</p>
-    <h2>Un percorso costruito<br><em>passo dopo passo.</em></h2>
-    <p>La pagina trattamenti deve far capire una cosa al paziente: non sta comprando una macchina. Sta iniziando un percorso.</p>
-   </div>
-   <div class="path-steps">
-    <article class="path-step"><div class="path-num">01</div><div><h3>Valutazione</h3><p>Si parte dal problema, dalla storia della persona e dagli obiettivi. La valutazione serve a capire quale percorso sia più appropriato.</p></div></article>
-    <article class="path-step"><div class="path-num">02</div><div><h3>Scelta del trattamento</h3><p>Il professionista decide se utilizzare terapia manuale, tecnologia strumentale, esercizio terapeutico o una combinazione di più strumenti.</p></div></article>
-    <article class="path-step"><div class="path-num">03</div><div><h3>Progressione</h3><p>Il trattamento viene adattato nel tempo in base alla risposta della persona e al recupero della funzione.</p></div></article>
-    <article class="path-step"><div class="path-num">04</div><div><h3>Obiettivo: autonomia</h3><p>Il risultato non è soltanto sentirsi meglio durante la seduta, ma recuperare movimento, fiducia e capacità di tornare alle proprie attività.</p></div></article>
-   </div>
-  </div>
- </div>
-</section>
-
-<section class="info-band">
- <div class="container info-band-grid">
-  <div>
-   <p class="eyebrow" style="color:#7aa6ff">UN PERCORSO PERSONALIZZATO</p>
-   <h2>Ogni corpo ha una storia.<br><em>Ogni percorso anche.</em></h2>
-   <p>Le informazioni presenti in questa pagina hanno carattere descrittivo. La scelta del trattamento, l'eventuale combinazione di tecnologie e la frequenza delle sedute vengono definiti dal professionista in base alla situazione della persona.</p>
-  </div>
-  <div class="info-items">
-   <div class="info-item"><strong>Terapie strumentali</strong><span>Tecar, Laser Ixyon, Onde d'urto e altri strumenti vengono integrati quando indicati.</span></div>
-   <div class="info-item"><strong>Terapia manuale</strong><span>Un lavoro diretto su mobilità, tessuti e funzione all'interno del percorso.</span></div>
-   <div class="info-item"><strong>Riabilitazione</strong><span>Percorsi ortopedici, post-traumatici, funzionali e nelle aree indicate dal centro.</span></div>
-   <div class="info-item"><strong>Postura e movimento</strong><span>Esercizio e controllo del movimento per consolidare il recupero.</span></div>
-  </div>
- </div>
-</section>
-
-<section class="final-cta">
- <div class="container">
-  <div class="final-cta-inner">
-   <div><p class="eyebrow">INIZIAMO DALLA PERSONA</p><h2>Non sai quale trattamento<br><em>fa per te?</em></h2><p>Non devi scegliere da solo. Raccontaci il tuo problema e ti aiutiamo a capire da dove iniziare.</p></div>
-   <a class="button button-primary button-large" data-whatsapp href="#">Scrivi al Centro Medico Specialistico ↗</a>
-  </div>
- </div>
-</section>
-</main>
-<div id="site-footer"></div>
-<script src="shared.js"></script>
-<script src="script.js"></script>
-</body>
-</html>
+<section class="treatments-hero"><div class="container treatments-hero-grid"><div><p class="treatments-kicker">CENTRO MEDICO SPECIALISTICO · TRATTAMENTI</p><h1>La terapia giusta,<br><em>per il tuo percorso.</em></h1><p class="treatments-lead">A Bruniano il trattamento non è un protocollo uguale per tutti. Terapie strumentali, manuali e riabilitative vengono integrate all'interno di un percorso costruito sulla persona, sulle sue esigenze e sugli obiettivi di recupero.</p><div class="treatments-hero-actions"><a class="button button-primary button-large" data-whatsapp href="#">Parla con noi su WhatsApp ↗</a><a class="button button-large" href="#tecnologie">Scopri le tecnologie ↓</a></div></div><div class="treatments-visual"><img src="https://www.fisioterapiaitalia.com/upload/tecarterapia-piede-napoli-1536x838.jpg" alt="Trattamento fisioterapico con tecnologia strumentale" loading="eager"><div class="treatments-visual-copy"><small>Un approccio integrato</small><strong>Tecnologia, competenza e attenzione alla persona.</strong></div></div></div></section>
+<nav class="treatments-index" aria-label="Indice trattamenti"><div class="container"><a class="treatment-index-link" href="#tecnologie">Tecnologie</a><a class="treatment-index-link" href="#tecar">Tecar</a><a class="treatment-index-link" href="#laser">Laser Ixyon</a><a class="treatment-index-link" href="#onde">Onde d'urto</a><a class="treatment-index-link" href="#manuali">Terapia manuale</a><a class="treatment-index-link" href="#riabilitazione">Riabilitazione</a><a class="treatment-index-link" href="#percorso">Il percorso</a></div></nav>
+<section class="technology-section" id="tecnologie"><div class="container"><div class="section-intro"><p class="eyebrow">TECNOLOGIE AVANZATE</p><h2>Non basta avere una macchina.<br><em>Conta come viene usata.</em></h2><p>Le tecnologie sono strumenti all'interno di un percorso fisioterapico. La scelta della modalità di trattamento viene adattata alla situazione della persona e integrata, quando indicato, con terapia manuale ed esercizio.</p></div>
+<article class="technology-feature" id="tecar"><div class="technology-media"><video autoplay muted loop playsinline preload="metadata" poster="https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto:good,c_limit,w_1280/v1787742244/Tecar.jpg"><source src="https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742244/Tecar.mp4" type="video/mp4"></video><span class="media-badge">VIDEO REALE BRUNIANO</span></div><div class="technology-copy"><span class="technology-number">01 · TECAR</span><h3>Tecar <span>terapia.</span></h3><p class="technology-summary">Una tecnologia utilizzata nei percorsi fisioterapici per accompagnare il recupero dei tessuti e lavorare su dolore, rigidità e funzionalità, secondo le indicazioni del professionista.</p><ul class="technology-points"><li>Supporto alla gestione del dolore</li><li>Stimolo e trattamento dei tessuti</li><li>Integrazione nel percorso riabilitativo</li><li>Protocollo personalizzato</li></ul><p class="technology-note">La scelta del trattamento e dei parametri dipende dalla valutazione individuale e dagli obiettivi del percorso.</p></div></article>
+<article class="technology-feature reverse" id="laser"><div class="technology-media"><img src="https://www.fisioterapiaitalia.com/upload/laserterapia-laserixyon-fisioterapia-768x432.jpg" alt="Laserterapia in fisioterapia" loading="lazy"><span class="media-badge">IMMAGINE DIMOSTRATIVA</span></div><div class="technology-copy"><span class="technology-number">02 · LASER IXYON</span><h3>Laser <span>Ixyon.</span></h3><p class="technology-summary">Una tecnologia basata sull'energia luminosa, utilizzata all'interno di specifici percorsi per supportare le finalità antalgiche, antinfiammatorie e biostimolanti indicate dal professionista.</p><ul class="technology-points"><li>Azione antalgica</li><li>Supporto al controllo dell'infiammazione</li><li>Approccio non invasivo</li><li>Integrazione con altre terapie</li></ul><p class="technology-note">La durata e il protocollo vengono definiti in funzione della problematica e della risposta individuale.</p></div></article>
+<article class="technology-feature" id="onde"><div class="technology-media"><video autoplay muted loop playsinline preload="metadata" poster="https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto:good,c_limit,w_1280/v1787742226/WhatsApp_Video_2026-08-17_at_11.50.58.jpg"><source src="https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742226/WhatsApp_Video_2026-08-17_at_11.50.58.mp4" type="video/mp4"></video><span class="media-badge">VIDEO DI RIFERIMENTO</span></div><div class="technology-copy"><span class="technology-number">03 · ONDE D'URTO</span><h3>Onde <span>d'urto.</span></h3><p class="technology-summary">Impulsi acustici focalizzati o radiali, impiegati in specifici percorsi riabilitativi per problematiche muscolo-scheletriche selezionate, sempre dopo una valutazione professionale.</p><ul class="technology-points"><li>Tendinopatie selezionate</li><li>Calcificazioni</li><li>Dolore persistente in specifici distretti</li><li>Stimolazione dei tessuti</li></ul><p class="technology-note">Non è un trattamento universale: indicazioni e parametri vengono scelti in base alla situazione clinica.</p></div></article>
+</div></section>
+<section class="services-section" id="manuali"><div class="container"><div class="section-intro"><p class="eyebrow">TERAPIE E RIABILITAZIONE</p><h2>Il trattamento continua<br><em>oltre la macchina.</em></h2><p>La brochure Bruniano affianca alle tecnologie una proposta più ampia di terapia manuale, riabilitazione, postura e movimento. La pagina li raccoglie in percorsi leggibili e facilmente consultabili.</p></div><div class="services-grid"><article class="service-card"><div class="service-image"><img src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=1200&q=85" alt="Terapia manuale fisioterapica" loading="lazy"></div><div class="service-body"><p class="eyebrow">MANUALE</p><h3>Terapia manuale</h3><p>Tecniche manuali inserite nel percorso di valutazione e trattamento per lavorare su mobilità, tessuti molli e funzionalità.</p><ul class="service-list"><li>Mobilizzazioni</li><li>Tecniche manuali</li><li>Trattamento personalizzato</li></ul></div></article><article class="service-card" id="riabilitazione"><div class="service-image"><img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=85" alt="Riabilitazione fisioterapica" loading="lazy"></div><div class="service-body"><p class="eyebrow">RIABILITAZIONE</p><h3>Riabilitazione</h3><p>Percorsi pensati per recuperare movimento, autonomia e qualità della vita dopo traumi, interventi o condizioni specifiche.</p><ul class="service-list"><li>Ortopedica</li><li>Post-traumatica</li><li>Neurologica</li><li>Respiratoria</li></ul></div></article><article class="service-card"><div class="service-image"><img src="https://images.unsplash.com/photo-1538805060514-97d9cc17730c?auto=format&fit=crop&w=1200&q=85" alt="Esercizio e movimento guidato" loading="lazy"></div><div class="service-body"><p class="eyebrow">MOVIMENTO</p><h3>Postura e movimento</h3><p>Lavoro individuale o in piccoli gruppi per migliorare controllo, consapevolezza del movimento, forza e capacità funzionale.</p><ul class="service-list"><li>Terapia posturale</li><li>Allenamento funzionale</li><li>Ginnastica dolce</li><li>Massaggio sportivo</li></ul></div></article></div></div></section>
+<section class="path-section" id="percorso"><div class="container path-grid"><div class="path-visual"><img src="https://images.unsplash.com/photo-1559757175-0eb30cd8c063?auto=format&fit=crop&w=1400&q=85" alt="Professionista sanitario durante una valutazione" loading="lazy"><div class="path-visual-copy"><small>APPROCCIO BRUNIANO</small><strong>Prima la persona.<br>Poi il trattamento.</strong></div></div><div><div class="section-intro"><p class="eyebrow">IL NOSTRO APPROCCIO</p><h2>Un percorso chiaro,<br><em>costruito insieme.</em></h2><p>L'obiettivo non è accumulare sedute. È capire da dove partire, scegliere gli strumenti più adatti e verificare nel tempo come il corpo risponde.</p></div><div class="path-steps"><article class="path-step"><div class="path-num">01</div><div><h3>Valutazione</h3><p>Si parte dall'ascolto e dalla valutazione della persona, della problematica e degli obiettivi. Il professionista definisce priorità e indicazioni.</p></div></article><article class="path-step"><div class="path-num">02</div><div><h3>Piano di trattamento</h3><p>Le tecniche manuali, le tecnologie e l'esercizio vengono combinati secondo necessità, senza applicare automaticamente lo stesso schema a tutti.</p></div></article><article class="path-step"><div class="path-num">03</div><div><h3>Progressione</h3><p>Il percorso viene adattato in base alla risposta, ai progressi e alla funzionalità. La terapia evolve insieme alla persona.</p></div></article><article class="path-step"><div class="path-num">04</div><div><h3>Continuità</h3><p>Quando indicato, il lavoro in studio viene accompagnato da esercizi e indicazioni da seguire anche fuori dal centro.</p></div></article></div></div></div></section>
+<section class="info-band"><div class="container info-band-grid"><div><p class="eyebrow" style="color:#6c9bff">BRUNIANO</p><h2>La tecnologia è uno strumento.<br><em>La persona è il centro.</em></h2><p>Questa è la differenza tra una semplice seduta e un percorso: competenza, ascolto, tecnologia e riabilitazione che lavorano nella stessa direzione.</p></div><div class="info-items"><div class="info-item"><strong>Personalizzazione</strong><span>Ogni percorso parte dalla situazione della persona e viene adattato nel tempo.</span></div><div class="info-item"><strong>Tecnologia</strong><span>Macchinari e terapie strumentali vengono scelti in funzione del percorso.</span></div><div class="info-item"><strong>Competenza</strong><span>La tecnologia non sostituisce la valutazione e la competenza del professionista.</span></div><div class="info-item"><strong>Continuità</strong><span>Il recupero non vive solo durante la seduta: conta anche ciò che viene costruito tra un appuntamento e l'altro.</span></div></div></div></section>
+<section class="final-cta"><div class="container final-cta-inner"><div><p class="eyebrow">PARLIAMONE</p><h2>Hai bisogno di capire<br><em>da dove iniziare?</em></h2><p>Contatta il Centro Medico Specialistico Bruniano e raccontaci la tua esigenza. Ti indicheremo come impostare il primo passo del percorso.</p></div><a class="button button-primary button-large" data-whatsapp href="#">Scrivici su WhatsApp ↗</a></div></section>
+</main><div id="site-footer"></div><script src="shared.js"></script><script src="script.js"></script></body></html>
