@@ -90,4 +90,47 @@ function setupCurriculumModal(){
 }
 setupCurriculumModal();
 
+function setupFinishedTreatmentsPage(){
+  if(!document.body.classList.contains('treatments-page')) return;
+
+  // Il Laser Ixyon usa il video reale già presente su Cloudinary, non un'immagine dimostrativa.
+  const laserMedia=document.querySelector('#laser .technology-media');
+  if(laserMedia){
+    const old=laserMedia.querySelector('img');
+    if(old) old.remove();
+    const badge=laserMedia.querySelector('.media-badge');
+    if(badge) badge.textContent='VIDEO REALE BRUNIANO';
+    if(!laserMedia.querySelector('video')){
+      const video=document.createElement('video');
+      video.autoplay=true; video.muted=true; video.loop=true; video.playsInline=true; video.preload='metadata';
+      video.poster='https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto:good,c_limit,w_1280/v1787742255/Laser.jpg';
+      video.src='https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742255/Laser.mp4';
+      video.setAttribute('aria-label','Video reale del trattamento Laser Ixyon Bruniano');
+      video.style.cssText='width:100%;height:100%;min-height:430px;object-fit:cover;display:block';
+      laserMedia.appendChild(video);
+    }
+  }
+
+  // Elimina dal front-end ogni testo redazionale/interno e sostituiscilo con copy rivolto al paziente.
+  const replacements=[
+    ['La brochure Bruniano affianca alle tecnologie una proposta più ampia di terapia manuale, riabilitazione, postura e movimento. La pagina li raccoglie in percorsi leggibili e facilmente consultabili.','Accanto alle tecnologie, Bruniano propone terapia manuale, riabilitazione, postura e movimento per accompagnare la persona in ogni fase del recupero.'],
+    ['IMMAGINE DIMOSTRATIVA','TECNOLOGIA BRUNIANO'],
+    ['VIDEO DI RIFERIMENTO','VIDEO DI TRATTAMENTO'],
+    ['La brochure','Bruniano']
+  ];
+
+  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  const nodes=[]; let node;
+  while(node=walker.nextNode()) nodes.push(node);
+  nodes.forEach(textNode=>{
+    let value=textNode.nodeValue;
+    replacements.forEach(([from,to])=>{ if(value.includes(from)) value=value.split(from).join(to); });
+    textNode.nodeValue=value;
+  });
+
+  const shockBadge=document.querySelector('#onde .media-badge');
+  if(shockBadge) shockBadge.textContent='VIDEO DI TRATTAMENTO';
+}
+setupFinishedTreatmentsPage();
+
 const year=document.getElementById("year"); if(year)year.textContent=new Date().getFullYear();
