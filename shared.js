@@ -1,14 +1,7 @@
 const header = document.getElementById("site-header");
 const footer = document.getElementById("site-footer");
 
-/* Shared responsive system: every public page follows the Home's width and breakpoints. */
-if (!document.querySelector('link[data-global-responsive]')) {
-  const responsiveLink = document.createElement('link');
-  responsiveLink.rel = 'stylesheet';
-  responsiveLink.href = 'responsive-global.css?v=3';
-  responsiveLink.dataset.globalResponsive = 'true';
-  document.head.appendChild(responsiveLink);
-}
+/* The shared stylesheet is loaded before first paint from styles.css. Keeping it out of JS prevents layout shifts. */
 
 /* Shared site header: intentionally kept identical to the homepage header. */
 if (header) {
