@@ -6,17 +6,10 @@ export function db() {
   return neon(url);
 }
 
-export function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'content-type': 'application/json; charset=utf-8',
-      'cache-control': 'no-store'
-    }
-  });
+export function send(res, data, status = 200) {
+  res.status(status).json(data);
 }
 
-export function methodGuard(req, allowed) {
-  if (!allowed.includes(req.method)) return json({ error: 'Method not allowed' }, 405);
-  return null;
+export function getQuery(req) {
+  return req.query || {};
 }
