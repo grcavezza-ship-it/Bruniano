@@ -25,12 +25,9 @@
 .brand{gap:12px}
 .brand::after{content:'CENTRO MEDICO SPECIALISTICO';display:block;align-self:center;max-width:150px;font-size:9px;line-height:1.18;letter-spacing:.11em;font-weight:900;color:#707a89;white-space:normal;text-transform:uppercase}
 
-/* Responsive home. */
 body:has(.hero-media-home) .container{width:min(92vw,1480px)}
 body:has(.hero-media-home) .site-header .container{min-height:76px}
 body:has(.hero-media-home) .offer-ribbon .container{width:min(92vw,1480px)}
-
-/* Immersive hero: one strong visual field instead of a floating card beside empty space. */
 body:has(.hero-media-home) .hero-media-home{position:relative;min-height:clamp(620px,calc(100svh - 148px),840px);display:flex;align-items:center;padding:0;overflow:hidden;background:#07152f}
 body:has(.hero-media-home) .hero-media-home .hero-orb{display:none}
 body:has(.hero-media-home) .hero-media-home .hero-grid{position:relative;width:min(92vw,1480px);min-height:clamp(620px,calc(100svh - 148px),840px);display:flex;align-items:center;grid-template-columns:none;gap:0;z-index:2}
@@ -74,10 +71,24 @@ body:has(.hero-media-home) .hero-media-home .floating-card-bottom{bottom:54px;le
 }
 @media(max-width:600px){
   body:has(.hero-media-home) .container,body:has(.hero-media-home) .hero-media-home .hero-grid,body:has(.hero-media-home) .offer-ribbon .container{width:min(92vw,560px)}
-  body:has(.hero-media-home) .hero-media-home{padding:56px 0 48px}
-  body:has(.hero-media-home) .hero-media-home .hero-copy h1{font-size:clamp(48px,14vw,64px);line-height:.9}
-  body:has(.hero-media-home) .hero-media-home .hero-text{font-size:16px;line-height:1.58}
+  body:has(.hero-media-home) .hero-media-home{padding:64px 0 54px;min-height:720px}
+  body:has(.hero-media-home) .hero-media-home .hero-copy{padding-top:0;max-width:none}
+  body:has(.hero-media-home) .hero-media-home .hero-copy h1{font-size:clamp(46px,13vw,64px);line-height:.94;letter-spacing:-.065em;margin-bottom:22px;max-width:100%}
+  body:has(.hero-media-home) .hero-media-home .hero-text{font-size:16px;line-height:1.58;max-width:100%;margin-bottom:0}
+  body:has(.hero-media-home) .hero-media-home .hero-actions{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin-top:24px}
+  body:has(.hero-media-home) .hero-media-home .hero-actions .button{width:100%;min-height:56px}
+  body:has(.hero-media-home) .hero-media-home .hero-note{margin-top:20px;font-size:13px;line-height:1.45;display:flex;align-items:flex-start;gap:9px;max-width:100%}
   body:has(.hero-media-home) .hero-media-home .hero-real-content{display:none}
-  body:has(.hero-media-home) .hero-media-home .floating-card-top{top:18px;right:14px}
-  body:has(.hero-media-home) .hero-media-home .floating-card-bottom{bottom:14px;left:14px}
+  body:has(.hero-media-home) .hero-media-home .floating-card{display:none!important}
+  body:has(.hero-media-home) .hero-media-home .hero-real-overlay{background:linear-gradient(180deg,rgba(6,20,45,.74) 0%,rgba(6,20,45,.82) 48%,rgba(6,20,45,.95) 100%)}
+  body:has(.hero-media-home) .hero-media-home .hero-real-card>img{object-position:62% center}
+}
+@media(max-width:650px){
+  body:has(.hero-media-home) .offer-ribbon{height:auto;min-height:0;overflow:visible}
+  body:has(.hero-media-home) .offer-ribbon-inner{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:8px;padding:16px 0 18px!important}
+  body:has(.hero-media-home) .offer-ribbon-inner>div{width:100%;display:flex;flex-direction:column;gap:5px}
+  body:has(.hero-media-home) .offer-kicker{font-size:9px;line-height:1.2}
+  body:has(.hero-media-home) .offer-ribbon strong{font-size:17px;line-height:1.25;white-space:normal}
+  body:has(.hero-media-home) .offer-ribbon small{font-size:12px;line-height:1.45;display:block;white-space:normal}
+  body:has(.hero-media-home) .offer-link{margin:0!important;font-size:14px;line-height:1.2}
 }
