@@ -1,3 +1,8 @@
+const responsiveLink = document.createElement("link");
+responsiveLink.rel = "stylesheet";
+responsiveLink.href = "responsive-site.css?v=1";
+document.head.appendChild(responsiveLink);
+
 const WHATSAPP_NUMBER = "393343755885";
 const WHATSAPP_MESSAGE = "Buongiorno, vorrei ricevere informazioni e prenotare un appuntamento presso Bruniano.";
 
@@ -93,7 +98,6 @@ setupCurriculumModal();
 function setupFinishedTreatmentsPage(){
   if(!document.body.classList.contains('treatments-page')) return;
 
-  // Il Laser Ixyon usa il video reale già presente su Cloudinary, non un'immagine dimostrativa.
   const laserMedia=document.querySelector('#laser .technology-media');
   if(laserMedia){
     const old=laserMedia.querySelector('img');
@@ -111,7 +115,6 @@ function setupFinishedTreatmentsPage(){
     }
   }
 
-  // Elimina dal front-end ogni testo redazionale/interno e sostituiscilo con copy rivolto al paziente.
   const replacements=[
     ['La brochure Bruniano affianca alle tecnologie una proposta più ampia di terapia manuale, riabilitazione, postura e movimento. La pagina li raccoglie in percorsi leggibili e facilmente consultabili.','Accanto alle tecnologie, Bruniano propone terapia manuale, riabilitazione, postura e movimento per accompagnare la persona in ogni fase del recupero.'],
     ['IMMAGINE DIMOSTRATIVA','TECNOLOGIA BRUNIANO'],
