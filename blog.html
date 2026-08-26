@@ -1,1 +1,40 @@
-<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Blog | Bruniano</title><meta name="description" content="Approfondimenti Bruniano su fisioterapia, riabilitazione, postura e tecnologie."><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="site-v2.css"></head><body><div id="site-header"></div><main><section class="page-hero"><div class="container"><p class="eyebrow">BLOG / APPROFONDIMENTI</p><h1>Conoscere meglio<br><em>il proprio corpo.</em></h1><p>Articoli brevi e chiari su fisioterapia, riabilitazione, postura, movimento e tecnologie.</p></div></section><section class="content-section"><div class="container article-grid"><article class="article-card"><span>FISIOTERAPIA</span><h3>Mal di schiena: quando è il momento di farsi valutare?</h3><p>Bozza editoriale da completare con il professionista.</p><a href="#">Leggi l'articolo →</a></article><article class="article-card"><span>TECNOLOGIE</span><h3>Tecar e altre terapie strumentali: come orientarsi?</h3><p>Bozza editoriale da completare con il professionista.</p><a href="#">Leggi l'articolo →</a></article><article class="article-card"><span>RIABILITAZIONE</span><h3>Recuperare dopo un infortunio: cosa aspettarsi</h3><p>Bozza editoriale da completare con il professionista.</p><a href="#">Leggi l'articolo →</a></article></div></section><section class="content-section" style="padding-top:10px"><div class="container content-card"><p class="eyebrow">SEO</p><h2>Il blog sarà gestibile.</h2><p>Ogni articolo avrà titolo, slug, immagine, categoria, testo, meta description, data e stato pubblicato/bozza. Potremo creare contenuti locali e informativi senza intervenire sul codice.</p></div></section></main><div id="site-footer"></div><script src="shared.js"></script><script src="script.js"></script></body></html>
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blog | Bruniano</title>
+  <meta name="description" content="Approfondimenti Bruniano su fisioterapia, riabilitazione, postura e tecnologie.">
+  <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="site-v2.css">
+</head>
+<body>
+<div id="site-header"></div>
+<main>
+  <section class="page-hero"><div class="container"><p class="eyebrow">BLOG / APPROFONDIMENTI</p><h1>Conoscere meglio<br><em>il proprio corpo.</em></h1><p>Articoli brevi e chiari su fisioterapia, riabilitazione, postura, movimento e tecnologie.</p></div></section>
+  <section class="content-section"><div class="container"><div id="blog-grid" class="article-grid"><div class="content-card">Caricamento articoli…</div></div></div></section>
+</main>
+<div id="site-footer"></div>
+<script src="shared.js"></script><script src="script.js"></script>
+<script>
+(async () => {
+  const grid = document.getElementById('blog-grid');
+  try {
+    const response = await fetch('/api/blog');
+    const data = await response.json();
+    const posts = data.items || [];
+    if (!posts.length) { grid.innerHTML = '<div class="content-card"><p class="eyebrow">BLOG</p><h2>Presto online.</h2><p>Gli approfondimenti Bruniano verranno pubblicati qui.</p></div>'; return; }
+    grid.innerHTML = posts.map(post => `
+      <article class="article-card">
+        ${post.cover_image_url ? `<div style="height:190px;margin:-30px -30px 24px;overflow:hidden;border-radius:24px 24px 0 0"><img src="${post.cover_image_url}" alt="" style="width:100%;height:100%;object-fit:cover"></div>` : ''}
+        <span>${escapeHtml(post.category || 'APPROFONDIMENTO')}</span>
+        <h3>${escapeHtml(post.title)}</h3>
+        <p>${escapeHtml(post.excerpt || '')}</p>
+        <a href="articolo.html?slug=${encodeURIComponent(post.slug)}">Leggi l'articolo →</a>
+      </article>`).join('');
+  } catch (error) {
+    grid.innerHTML = '<div class="content-card"><p class="eyebrow">BLOG</p><h2>Temporaneamente non disponibile.</h2><p>Riprova tra poco.</p></div>';
+  }
+  function escapeHtml(value){return String(value ?? '').replace(/[&<>\"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[s]));}
+})();
+</script>
+</body>
+</html>
