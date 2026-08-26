@@ -3,7 +3,7 @@
 Sito custom per Bruniano con area amministrativa.
 
 ## Funzioni
-- Home, trattamenti, tecnologie, studio
+- Home, trattamenti, tecnologie e studio
 - Galleria foto/video
 - Team gestibile da pannello
 - Promozioni con date e scadenza
@@ -12,19 +12,17 @@ Sito custom per Bruniano con area amministrativa.
 - Contatti e Google Maps
 - Prenotazione WhatsApp
 
-## Stack
+## Stack previsto
 - GitHub: codice e versionamento
-- Cloudflare Workers Static Assets: hosting
-- Cloudflare Worker: API backend
-- Cloudflare D1: database SQL
-- Cloudflare R2: foto e video
-- Cloudflare Access / Zero Trust: protezione admin
+- Vercel: hosting e deploy
+- Backend/database: da collegare nella fase successiva
+- Google Reviews: integrazione da configurare
 
 ## Sicurezza
-Le scritture API richiedono un contesto Cloudflare Access. In produzione `/admin/*` deve essere protetto da una Cloudflare Access Application. Nessun secret privato deve essere committato.
+Nessun secret privato deve essere committato nel repository. L'area `/admin` sarà protetta dal sistema di autenticazione scelto per il backend definitivo.
 
 ## Stato
-Frontend e mini-CMS sono già predisposti. D1/R2/Workers sono configurati nel repository; resta da creare il database D1, il bucket R2 e collegare il pannello alle API.
+Il frontend e la struttura del mini-CMS sono in fase di rifinitura. Le vecchie configurazioni Cloudflare, D1, R2 e Supabase sono state rimosse per evitare sovrapposizioni. Il backend definitivo verrà collegato prima del deploy di produzione.
 
 ## Dati del materiale cliente
 - Via Nazionale delle Puglie, 283 — San Vitaliano (NA)
