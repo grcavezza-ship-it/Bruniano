@@ -1,0 +1,69 @@
+/* Global responsive system — public pages share the Home's width and rhythm. */
+:root{--site-max:1480px;--site-gutter:clamp(20px,3vw,48px)}
+.container{width:min(var(--site-max),calc(100% - (var(--site-gutter) * 2)));margin-inline:auto}
+
+/* Shared typography: page interiors should not appear oversized just because their canvas is narrower. */
+.page-hero h1{font-size:clamp(50px,5.8vw,88px);line-height:.94;letter-spacing:-.06em}
+.section-heading h2,.intro h2,.tech h2,.cta h2{font-size:clamp(38px,4.2vw,64px)}
+.content-section{padding:clamp(70px,8vw,112px) 0}
+
+/* Shared two-column layouts become fluid before tablet width. */
+.page-hero .container,.content-section .container,.section-pad .container{width:min(var(--site-max),calc(100% - (var(--site-gutter) * 2)))}
+
+@media(max-width:1200px){
+  :root{--site-gutter:32px}
+  .desktop-nav{gap:20px}
+  .nav-wrap{gap:22px}
+  .page-hero{padding:clamp(110px,12vw,150px) 0 72px}
+}
+
+@media(max-width:900px){
+  :root{--site-gutter:28px}
+  .desktop-nav{display:none!important}
+  .nav-wrap{height:76px}
+  .menu-toggle{display:block}
+  .site-header>.mobile-nav{display:none}
+  .site-header>.mobile-nav.open{display:flex}
+  .offer-ribbon-inner{align-items:flex-start;flex-direction:column;padding:14px 0}
+  .offer-link{margin-top:2px}
+  .page-hero{padding:92px 0 58px}
+  .page-hero h1{font-size:clamp(46px,8vw,72px)}
+  .page-hero p{font-size:17px}
+  .section-heading{grid-template-columns:1fr;gap:22px;margin-bottom:34px}
+  .intro-grid,.tech-panel,.contact-grid,.review-box{grid-template-columns:1fr}
+  .card-grid{grid-template-columns:repeat(2,1fr)}
+  .machine-grid{grid-template-columns:1fr 1fr}
+  .article-grid,.content-grid{grid-template-columns:1fr 1fr}
+  .gallery-grid{grid-template-columns:1fr 1fr}
+  .promo-band{padding:46px;flex-direction:column;align-items:flex-start}
+}
+
+@media(max-width:650px){
+  :root{--site-gutter:20px}
+  .nav-wrap{height:70px}
+  .brand-name{font-size:28px!important}
+  .brand-symbol{width:42px!important;height:42px!important;flex-basis:42px!important}
+  .brand-tagline{font-size:8.5px!important}
+  .brand-divider{height:30px!important}
+  .page-hero{padding:72px 0 48px}
+  .page-hero h1{font-size:clamp(44px,13vw,58px);line-height:.96}
+  .page-hero p{font-size:16px}
+  .section-pad{padding:76px 0}
+  .content-section{padding:64px 0}
+  .card-grid,.machine-grid,.article-grid,.content-grid,.gallery-grid{grid-template-columns:1fr}
+  .review-box,.promo-band{padding:30px 24px}
+  .button-large{width:100%}
+}
+
+/* Full-bleed media should use the page width, while text remains readable. */
+img,video{max-width:100%;height:auto}
+
+/* Studio-specific layout corrections */
+.studio-hero-grid,.studio-story-grid,.experience-grid{max-width:var(--site-max);margin-inline:auto}
+.studio-grid{max-width:var(--site-max);margin-inline:auto}
+
+/* Team cards remain generous at desktop but never force a narrow canvas. */
+.team-live,.team-grid{width:100%}
+
+/* Long-form article: keep comfortable reading width while page chrome follows the wide grid. */
+article.content-card{max-width:900px;margin-inline:auto}
