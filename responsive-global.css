@@ -1,23 +1,45 @@
-/* Global responsive system — public pages share the Home's width and rhythm. */
-:root{--site-max:1480px;--site-gutter:clamp(20px,3vw,48px)}
-.container{width:min(var(--site-max),calc(100% - (var(--site-gutter) * 2)));margin-inline:auto}
+/* Global responsive system — every public page uses the Home's canvas, scale and breakpoints. */
+:root{--site-max:1480px;--site-gutter:clamp(24px,2.5vw,48px)}
+html{font-size:16px}
+body{overflow-x:hidden}
+.container,
+.treatments-hero .container,
+.studio-hero .container,
+.studio-nav .container,
+.studio-gallery .container,
+.studio-story .container,
+.studio-tech .container,
+.studio-experience .container,
+.studio-cta .container,
+.treatments-index .container,
+.technology-section .container,
+.services-section .container,
+.path-section .container,
+.info-band .container,
+.final-cta .container{width:min(var(--site-max),calc(100% - (var(--site-gutter) * 2)))!important;max-width:var(--site-max)!important;margin-inline:auto!important}
 
-/* Shared typography: page interiors should not appear oversized just because their canvas is narrower. */
-.page-hero h1{font-size:clamp(50px,5.8vw,88px);line-height:.94;letter-spacing:-.06em}
-.section-heading h2,.intro h2,.tech h2,.cta h2{font-size:clamp(38px,4.2vw,64px)}
-.content-section{padding:clamp(70px,8vw,112px) 0}
+/* Match the Home's desktop visual scale instead of letting page-local CSS enlarge headings. */
+.page-hero h1{font-size:clamp(54px,5.4vw,88px)!important;line-height:.94!important;letter-spacing:-.06em!important}
+.page-hero p{font-size:clamp(16px,1.15vw,18px)!important;line-height:1.65!important}
+.treatments-hero h1,.studio-hero h1{font-size:clamp(54px,5.4vw,88px)!important;line-height:.94!important;letter-spacing:-.06em!important}
+.treatments-lead,.studio-lead{font-size:clamp(17px,1.25vw,19px)!important;line-height:1.65!important}
+.section-intro h2,.section-heading h2,.intro h2,.tech h2,.cta h2{font-size:clamp(40px,4.1vw,64px)!important;line-height:1.02!important}
+.technology-copy h3{font-size:clamp(34px,3.1vw,46px)!important}
+.service-body h3{font-size:clamp(22px,1.8vw,27px)!important}
+.path-step h3{font-size:clamp(20px,1.5vw,24px)!important}
 
-/* Shared two-column layouts become fluid before tablet width. */
-.page-hero .container,.content-section .container,.section-pad .container{width:min(var(--site-max),calc(100% - (var(--site-gutter) * 2)))}
-
+/* Wide desktop: use the full available composition without making text enormous. */
+@media(min-width:1500px){
+  :root{--site-gutter:48px}
+}
 @media(max-width:1200px){
   :root{--site-gutter:32px}
   .desktop-nav{gap:20px}
   .nav-wrap{gap:22px}
-  .page-hero{padding:clamp(110px,12vw,150px) 0 72px}
+  .treatments-hero-grid,.studio-hero-grid{gap:44px!important}
+  .treatments-hero h1,.studio-hero h1{font-size:clamp(50px,5.4vw,76px)!important}
 }
-
-@media(max-width:900px){
+@media(max-width:950px){
   :root{--site-gutter:28px}
   .desktop-nav{display:none!important}
   .nav-wrap{height:76px}
@@ -27,17 +49,22 @@
   .offer-ribbon-inner{align-items:flex-start;flex-direction:column;padding:14px 0}
   .offer-link{margin-top:2px}
   .page-hero{padding:92px 0 58px}
-  .page-hero h1{font-size:clamp(46px,8vw,72px)}
-  .page-hero p{font-size:17px}
+  .page-hero h1{font-size:clamp(46px,8vw,72px)!important}
   .section-heading{grid-template-columns:1fr;gap:22px;margin-bottom:34px}
   .intro-grid,.tech-panel,.contact-grid,.review-box{grid-template-columns:1fr}
-  .card-grid{grid-template-columns:repeat(2,1fr)}
+  .card-grid,.team-live{grid-template-columns:repeat(2,1fr)}
   .machine-grid{grid-template-columns:1fr 1fr}
   .article-grid,.content-grid{grid-template-columns:1fr 1fr}
   .gallery-grid{grid-template-columns:1fr 1fr}
   .promo-band{padding:46px;flex-direction:column;align-items:flex-start}
+  .treatments-hero-grid,.studio-hero-grid,.studio-story-grid,.experience-grid,.info-band-grid,.path-grid{grid-template-columns:1fr!important}
+  .technology-feature,.technology-feature.reverse{grid-template-columns:1fr!important}
+  .technology-feature.reverse .technology-media,.technology-feature.reverse .technology-copy{order:initial!important}
+  .studio-grid{grid-template-columns:1fr 1fr!important;grid-template-rows:240px 240px 240px!important}
+  .studio-tile.large{grid-row:auto!important}.studio-tile.wide{grid-column:1/3!important}
+  .services-grid{grid-template-columns:1fr 1fr!important}
+  .tech-strip{grid-template-columns:1fr 1fr!important}
 }
-
 @media(max-width:650px){
   :root{--site-gutter:20px}
   .nav-wrap{height:70px}
@@ -46,24 +73,20 @@
   .brand-tagline{font-size:8.5px!important}
   .brand-divider{height:30px!important}
   .page-hero{padding:72px 0 48px}
-  .page-hero h1{font-size:clamp(44px,13vw,58px);line-height:.96}
-  .page-hero p{font-size:16px}
+  .page-hero h1{font-size:clamp(44px,13vw,58px)!important}
+  .treatments-hero,.studio-hero{padding:72px 0 55px!important}
+  .treatments-hero h1,.studio-hero h1{font-size:clamp(48px,12.8vw,60px)!important}
+  .treatments-lead,.studio-lead{font-size:16px!important;line-height:1.6!important}
   .section-pad{padding:76px 0}
   .content-section{padding:64px 0}
-  .card-grid,.machine-grid,.article-grid,.content-grid,.gallery-grid{grid-template-columns:1fr}
+  .card-grid,.team-live,.machine-grid,.article-grid,.content-grid,.gallery-grid,.services-grid,.tech-strip{grid-template-columns:1fr!important}
+  .gallery-grid{grid-template-rows:auto!important}
+  .studio-tile.large,.studio-tile.wide{grid-column:auto!important;grid-row:auto!important}
   .review-box,.promo-band{padding:30px 24px}
   .button-large{width:100%}
+  .technology-copy{padding:32px 24px!important}
+  .technology-copy h3{font-size:36px!important}
+  .technology-points{grid-template-columns:1fr!important}
+  .studio-hero-media,.studio-hero-media img,.treatments-visual,.treatments-visual img{min-height:315px!important}
 }
-
-/* Full-bleed media should use the page width, while text remains readable. */
-img,video{max-width:100%;height:auto}
-
-/* Studio-specific layout corrections */
-.studio-hero-grid,.studio-story-grid,.experience-grid{max-width:var(--site-max);margin-inline:auto}
-.studio-grid{max-width:var(--site-max);margin-inline:auto}
-
-/* Team cards remain generous at desktop but never force a narrow canvas. */
-.team-live,.team-grid{width:100%}
-
-/* Long-form article: keep comfortable reading width while page chrome follows the wide grid. */
-article.content-card{max-width:900px;margin-inline:auto}
+img,video{max-width:100%}
