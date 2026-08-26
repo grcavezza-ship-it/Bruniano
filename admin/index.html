@@ -67,7 +67,24 @@
             <div class="form-row"><label>Slug<input id="blog-slug" placeholder="mal-di-schiena-quando-farsi-valutare"></label><label>Categoria<input id="blog-category" placeholder="Fisioterapia"></label></div>
             <div class="form-row"><label>Autore<input id="blog-author" placeholder="Dott. ..."></label><label>Data pubblicazione<input id="blog-published-at" type="datetime-local"></label></div>
             <label>Estratto breve<textarea id="blog-excerpt" rows="3" placeholder="Testo che comparirà nelle anteprime..."></textarea></label>
-            <label>Contenuto articolo<textarea id="blog-content" rows="12" required placeholder="Scrivi qui il contenuto dell'articolo..."></textarea></label>
+            <label>Contenuto articolo</label>
+            <div class="rich-editor" id="rich-editor-wrap">
+              <div class="editor-toolbar" role="toolbar" aria-label="Strumenti di formattazione">
+                <button type="button" class="editor-btn" data-cmd="bold" title="Grassetto"><strong>B</strong></button>
+                <button type="button" class="editor-btn" data-cmd="italic" title="Corsivo"><em>I</em></button>
+                <button type="button" class="editor-btn" data-cmd="underline" title="Sottolineato"><u>U</u></button>
+                <button type="button" class="editor-btn" data-block="H2" title="Titolo 2">H2</button>
+                <button type="button" class="editor-btn" data-block="H3" title="Titolo 3">H3</button>
+                <button type="button" class="editor-btn" data-cmd="insertUnorderedList" title="Elenco puntato">•</button>
+                <button type="button" class="editor-btn" data-cmd="insertOrderedList" title="Elenco numerato">1.</button>
+                <button type="button" class="editor-btn" data-cmd="formatBlock" data-value="blockquote" title="Citazione">❝</button>
+                <button type="button" class="editor-btn" data-action="link" title="Inserisci link">↗</button>
+                <button type="button" class="editor-btn" data-action="image" title="Inserisci immagine da URL">🖼</button>
+                <button type="button" class="editor-btn" data-cmd="removeFormat" title="Rimuovi formattazione">Tx</button>
+              </div>
+              <div id="blog-content" class="editor-content" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Scrivi qui l'articolo. Puoi usare titoli, grassetto, corsivo, liste, link, citazioni e immagini."></div>
+              <input type="hidden" id="blog-content-html">
+            </div>
             <label>URL immagine di copertina<input id="blog-cover" placeholder="https://..."></label>
             <label>Meta description<textarea id="blog-meta" rows="3" placeholder="Descrizione SEO dell'articolo..."></textarea></label>
             <label class="check-inline"><input id="blog-is-published" type="checkbox"> Pubblica subito</label>
