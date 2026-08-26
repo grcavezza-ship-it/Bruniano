@@ -5,7 +5,7 @@ const footer = document.getElementById("site-footer");
 if (!document.querySelector('link[data-global-responsive]')) {
   const responsiveLink = document.createElement('link');
   responsiveLink.rel = 'stylesheet';
-  responsiveLink.href = 'responsive-global.css';
+  responsiveLink.href = 'responsive-global.css?v=3';
   responsiveLink.dataset.globalResponsive = 'true';
   document.head.appendChild(responsiveLink);
 }
