@@ -1,25 +1,136 @@
-const seed = {
-  team:[{id:1,name:"Professionista 01",role:"Fisioterapista",active:true},{id:2,name:"Professionista 02",role:"Fisioterapista",active:true},{id:3,name:"Professionista 03",role:"Fisioterapista",active:true}],
-  promos:[{id:1,title:"10 + 2 omaggio",status:"Attiva",expires:"Da configurare"}],
-  blog:[{id:1,title:"Mal di schiena: quando è il momento di farsi valutare?",status:"Pubblicato"},{id:2,title:"Tecar e altre terapie strumentali: come orientarsi?",status:"Pubblicato"},{id:3,title:"Recuperare dopo un infortunio: cosa aspettarsi",status:"Pubblicato"}]
-};
-const state = JSON.parse(localStorage.getItem("bruniano-admin") || "null") || seed;
-localStorage.setItem("bruniano-admin", JSON.stringify(state));
+const state = { team: [], promos: [], blog: [] };
 
-function persist(){localStorage.setItem("bruniano-admin", JSON.stringify(state)); render();}
-function esc(value){return String(value).replace(/[&<>\"]/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[s]));}
+const $ = (id) => document.getElementById(id);
+const esc = (value) => String(value ?? '').replace(/[&<>\"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[s]));
 
-function renderTeam(){const el=document.getElementById("team-list");el.innerHTML=state.team.map(x=>`<div class="managed-item"><div><strong>${esc(x.name)}</strong><small>${esc(x.role)} · ${x.active?"Pubblicato":"Disattivato"}</small></div><div class="managed-actions"><button class="mini" data-edit-team="${x.id}">Modifica</button><button class="mini" data-toggle-team="${x.id}">${x.active?"Disattiva":"Attiva"}</button></div></div>`).join("");document.getElementById("count-team").textContent=state.team.filter(x=>x.active).length;}
-function renderPromos(){const el=document.getElementById("promo-list");el.innerHTML=state.promos.map(x=>`<div class="managed-item"><div><strong>${esc(x.title)}</strong><small>${esc(x.status)} · scadenza ${esc(x.expires)}</small></div><div class="managed-actions"><button class="mini">Modifica</button><button class="mini">Scadenza</button></div></div>`).join("");document.getElementById("count-promos").textContent=state.promos.filter(x=>x.status==="Attiva").length;}
-function renderBlog(){const el=document.getElementById("blog-list");el.innerHTML=state.blog.map(x=>`<div class="managed-item"><div><strong>${esc(x.title)}</strong><small>${esc(x.status)}</small></div><div class="managed-actions"><button class="mini">Modifica</button><button class="mini">SEO</button></div></div>`).join("");document.getElementById("count-blog").textContent=state.blog.filter(x=>x.status==="Pubblicato").length;}
-function render(){renderTeam();renderPromos();renderBlog();document.getElementById("last-check").textContent=`Ultimo controllo: ${new Date().toLocaleString("it-IT")}`;}
+async function api(url, options = {}) {
+  const response = await fetch(url, { headers: { 'content-type': 'application/json', ...(options.headers || {}) }, ...options });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+  return data;
+}
 
-document.querySelectorAll(".dash-card").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".dash-card").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));btn.classList.add("active");document.getElementById(`panel-${btn.dataset.panel}`).classList.add("active");}));
+function setStatus(message, error = false) {
+  $('system-status').textContent = message;
+  $('system-status').style.color = error ? '#c0392b' : '';
+}
 
-document.getElementById("add-team").addEventListener("click",()=>{const box=document.getElementById("team-form");box.classList.toggle("hidden");box.innerHTML=`<h3>Nuovo professionista</h3><input id="new-team-name" placeholder="Nome e cognome" style="width:100%;padding:12px;margin:10px 0;border:1px solid #dfe5ed;border-radius:10px"><input id="new-team-role" placeholder="Qualifica" style="width:100%;padding:12px;margin-bottom:12px;border:1px solid #dfe5ed;border-radius:10px"><button class="primary" id="save-team">Salva</button>`;document.getElementById("save-team").onclick=()=>{state.team.push({id:Date.now(),name:document.getElementById("new-team-name").value||"Nuovo professionista",role:document.getElementById("new-team-role").value||"Fisioterapista",active:true});box.classList.add("hidden");persist();};});
-document.getElementById("team-list").addEventListener("click",e=>{const toggle=e.target.closest("[data-toggle-team]");if(toggle){const item=state.team.find(x=>x.id==toggle.dataset.toggleTeam);item.active=!item.active;persist();}});
-document.getElementById("add-promo").addEventListener("click",()=>{state.promos.push({id:Date.now(),title:"Nuova promozione",status:"Bozza",expires:"Da configurare"});persist();});
-document.getElementById("add-post").addEventListener("click",()=>{state.blog.push({id:Date.now(),title:"Nuovo articolo",status:"Bozza"});persist();});
-document.getElementById("refresh-reviews").addEventListener("click",()=>{const status=document.getElementById("system-status");status.textContent="Controllo richiesto — Google da collegare";});
+function renderBlog() {
+  const list = $('blog-list');
+  list.innerHTML = state.blog.length ? state.blog.map(post => `
+    <div class="managed-item">
+      <div><strong>${esc(post.title)}</strong><small>${esc(post.category || 'Senza categoria')} · ${post.is_published ? 'Pubblicato' : 'Bozza'}</small></div>
+      <div class="managed-actions">
+        <button class="mini" data-edit-post="${post.id}">Modifica</button>
+        <button class="mini" data-delete-post="${post.id}">Elimina</button>
+      </div>
+    </div>`).join('') : '<div class="form-card note">Nessun articolo presente. Crea il primo articolo dal pulsante + Nuovo articolo.</div>';
+  $('count-blog').textContent = state.blog.filter(post => post.is_published).length;
+}
 
-render();
+function resetPostForm() {
+  $('blog-form').reset();
+  $('blog-id').value = '';
+  $('blog-form-title').textContent = 'Nuovo articolo';
+  $('blog-form-status').textContent = '';
+}
+
+function fillPostForm(post) {
+  $('blog-id').value = post.id;
+  $('blog-title').value = post.title || '';
+  $('blog-slug').value = post.slug || '';
+  $('blog-category').value = post.category || '';
+  $('blog-author').value = post.author || '';
+  $('blog-published-at').value = post.published_at ? new Date(post.published_at).toISOString().slice(0,16) : '';
+  $('blog-excerpt').value = post.excerpt || '';
+  $('blog-content').value = post.content || '';
+  $('blog-cover').value = post.cover_image_url || '';
+  $('blog-meta').value = post.meta_description || '';
+  $('blog-is-published').checked = Boolean(post.is_published);
+  $('blog-form-title').textContent = 'Modifica articolo';
+  document.querySelector('[data-panel="blog"]').click();
+  window.scrollTo({ top: document.getElementById('panel-blog').offsetTop - 30, behavior: 'smooth' });
+}
+
+async function loadBlog() {
+  try {
+    const data = await api('/api/blog?admin=1');
+    state.blog = data.items || [];
+    renderBlog();
+    setStatus('Backend collegato');
+  } catch (error) {
+    state.blog = [];
+    renderBlog();
+    setStatus('Backend non configurato', true);
+  }
+}
+
+async function savePost(event) {
+  event.preventDefault();
+  const status = $('blog-form-status');
+  status.textContent = 'Salvataggio…';
+  const payload = {
+    id: $('blog-id').value || undefined,
+    title: $('blog-title').value,
+    slug: $('blog-slug').value,
+    category: $('blog-category').value,
+    author: $('blog-author').value,
+    published_at: $('blog-published-at').value ? new Date($('blog-published-at').value).toISOString() : null,
+    excerpt: $('blog-excerpt').value,
+    content: $('blog-content').value,
+    cover_image_url: $('blog-cover').value,
+    meta_description: $('blog-meta').value,
+    is_published: $('blog-is-published').checked
+  };
+  try {
+    const saved = await api('/api/blog', { method: payload.id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+    const index = state.blog.findIndex(post => post.id === saved.id);
+    if (index >= 0) state.blog[index] = saved; else state.blog.unshift(saved);
+    renderBlog();
+    fillPostForm(saved);
+    status.textContent = 'Articolo salvato';
+    setStatus('Backend collegato');
+  } catch (error) {
+    status.textContent = error.message;
+    setStatus('Errore backend', true);
+  }
+}
+
+async function deletePost(id) {
+  if (!confirm('Eliminare definitivamente questo articolo?')) return;
+  try {
+    await api('/api/blog', { method: 'DELETE', body: JSON.stringify({ id }) });
+    state.blog = state.blog.filter(post => post.id !== id);
+    renderBlog();
+    resetPostForm();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+document.querySelectorAll('.dash-card').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.dash-card').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`panel-${btn.dataset.panel}`).classList.add('active');
+}));
+
+autoStub('add-team', () => alert('La gestione Team verrà collegata allo stesso backend del CMS.'));
+autoStub('add-gallery', () => alert('La gestione Galleria verrà collegata allo storage media del CMS.'));
+autoStub('add-promo', () => alert('La gestione Promozioni verrà collegata allo stesso backend del CMS.'));
+
+document.getElementById('new-post').addEventListener('click', () => { resetPostForm(); document.querySelector('[data-panel="blog"]').click(); });
+document.getElementById('cancel-post').addEventListener('click', resetPostForm);
+document.getElementById('blog-form').addEventListener('submit', savePost);
+document.getElementById('blog-list').addEventListener('click', (event) => {
+  const edit = event.target.closest('[data-edit-post]');
+  const del = event.target.closest('[data-delete-post]');
+  if (edit) fillPostForm(state.blog.find(post => post.id === edit.dataset.editPost));
+  if (del) deletePost(del.dataset.deletePost);
+});
+document.getElementById('refresh-reviews').addEventListener('click', () => setStatus('Google Reviews da collegare'));
+
+function autoStub(id, fn) { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); }
+
+$('last-check').textContent = `Ultimo controllo: ${new Date().toLocaleString('it-IT')}`;
+loadBlog();
