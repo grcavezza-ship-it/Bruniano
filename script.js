@@ -137,3 +137,12 @@ function setupFinishedTreatmentsPage(){
 setupFinishedTreatmentsPage();
 
 const year=document.getElementById("year"); if(year)year.textContent=new Date().getFullYear();
+
+/* HOME CANONICAL FOOTER FIX */
+(function(){
+  const footer = document.querySelector('footer.footer');
+  if (!footer) return;
+  footer.outerHTML = `<div id="site-footer"></div>`;
+  const host = document.getElementById('site-footer');
+  if (host) host.innerHTML = `<footer class="footer"><div class="container footer-grid"><img src="assets/logo-bruniano.svg" alt="Bruniano" class="footer-logo"><div><strong>BRUNIANO</strong><p>Fisioterapia &amp; Riabilitazione</p></div><div class="footer-links"><a href="trattamenti.html">Trattamenti</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} Bruniano</span><span><a href="privacy.html">Privacy</a> · <a href="cookie.html">Cookie</a></span><span>Sito realizzato da <strong>Renderlab</strong></span><span><a href="admin/" class="operator-link">Operatori</a></span></div></footer>`;
+})();
