@@ -1,6 +1,15 @@
 const header = document.getElementById("site-header");
 const footer = document.getElementById("site-footer");
 
+/* Shared responsive system: every public page follows the Home's width and breakpoints. */
+if (!document.querySelector('link[data-global-responsive]')) {
+  const responsiveLink = document.createElement('link');
+  responsiveLink.rel = 'stylesheet';
+  responsiveLink.href = 'responsive-global.css';
+  responsiveLink.dataset.globalResponsive = 'true';
+  document.head.appendChild(responsiveLink);
+}
+
 /* Shared site header: intentionally kept identical to the homepage header. */
 if (header) {
   header.innerHTML = `<header class="site-header" id="top">
