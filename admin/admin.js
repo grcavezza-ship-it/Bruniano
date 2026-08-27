@@ -7,7 +7,6 @@
     if(auth.must_change_password){window.location.replace('login.html?change=1');return;}
     document.documentElement.style.visibility='visible';
   } catch {
-    sessionStorage.removeItem('brunianoAdminDemo');
     window.location.replace('login.html');
     return;
   }
@@ -18,7 +17,7 @@
 
   async function logout(){
     try{await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},credentials:'same-origin',body:JSON.stringify({action:'logout'})});}
-    finally{sessionStorage.removeItem('brunianoAdminDemo');window.location.replace('login.html');}
+    finally{window.location.replace('login.html');}
   }
   function installLogout(){
     const host=document.querySelector('.admin-header-actions');
@@ -28,7 +27,7 @@
   async function api(url,options={}){
     const r=await fetch(url,{credentials:'same-origin',headers:{'content-type':'application/json',...(options.headers||{})},...options});
     const d=await r.json().catch(()=>({}));
-    if(r.status===401){sessionStorage.removeItem('brunianoAdminDemo');window.location.replace('login.html');throw new Error('Sessione scaduta');}
+    if(r.status===401){window.location.replace('login.html');throw new Error('Sessione scaduta');}
     if(!r.ok)throw new Error(d.error||`HTTP ${r.status}`);return d;
   }
   function setStatus(message,error=false){const el=$('system-status');if(!el)return;el.textContent=message;el.classList.toggle('ok',!error)}
