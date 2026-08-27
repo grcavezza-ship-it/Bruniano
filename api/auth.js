@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { db, send } from './_db.js';
-import { logout, me, changePassword, ensureSchema, hashPassword, verifyPassword } from './_auth.js';
+import { logout, me, changePassword, ensureSchema, verifyPassword } from './_auth.js';
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 10;
@@ -52,9 +52,7 @@ export default async function handler(req, res) {
     const sql = db();
     await ensureSchema(sql);
 
-    if (req.method === 'GET') {
-      return me(req, res);
-    }
+    if (req.method === 'GET') return me(req, res);
 
     if (req.method !== 'POST') {
       res.setHeader('Allow', 'GET, POST');
@@ -69,9 +67,7 @@ export default async function handler(req, res) {
       const password = String(body.password || '');
       const key = rateKey(username, clientIp(req));
 
-      if (await isBlocked(sql, key)) {
-        return send(res, { error: 'Troppi tentativi. Riprova tra qualche minuto.' }, 429);
-      }
+      if (await isBlocked(sql, key)) return send(res, { error: 'Troppi tentativi. Riprova tra qualche minuto.' }, 429);
 
       const rows = await sql`SELECT id, username, password_hash, password_salt, must_change_password
         FROM admin_users WHERE username=${username} LIMIT 1`;
@@ -91,7 +87,7 @@ export default async function handler(req, res) {
       await sql`INSERT INTO admin_sessions(user_id, token_hash, expires_at)
         VALUES(${user.id}, ${tokenHash}, ${expires.toISOString()})`;
       res.setHeader('Set-Cookie', `__Host-bruniano_session=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=28800`);
-      return send(res, { ok: true, username: user.username, mustChangePassword: user.must_change_password });
+      return send(res, { ok: true, username: user.username, must_change_password: user.must_change_password });
     }
 
     if (action === 'logout') return logout(req, res);
