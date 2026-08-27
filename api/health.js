@@ -2,8 +2,8 @@ import { db, send } from './_db.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return send(res, { error: 'Method not allowed' }, 405);
-  const databaseConfigured = Boolean(process.env.DATABASE_URL);
-  if (!databaseConfigured) return send(res, { ok: false, databaseConfigured: false }, 500);
+  if (!process.env.DATABASE_URL) return send(res, { ok: false, databaseConfigured: false }, 500);
+
   try {
     const sql = db();
     const started = Date.now();
@@ -19,8 +19,7 @@ export default async function handler(req, res) {
     return send(res, {
       ok: false,
       databaseConfigured: true,
-      database: false,
-      error: error?.message || 'Database connection failed'
+      database: false
     }, 500);
   }
 }
