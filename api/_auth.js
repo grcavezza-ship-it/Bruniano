@@ -4,7 +4,7 @@ import { db, send } from './_db.js';
 const SESSION_COOKIE = '__Host-bruniano_session';
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 const DEMO_USERNAME = 'admin';
-const DEMO_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD || '123456';
+const INITIAL_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD;
 
 function clearCookie(res) {
   res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`);
@@ -55,10 +55,12 @@ async function ensureSchema(sql) {
   )`;
   await sql`CREATE INDEX IF NOT EXISTS idx_admin_sessions_token ON admin_sessions(token_hash)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_admin_sessions_expiry ON admin_sessions(expires_at)`;
+
   const users = await sql`SELECT id FROM admin_users WHERE username=${DEMO_USERNAME} LIMIT 1`;
   if (!users.length) {
-    const { salt, hash } = hashPassword(DEMO_PASSWORD);
-    await sql`INSERT INTO admin_users(username,password_hash,password_salt,must_change_password) VALUES(${DEMO_USERNAME},${hash},${salt},true)`;
+    if (!INITIAL_PASSWORD) throw new Error('ADMIN_INITIAL_PASSWORD is required to provision the first admin user');
+    const { salt, hash } = hashPassword(INITIAL_PASSWORD);
+    await sql`INSERT INTO admin_users(username,password_hash,password_salt,must_change_password) VALUES(${DEMO_USERNAME},${hash},${salt},false)`;
   }
 }
 
@@ -97,9 +99,7 @@ export async function login(req, res) {
   const rateRows = await sql`SELECT attempts,window_started_at FROM auth_rate_limits WHERE rate_key=${rateKey} LIMIT 1`;
   if (rateRows.length) {
     const started = new Date(rateRows[0].window_started_at).getTime();
-    if (Date.now() - started < windowMs && Number(rateRows[0].attempts) >= 10) {
-      return send(res, { error: 'Troppi tentativi. Riprova tra qualche minuto.' }, 429);
-    }
+    if (Date.now() - started < windowMs && Number(rateRows[0].attempts) >= 10) return send(res, { error: 'Troppi tentativi. Riprova tra qualche minuto.' }, 429);
     if (Date.now() - started >= windowMs) await sql`DELETE FROM auth_rate_limits WHERE rate_key=${rateKey}`;
   }
 
@@ -112,7 +112,7 @@ export async function login(req, res) {
       ON CONFLICT(rate_key) DO UPDATE SET
         attempts = CASE WHEN now()-auth_rate_limits.window_started_at >= interval '15 minutes' THEN 1 ELSE auth_rate_limits.attempts+1 END,
         window_started_at = CASE WHEN now()-auth_rate_limits.window_started_at >= interval '15 minutes' THEN now() ELSE auth_rate_limits.window_started_at END`;
-    return send(res, { error: 'Username o password non validi' }, 401);
+    return send(res, { error: 'Username o password non corretti' }, 401);
   }
 
   await sql`DELETE FROM auth_rate_limits WHERE rate_key=${rateKey}`;
