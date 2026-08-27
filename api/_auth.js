@@ -31,7 +31,7 @@ export function verifyPassword(password, salt, expectedHash) {
   return expected.length === actual.length && crypto.timingSafeEqual(actual, expected);
 }
 
-async function ensureSchema(sql) {
+export async function ensureSchema(sql) {
   await sql`CREATE TABLE IF NOT EXISTS admin_users (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     username text NOT NULL UNIQUE,
@@ -87,44 +87,6 @@ export async function requireAdmin(req, res) {
   return { sql, user: rows[0], tokenHash };
 }
 
-export async function login(req, res) {
-  const sql = db();
-  await ensureSchema(sql);
-  const body = req.body || {};
-  const username = String(body.username || '').trim().toLowerCase();
-  const password = String(body.password || '');
-  const ip = String(req.headers?.['x-forwarded-for'] || req.headers?.['x-real-ip'] || 'unknown').split(',')[0].trim().slice(0, 100);
-  const rateKey = crypto.createHash('sha256').update(`${username}|${ip}`).digest('hex');
-  const windowMs = 15 * 60 * 1000;
-  const rateRows = await sql`SELECT attempts,window_started_at FROM auth_rate_limits WHERE rate_key=${rateKey} LIMIT 1`;
-  if (rateRows.length) {
-    const started = new Date(rateRows[0].window_started_at).getTime();
-    if (Date.now() - started < windowMs && Number(rateRows[0].attempts) >= 10) return send(res, { error: 'Troppi tentativi. Riprova tra qualche minuto.' }, 429);
-    if (Date.now() - started >= windowMs) await sql`DELETE FROM auth_rate_limits WHERE rate_key=${rateKey}`;
-  }
-
-  const rows = await sql`SELECT id,username,password_hash,password_salt,must_change_password FROM admin_users WHERE username=${username} LIMIT 1`;
-  const user = rows[0];
-  const valid = Boolean(user && verifyPassword(password, user.password_salt, user.password_hash));
-  if (!valid) {
-    await sql`INSERT INTO auth_rate_limits(rate_key,attempts,window_started_at)
-      VALUES(${rateKey},1,now())
-      ON CONFLICT(rate_key) DO UPDATE SET
-        attempts = CASE WHEN now()-auth_rate_limits.window_started_at >= interval '15 minutes' THEN 1 ELSE auth_rate_limits.attempts+1 END,
-        window_started_at = CASE WHEN now()-auth_rate_limits.window_started_at >= interval '15 minutes' THEN now() ELSE auth_rate_limits.window_started_at END`;
-    return send(res, { error: 'Username o password non corretti' }, 401);
-  }
-
-  await sql`DELETE FROM auth_rate_limits WHERE rate_key=${rateKey}`;
-  await sql`DELETE FROM admin_sessions WHERE expires_at <= now()`;
-  const token = crypto.randomBytes(32).toString('base64url');
-  const tokenHash = hashSession(token);
-  const expires = new Date(Date.now() + SESSION_TTL_MS);
-  await sql`INSERT INTO admin_sessions(user_id,token_hash,expires_at) VALUES(${user.id},${tokenHash},${expires.toISOString()})`;
-  res.setHeader('Set-Cookie', `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`);
-  return send(res, { ok: true, username: user.username, must_change_password: user.must_change_password });
-}
-
 export async function logout(req, res) {
   const sql = db();
   await ensureSchema(sql);
@@ -157,4 +119,4 @@ export async function changePassword(req, res) {
   return send(res, { ok: true, loggedOut: true });
 }
 
-export { ensureSchema, getCookie, SESSION_COOKIE, hashSession };
+export { getCookie, SESSION_COOKIE, hashSession };
