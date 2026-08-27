@@ -1,6 +1,8 @@
 import { db, send, getQuery } from './_db.js';
 import { requireAdmin } from './_auth.js';
 
+const ALLOWED_TYPES = new Set(['image','video']);
+
 export default async function handler(req, res) {
   try {
     const sql = db();
@@ -18,14 +20,14 @@ export default async function handler(req, res) {
     if (req.method === 'POST' || req.method === 'PUT') {
       const id = body.id || null;
       const title = String(body.title || '').trim();
-      const mediaType = String(body.media_type || 'image').trim();
+      const mediaType = String(body.media_type || 'image').trim().toLowerCase();
       const mediaUrl = String(body.media_url || '').trim();
       const altText = String(body.alt_text || title).trim();
       const sortOrder = Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : 0;
       const isPublished = Boolean(body.is_published);
       if (!mediaUrl) return send(res, { error: 'URL media obbligatorio' }, 400);
-      if (!['image','video'].includes(mediaType)) return send(res, { error: 'Tipo media non valido' }, 400);
-      if (mediaUrl.length > 2048) return send(res, { error: 'URL media troppo lungo' }, 400);
+      if (!ALLOWED_TYPES.has(mediaType)) return send(res, { error: 'Tipo media non valido' }, 400);
+      if (title.length > 200 || altText.length > 300 || mediaUrl.length > 2048) return send(res, { error: 'Dati media troppo lunghi' }, 400);
       if (id) {
         const rows = await sql`UPDATE gallery_items SET title=${title},media_type=${mediaType},media_url=${mediaUrl},alt_text=${altText},sort_order=${sortOrder},is_published=${isPublished} WHERE id=${id} RETURNING *`;
         return rows[0] ? send(res, rows[0]) : send(res, { error: 'Media non trovato' }, 404);
@@ -33,15 +35,17 @@ export default async function handler(req, res) {
       const rows = await sql`INSERT INTO gallery_items(title,media_type,media_url,alt_text,sort_order,is_published) VALUES(${title},${mediaType},${mediaUrl},${altText},${sortOrder},${isPublished}) RETURNING *`;
       return send(res, rows[0], 201);
     }
+
     if (req.method === 'DELETE') {
       if (!body.id) return send(res, { error: 'ID obbligatorio' }, 400);
-      await sql`DELETE FROM gallery_items WHERE id=${body.id}`;
-      return send(res, { ok: true });
+      const rows = await sql`DELETE FROM gallery_items WHERE id=${body.id} RETURNING id`;
+      return rows[0] ? send(res, { ok: true }) : send(res, { error: 'Media non trovato' }, 404);
     }
+
     res.setHeader('Allow', 'GET,POST,PUT,DELETE');
     return send(res, { error: 'Method not allowed' }, 405);
   } catch (error) {
     console.error('Gallery API error:', error);
-    return send(res, { error: error?.message || 'Errore nella gestione della galleria' }, 500);
+    return send(res, { error: 'Errore nella gestione della galleria' }, 500);
   }
 }
