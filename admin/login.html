@@ -70,7 +70,7 @@
       <p class="eyebrow">Recupero accesso</p>
       <h1 class="title">Password dimenticata?</h1>
       <p class="intro">Il recupero tramite email verrà attivato nella configurazione definitiva dell'account.</p>
-      <div class="message notice">Per ora il recupero automatico non è attivo. Contatta l'amministratore del sito per il reset. In produzione useremo un token monouso con scadenza inviato via email.</div>
+      <div class="message notice">Per ora il recupero automatico non è attivo. Contatta l'amministratore del sito per il reset.</div>
       <button class="btn secondary" id="backToLogin" type="button">Torna al login</button>
     </section>
 
@@ -98,6 +98,7 @@
       const message = $('loginMessage');
       const button = $('loginBtn');
       message.style.display = 'none';
+      message.className = 'message error';
       button.disabled = true;
       button.textContent = 'Accesso…';
       try {
