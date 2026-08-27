@@ -1,26 +1,149 @@
 <!doctype html>
 <html lang="it">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Accesso operatori | Bruniano</title>
-<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{font-family:Manrope,system-ui,sans-serif;color:#10213b;background:#f5f8fc}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}.login{width:min(430px,100%);background:#fff;border:1px solid #e6edf5;border-radius:24px;padding:42px;box-shadow:0 24px 70px #10213b14}.brand{text-align:center;margin-bottom:32px}.brand img{width:190px;max-width:100%;height:auto}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#145cff;margin:0 0 8px}.title{font-size:30px;line-height:1.15;margin:0 0 10px}.intro{color:#66758a;font-size:14px;line-height:1.6;margin:0 0 28px}label{display:block;font-size:13px;font-weight:700;margin:0 0 8px}input{width:100%;height:50px;border:1px solid #d9e2ec;border-radius:12px;padding:0 15px;font:inherit;outline:none;margin-bottom:18px}input:focus{border-color:#145cff;box-shadow:0 0 0 4px #145cff14}.btn{width:100%;height:52px;border:0;border-radius:12px;background:#145cff;color:#fff;font:700 15px Manrope;cursor:pointer}.btn:disabled{opacity:.6;cursor:wait}.error,.success,.info{display:none;margin:16px 0 0;padding:12px;border-radius:10px;font-size:13px}.error{background:#fff0f0;color:#b42318}.success{background:#edf9f0;color:#176b2c}.info{display:block;background:#eef5ff;color:#24539c}.forgot{display:block;text-align:right;margin:-6px 0 18px;color:#145cff;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}.back{display:block;text-align:center;margin-top:24px;color:#66758a;text-decoration:none;font-size:13px}.hidden{display:none!important}@media(max-width:520px){.login{padding:30px 24px;border-radius:20px}.title{font-size:26px}}
-</style></head>
-<body><main class="login">
-<div class="brand"><img src="../assets/logo-bruniano.svg" alt="Bruniano"></div>
-<div id="loginView"><p class="eyebrow">Area riservata</p><h1 class="title">Accesso operatori</h1><p class="intro">Accedi al pannello di gestione di Bruniano.</p>
-<form id="loginForm" novalidate><label for="username">Username</label><input id="username" name="username" autocomplete="username" required><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required><a class="forgot" id="forgot">Password dimenticata?</a><button class="btn" id="loginBtn" type="submit">Accedi</button><div id="error" class="error" role="alert"></div></form></div>
-<div id="resetView" class="hidden"><p class="eyebrow">Recupero accesso</p><h1 class="title">Password dimenticata</h1><p class="intro">Il recupero definitivo tramite e-mail verrà collegato al sistema di autenticazione prima della consegna. Per ora, questa demo non consente di bypassare la verifica dell'identità.</p><div class="info">Per cambiare la password usa la funzione di cambio password dopo aver effettuato l'accesso.</div><button class="btn" id="backToLogin" type="button">Torna al login</button></div>
-<a class="back" href="../index.html">← Torna al sito</a></main>
-<script>
-const api=async(action,options={})=>{const response=await fetch(`/api/auth?action=${encodeURIComponent(action)}`,{credentials:'same-origin',headers:{'content-type':'application/json',...(options.headers||{})},...options});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Errore di autenticazione');return data};
-const form=document.getElementById('loginForm'),error=document.getElementById('error'),btn=document.getElementById('loginBtn');
-form.addEventListener('submit',async e=>{e.preventDefault();error.style.display='none';btn.disabled=true;btn.textContent='Accesso…';try{const data=await api('login',{method:'POST',body:JSON.stringify({username:document.getElementById('username').value.trim(),password:document.getElementById('password').value})});if(data.ok){sessionStorage.setItem('brunianoAdminDemo','1');window.location.replace('index.html');}}catch(err){error.textContent=err.message;error.style.display='block';}finally{btn.disabled=false;btn.textContent='Accedi';}});
-document.getElementById('forgot').addEventListener('click',()=>{document.getElementById('loginView').classList.add('hidden');document.getElementById('resetView').classList.remove('hidden')});
-document.getElementById('backToLogin').addEventListener('click',()=>{document.getElementById('resetView').classList.add('hidden');document.getElementById('loginView').classList.remove('hidden')});
-(async()=>{try{const data=await api('me',{method:'POST'});if(data.ok){sessionStorage.setItem('brunianoAdminDemo','1');window.location.replace('index.html');}}catch{}})();
-</script></body></html>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Accesso operatori Bruniano">
+  <title>Accesso operatori | Bruniano</title>
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{font-family:Manrope,system-ui,sans-serif;color:#10213b;background:#f5f8fc}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}
+    .login{width:min(430px,100%);background:#fff;border:1px solid #e6edf5;border-radius:24px;padding:42px;box-shadow:0 24px 70px #10213b14}
+    .brand{text-align:center;margin-bottom:32px}.brand img{width:190px;max-width:100%;height:auto}
+    .eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#145cff;margin:0 0 8px}
+    .title{font-size:30px;line-height:1.15;margin:0 0 10px}.intro{color:#66758a;font-size:14px;line-height:1.6;margin:0 0 28px}
+    label{display:block;font-size:13px;font-weight:700;margin:0 0 8px}
+    input{width:100%;height:50px;border:1px solid #d9e2ec;border-radius:12px;padding:0 15px;font:inherit;outline:none;margin-bottom:18px}
+    input:focus{border-color:#145cff;box-shadow:0 0 0 4px #145cff14}
+    .btn{width:100%;height:52px;border:0;border-radius:12px;background:#145cff;color:#fff;font:700 15px Manrope;cursor:pointer}.btn:disabled{opacity:.6;cursor:wait}
+    .secondary{background:#eef3f8;color:#10213b;margin-top:10px}
+    .message{display:none;margin:16px 0 0;padding:12px;border-radius:10px;font-size:13px;line-height:1.5}.error{background:#fff0f0;color:#b42318}.success{background:#edf9f0;color:#176b2c}.notice{display:block;background:#f1f5f9;color:#475569}
+    .forgot{display:block;text-align:right;margin:-6px 0 18px;color:#145cff;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}
+    .requirements{font-size:12px;color:#66758a;line-height:1.6;margin:-8px 0 18px}
+    .back{display:block;text-align:center;margin-top:24px;color:#66758a;text-decoration:none;font-size:13px}
+    .hidden{display:none!important}
+    @media(max-width:520px){.login{padding:30px 24px;border-radius:20px}.title{font-size:26px}}
+  </style>
+</head>
+<body>
+  <main class="login">
+    <div class="brand"><img src="../assets/logo-bruniano.svg" alt="Bruniano"></div>
+
+    <section id="loginView">
+      <p class="eyebrow">Area riservata</p>
+      <h1 class="title">Accesso operatori</h1>
+      <p class="intro">Accedi al pannello di gestione di Bruniano.</p>
+      <form id="loginForm" novalidate>
+        <label for="username">Username</label>
+        <input id="username" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <a class="forgot" id="forgot" href="#">Password dimenticata?</a>
+        <button class="btn" id="loginBtn" type="submit">Accedi</button>
+        <div id="loginMessage" class="message error" role="alert"></div>
+      </form>
+    </section>
+
+    <section id="changeView" class="hidden">
+      <p class="eyebrow">Sicurezza</p>
+      <h1 class="title">Crea una nuova password</h1>
+      <p class="intro">Per completare il primo accesso devi sostituire la password iniziale.</p>
+      <form id="changeForm" novalidate>
+        <label for="currentPassword">Password attuale</label>
+        <input id="currentPassword" type="password" autocomplete="current-password" required>
+        <label for="newPassword">Nuova password</label>
+        <input id="newPassword" type="password" autocomplete="new-password" required>
+        <div class="requirements">Almeno 8 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale.</div>
+        <label for="confirmPassword">Conferma password</label>
+        <input id="confirmPassword" type="password" autocomplete="new-password" required>
+        <button class="btn" type="submit">Salva e continua</button>
+        <div id="changeMessage" class="message error" role="alert"></div>
+      </form>
+    </section>
+
+    <section id="forgotView" class="hidden">
+      <p class="eyebrow">Recupero accesso</p>
+      <h1 class="title">Password dimenticata?</h1>
+      <p class="intro">Il recupero tramite email verrà attivato nella configurazione definitiva dell'account.</p>
+      <div class="message notice">Per ora il recupero automatico non è attivo. Contatta l'amministratore del sito per il reset. In produzione useremo un token monouso con scadenza inviato via email.</div>
+      <button class="btn secondary" id="backToLogin" type="button">Torna al login</button>
+    </section>
+
+    <a class="back" href="../index.html">← Torna al sito</a>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const show = view => ['loginView','changeView','forgotView'].forEach(id => $(id).classList.toggle('hidden', id !== view));
+
+    async function api(body) {
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {'content-type': 'application/json'},
+        credentials: 'same-origin',
+        body: JSON.stringify(body)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Operazione non riuscita');
+      return data;
+    }
+
+    $('loginForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const message = $('loginMessage');
+      const button = $('loginBtn');
+      message.style.display = 'none';
+      button.disabled = true;
+      button.textContent = 'Accesso…';
+      try {
+        const data = await api({action:'login',username:$('username').value.trim(),password:$('password').value});
+        if (data.must_change_password) {
+          $('currentPassword').value = $('password').value;
+          show('changeView');
+        } else {
+          window.location.replace('index.html');
+        }
+      } catch (error) {
+        message.textContent = error.message;
+        message.style.display = 'block';
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Accedi';
+      }
+    });
+
+    $('changeForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const message = $('changeMessage');
+      message.style.display = 'none';
+      const newPassword = $('newPassword').value;
+      const confirmation = $('confirmPassword').value;
+      if (newPassword !== confirmation) {
+        message.textContent = 'Le password non coincidono.';
+        message.style.display = 'block';
+        return;
+      }
+      try {
+        await api({action:'change-password',currentPassword:$('currentPassword').value,newPassword});
+        show('loginView');
+        $('password').value = '';
+        const loginMessage = $('loginMessage');
+        loginMessage.className = 'message success';
+        loginMessage.textContent = 'Password aggiornata. Effettua nuovamente l’accesso.';
+        loginMessage.style.display = 'block';
+      } catch (error) {
+        message.textContent = error.message;
+        message.style.display = 'block';
+      }
+    });
+
+    $('forgot').addEventListener('click', event => {event.preventDefault();show('forgotView');});
+    $('backToLogin').addEventListener('click', () => show('loginView'));
+  </script>
+</body>
+</html>
