@@ -25,7 +25,7 @@ function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   return { salt, hash };
 }
 
-function verifyPassword(password, salt, expectedHash) {
+export function verifyPassword(password, salt, expectedHash) {
   const actual = crypto.scryptSync(String(password), salt, 64, { N: 16384, r: 8, p: 1 });
   const expected = Buffer.from(expectedHash, 'hex');
   return expected.length === actual.length && crypto.timingSafeEqual(actual, expected);
