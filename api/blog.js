@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { db, send, getQuery } from './_db.js';
 import { requireAdmin } from './_auth.js';
 
