@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { db, send } from './_db.js';
-import { login, logout, me, changePassword, ensureSchema, requireAdmin, hashPassword, verifyPassword } from './_auth.js';
+import { logout, me, changePassword, ensureSchema, hashPassword, verifyPassword } from './_auth.js';
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 10;
@@ -67,8 +67,7 @@ export default async function handler(req, res) {
     if (action === 'login') {
       const username = normalizeUsername(body.username);
       const password = String(body.password || '');
-      const ip = clientIp(req);
-      const key = rateKey(username, ip);
+      const key = rateKey(username, clientIp(req));
 
       if (await isBlocked(sql, key)) {
         return send(res, { error: 'Troppi tentativi. Riprova tra qualche minuto.' }, 429);
