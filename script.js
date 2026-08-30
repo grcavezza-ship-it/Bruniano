@@ -56,7 +56,7 @@ function setupHomeVideos() {
   const videos = [
     {selector:".machine-card:nth-child(1) .machine-visual",label:"VIDEO BRUNIANO",src:"https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742244/Tecar.mp4",poster:"https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto:good,c_limit,w_1280/v1787742244/Tecar.jpg",alt:"Video reale del trattamento Tecar Bruniano"},
     {selector:".machine-card:nth-child(2) .machine-visual",label:"VIDEO BRUNIANO",src:"https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742255/Laser.mp4",poster:"https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto:good,c_limit,w_1280/v1787742255/Laser.jpg",alt:"Video reale del trattamento Laser Bruniano"},
-    {selector:".machine-card:nth-child(3) .machine-visual",label:"VIDEO DI RIFERIMENTO",src:"https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742226/WhatsApp_Video_2026-08-17_at_11.50.58.mp4",poster:"https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto:good,c_limit,w_1280/v1787742226/WhatsApp_Video_2026-08-17_at_11.50.58.jpg",alt:"Video provvisorio di riferimento per Onde d'urto"}
+    {selector:".machine-card:nth-child(3) .machine-visual",label:"VIDEO DI RIFERIMENTO",src:"https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742226/WhatsApp_Video_2026-08-17_at_11.50.58.mp4",poster:"https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto,c_limit,w_1280/v1787742226/WhatsApp_Video_2026-08-17_at_11.50.58.jpg",alt:"Video provvisorio di riferimento per Onde d'urto"}
   ];
   videos.forEach(({selector,label,src,poster,alt})=>{
     const box=document.querySelector(selector); if(!box)return;
@@ -145,4 +145,97 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
   footer.outerHTML = `<div id="site-footer"></div>`;
   const host = document.getElementById('site-footer');
   if (host) host.innerHTML = `<footer class="footer"><div class="container footer-grid"><img src="assets/logo-bruniano.svg" alt="Bruniano" class="footer-logo"><div><strong>BRUNIANO</strong><p>Fisioterapia &amp; Riabilitazione</p></div><div class="footer-links"><a href="trattamenti.html">Trattamenti</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} Bruniano</span><span><a href="privacy.html">Privacy</a> · <a href="cookie.html">Cookie</a></span><span>Sito realizzato da <strong>Renderlab</strong></span><span><a href="admin/" class="operator-link">Operatori</a></span></div></footer>`;
+})();
+
+/* SMART SITE HEADER */
+(function(){
+  const initHeader=(header)=>{
+    if(!header || header.dataset.smartHeaderReady==='1') return;
+    header.dataset.smartHeaderReady='1';
+
+    let lastY=window.scrollY || 0;
+    let ticking=false;
+    const threshold=28;
+    const revealDelta=4;
+    const hideDelta=8;
+
+    const showHeader=()=>{
+      header.classList.remove('is-scroll-hidden');
+    };
+    const hideHeader=()=>{
+      if(header.classList.contains('is-menu-open')) return;
+      header.classList.add('is-scroll-hidden');
+    };
+    const onScroll=()=>{
+      const currentY=window.scrollY || 0;
+      if(currentY<=threshold){
+        showHeader();
+        lastY=currentY;
+        ticking=false;
+        return;
+      }
+      const delta=currentY-lastY;
+      if(Math.abs(delta)<1){
+        ticking=false;
+        return;
+      }
+      if(delta>hideDelta) hideHeader();
+      else if(delta< -revealDelta) showHeader();
+      lastY=currentY;
+      ticking=false;
+    };
+    const handleScroll=()=>{
+      if(!ticking){
+        ticking=true;
+        window.requestAnimationFrame(onScroll);
+      }
+    };
+
+    window.addEventListener('scroll',handleScroll,{passive:true});
+    window.addEventListener('resize',()=>{
+      if((window.innerWidth || document.documentElement.clientWidth)>950){
+        header.classList.remove('is-menu-open');
+        const nav=header.querySelector('.mobile-nav');
+        if(nav) nav.classList.remove('open');
+        const toggle=header.querySelector('.menu-toggle');
+        if(toggle) toggle.setAttribute('aria-expanded','false');
+      }
+      showHeader();
+      lastY=window.scrollY || 0;
+    },{passive:true});
+
+    const toggle=header.querySelector('.menu-toggle');
+    const nav=header.querySelector('.mobile-nav');
+    if(toggle && nav){
+      const syncMenu=(open)=>{
+        nav.classList.toggle('open',open);
+        toggle.setAttribute('aria-expanded',String(open));
+        toggle.setAttribute('aria-label',open?'Chiudi menu':'Apri menu');
+        header.classList.toggle('is-menu-open',open);
+        if(open) showHeader();
+      };
+      toggle.addEventListener('click',()=>syncMenu(!nav.classList.contains('open')));
+      nav.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>syncMenu(false)));
+    }
+
+    const closeOnEscape=(event)=>{
+      if(event.key!=='Escape') return;
+      const currentNav=header.querySelector('.mobile-nav');
+      const currentToggle=header.querySelector('.menu-toggle');
+      if(currentNav && currentNav.classList.contains('open')){
+        currentNav.classList.remove('open');
+        header.classList.remove('is-menu-open');
+        if(currentToggle){
+          currentToggle.setAttribute('aria-expanded','false');
+          currentToggle.setAttribute('aria-label','Apri menu');
+        }
+      }
+    };
+    document.addEventListener('keydown',closeOnEscape);
+  };
+
+  const scan=()=>document.querySelectorAll('.site-header').forEach(initHeader);
+  scan();
+  const observer=new MutationObserver(scan);
+  observer.observe(document.documentElement,{childList:true,subtree:true});
 })();
