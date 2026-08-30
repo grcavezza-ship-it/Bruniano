@@ -53,8 +53,18 @@ export async function ensureSchema(sql) {
     attempts integer NOT NULL DEFAULT 0,
     window_started_at timestamptz NOT NULL DEFAULT now()
   )`;
+  await sql`CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
+    token_hash text NOT NULL UNIQUE,
+    expires_at timestamptz NOT NULL,
+    used_at timestamptz,
+    created_at timestamptz NOT NULL DEFAULT now()
+  )`;
   await sql`CREATE INDEX IF NOT EXISTS idx_admin_sessions_token ON admin_sessions(token_hash)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_admin_sessions_expiry ON admin_sessions(expires_at)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user ON password_reset_tokens(user_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expiry ON password_reset_tokens(expires_at)`;
 
   const users = await sql`SELECT id FROM admin_users WHERE username=${DEMO_USERNAME} LIMIT 1`;
   if (!users.length) {
@@ -115,8 +125,9 @@ export async function changePassword(req, res) {
   const { salt, hash } = hashPassword(newPassword);
   await ctx.sql`UPDATE admin_users SET password_hash=${hash},password_salt=${salt},must_change_password=false,updated_at=now() WHERE id=${ctx.user.id}`;
   await ctx.sql`DELETE FROM admin_sessions WHERE user_id=${ctx.user.id}`;
+  await ctx.sql`DELETE FROM password_reset_tokens WHERE user_id=${ctx.user.id}`;
   clearCookie(res);
   return send(res, { ok: true, loggedOut: true });
 }
 
-export { getCookie, SESSION_COOKIE, hashSession };
+export { getCookie, SESSION_COOKIE, hashSession, hashPassword, clearCookie };
