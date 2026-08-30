@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { db, send } from './_db.js';
-import { logout, me, changePassword, ensureSchema, verifyPassword } from './_auth.js';
+import { logout, me, changePassword, ensureSchema, verifyPassword, hashPassword, SCRYPT_CURRENT_N, SCRYPT_LEGACY_N } from './_auth.js';
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 10;
@@ -74,31 +74,14 @@ async function sendPasswordResetEmail({ token }) {
   const from = String(process.env.MAIL_FROM || '').trim();
   const to = String(process.env.ADMIN_RESET_EMAIL || '').trim();
   const publicSiteUrl = String(process.env.PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
-
-  if (!apiKey || !from || !to || !publicSiteUrl) {
-    console.error('Password reset email is not configured');
-    return false;
-  }
-
+  if (!apiKey || !from || !to || !publicSiteUrl) return false;
   let baseUrl;
-  try {
-    baseUrl = new URL(publicSiteUrl);
-  } catch {
-    console.error('PUBLIC_SITE_URL is invalid');
-    return false;
-  }
-  if (baseUrl.protocol !== 'https:') {
-    console.error('PUBLIC_SITE_URL must use HTTPS');
-    return false;
-  }
-
+  try { baseUrl = new URL(publicSiteUrl); } catch { return false; }
+  if (baseUrl.protocol !== 'https:') return false;
   const resetUrl = `${baseUrl.origin}/admin/login.html?token=${encodeURIComponent(token)}`;
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from,
       to: [to],
@@ -106,12 +89,7 @@ async function sendPasswordResetEmail({ token }) {
       html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#10213b;max-width:600px;margin:auto"><h2>Reimpostazione password</h2><p>È stata richiesta una nuova password per l'area riservata Bruniano.</p><p>Il link è valido per 30 minuti e può essere utilizzato una sola volta.</p><p><a href="${resetUrl}" style="display:inline-block;padding:12px 18px;background:#145cff;color:#fff;text-decoration:none;border-radius:8px">Reimposta password</a></p><p>Se non hai richiesto questa operazione, puoi ignorare questa email.</p></div>`,
     }),
   });
-
-  if (!response.ok) {
-    console.error('Password reset email failed:', response.status);
-    return false;
-  }
-  return true;
+  return response.ok;
 }
 
 async function requestPasswordReset(sql, req, res) {
@@ -121,30 +99,21 @@ async function requestPasswordReset(sql, req, res) {
   if (rows.length) {
     const started = new Date(rows[0].window_started_at).getTime();
     if (Date.now() - started >= WINDOW_MS) await sql`DELETE FROM auth_rate_limits WHERE rate_key=${key}`;
-    else if (Number(rows[0].attempts) >= MAX_RESET_ATTEMPTS) {
-      return send(res, { ok: true, message: 'Se l’account è configurato per il recupero, riceverai un’email con le istruzioni.' });
-    }
+    else if (Number(rows[0].attempts) >= MAX_RESET_ATTEMPTS) return send(res, { ok: true, message: 'Se l’account è configurato per il recupero, riceverai un’email con le istruzioni.' });
   }
-
   await registerFailure(sql, [key], MAX_RESET_ATTEMPTS);
   const username = normalizeUsername(req.body?.username);
-  const users = username
-    ? await sql`SELECT id,username FROM admin_users WHERE username=${username} LIMIT 1`
-    : [];
-
+  const users = username ? await sql`SELECT id,username FROM admin_users WHERE username=${username} LIMIT 1` : [];
   if (users.length) {
     const user = users[0];
     const token = crypto.randomBytes(32).toString('base64url');
     const tokenHash = hashValue(token);
     const expires = new Date(Date.now() + RESET_TTL_MS);
-
     await sql`DELETE FROM password_reset_tokens WHERE user_id=${user.id} AND used_at IS NULL`;
     await sql`INSERT INTO password_reset_tokens(user_id,token_hash,expires_at) VALUES(${user.id},${tokenHash},${expires.toISOString()})`;
-
     const sent = await sendPasswordResetEmail({ token });
     if (!sent) await sql`DELETE FROM password_reset_tokens WHERE token_hash=${tokenHash}`;
   }
-
   return send(res, { ok: true, message: 'Se l’account è configurato per il recupero, riceverai un’email con le istruzioni.' });
 }
 
@@ -152,25 +121,15 @@ async function resetPassword(sql, req, res) {
   const token = String(req.body?.token || '').trim();
   const newPassword = String(req.body?.newPassword || '');
   const confirmPassword = String(req.body?.confirmPassword || '');
-
   if (!token || token.length > MAX_RESET_TOKEN_LENGTH) return send(res, { error: 'Link di recupero non valido o scaduto' }, 400);
   if (newPassword !== confirmPassword) return send(res, { error: 'Le password non coincidono' }, 400);
-  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,64}$/.test(newPassword)) {
-    return send(res, { error: 'La password deve avere 8-64 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale' }, 400);
-  }
-
+  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,64}$/.test(newPassword)) return send(res, { error: 'La password deve avere 8-64 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale' }, 400);
   const tokenHash = hashValue(token);
-  const claimed = await sql`
-    UPDATE password_reset_tokens
-    SET used_at=now()
-    WHERE token_hash=${tokenHash} AND used_at IS NULL AND expires_at > now()
-    RETURNING user_id`;
+  const claimed = await sql`UPDATE password_reset_tokens SET used_at=now() WHERE token_hash=${tokenHash} AND used_at IS NULL AND expires_at > now() RETURNING user_id`;
   if (!claimed.length) return send(res, { error: 'Link di recupero non valido o scaduto' }, 400);
-
   const userId = claimed[0].user_id;
-  const salt = crypto.randomBytes(16).toString('hex');
-  const passwordHash = crypto.scryptSync(newPassword, salt, 64, { N: 16384, r: 8, p: 1 }).toString('hex');
-  await sql`UPDATE admin_users SET password_hash=${passwordHash},password_salt=${salt},must_change_password=false,updated_at=now() WHERE id=${userId}`;
+  const { salt, hash } = hashPassword(newPassword);
+  await sql`UPDATE admin_users SET password_hash=${hash},password_salt=${salt},password_scrypt_n=${SCRYPT_CURRENT_N},must_change_password=false,updated_at=now() WHERE id=${userId}`;
   await sql`DELETE FROM admin_sessions WHERE user_id=${userId}`;
   await sql`DELETE FROM password_reset_tokens WHERE user_id=${userId}`;
   return send(res, { ok: true });
@@ -180,53 +139,39 @@ export default async function handler(req, res) {
   try {
     const sql = db();
     await ensureSchema(sql);
-
     if (req.method === 'GET') return me(req, res);
-
-    if (req.method !== 'POST') {
-      res.setHeader('Allow', 'GET, POST');
-      return send(res, { error: 'Method not allowed' }, 405);
-    }
-
+    if (req.method !== 'POST') { res.setHeader('Allow', 'GET, POST'); return send(res, { error: 'Method not allowed' }, 405); }
     const body = req.body || {};
     const action = String(body.action || '').trim();
-
     if (action === 'login') {
       const username = normalizeUsername(body.username);
       const password = String(body.password || '');
       if (password.length > MAX_LOGIN_PASSWORD_LENGTH) return send(res, { error: 'Username o password non corretti' }, 401);
-
       const ip = clientIp(req);
       const keys = [rateKey(username, ip), ipRateKey(ip)];
-
       if (await isBlocked(sql, keys)) return send(res, { error: 'Troppi tentativi. Riprova tra qualche minuto.' }, 429);
-
-      const rows = await sql`SELECT id, username, password_hash, password_salt, must_change_password
-        FROM admin_users WHERE username=${username} LIMIT 1`;
+      const rows = await sql`SELECT id,username,password_hash,password_salt,password_scrypt_n,must_change_password FROM admin_users WHERE username=${username} LIMIT 1`;
       const user = rows[0];
-      const valid = Boolean(user && verifyPassword(password, user.password_salt, user.password_hash));
-
-      if (!valid) {
-        await registerFailure(sql, keys);
-        return send(res, { error: 'Username o password non corretti' }, 401);
+      const hashN = Number(user?.password_scrypt_n) || SCRYPT_LEGACY_N;
+      const valid = Boolean(user && verifyPassword(password, user.password_salt, user.password_hash, hashN));
+      if (!valid) { await registerFailure(sql, keys); return send(res, { error: 'Username o password non corretti' }, 401); }
+      if (hashN < SCRYPT_CURRENT_N) {
+        const { salt, hash } = hashPassword(password);
+        await sql`UPDATE admin_users SET password_hash=${hash},password_salt=${salt},password_scrypt_n=${SCRYPT_CURRENT_N},updated_at=now() WHERE id=${user.id}`;
       }
-
       await clearFailure(sql, keys);
       await sql`DELETE FROM admin_sessions WHERE expires_at <= now()`;
       const token = crypto.randomBytes(32).toString('base64url');
       const tokenHash = hashValue(token);
       const expires = new Date(Date.now() + 8 * 60 * 60 * 1000);
-      await sql`INSERT INTO admin_sessions(user_id, token_hash, expires_at)
-        VALUES(${user.id}, ${tokenHash}, ${expires.toISOString()})`;
+      await sql`INSERT INTO admin_sessions(user_id,token_hash,expires_at) VALUES(${user.id},${tokenHash},${expires.toISOString()})`;
       res.setHeader('Set-Cookie', `__Host-bruniano_session=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=28800`);
       return send(res, { ok: true, username: user.username, must_change_password: user.must_change_password });
     }
-
     if (action === 'request-password-reset') return requestPasswordReset(sql, req, res);
     if (action === 'reset-password') return resetPassword(sql, req, res);
     if (action === 'logout') return logout(req, res);
     if (action === 'change-password') return changePassword(req, res);
-
     return send(res, { error: 'Azione non valida' }, 400);
   } catch (error) {
     console.error('Auth API error:', error);
