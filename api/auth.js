@@ -4,8 +4,11 @@ import { logout, me, changePassword, ensureSchema, verifyPassword } from './_aut
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 10;
+const MAX_RESET_ATTEMPTS = 5;
+const RESET_TTL_MS = 30 * 60 * 1000;
 const MAX_USERNAME_LENGTH = 100;
 const MAX_LOGIN_PASSWORD_LENGTH = 128;
+const MAX_RESET_TOKEN_LENGTH = 256;
 
 function normalizeUsername(value) {
   return String(value || '').trim().toLowerCase().slice(0, MAX_USERNAME_LENGTH);
@@ -16,12 +19,20 @@ function clientIp(req) {
     .split(',')[0].trim().slice(0, 100);
 }
 
+function hashValue(value) {
+  return crypto.createHash('sha256').update(String(value)).digest('hex');
+}
+
 function rateKey(username, ip) {
-  return crypto.createHash('sha256').update(`${username}|${ip}`).digest('hex');
+  return hashValue(`${username}|${ip}`);
 }
 
 function ipRateKey(ip) {
-  return crypto.createHash('sha256').update(`ip|${ip}`).digest('hex');
+  return hashValue(`ip|${ip}`);
+}
+
+function resetRateKey(ip) {
+  return hashValue(`password-reset|${ip}`);
 }
 
 async function isBlocked(sql, keys) {
@@ -38,14 +49,14 @@ async function isBlocked(sql, keys) {
   return false;
 }
 
-async function registerFailure(sql, keys) {
+async function registerFailure(sql, keys, maxAttempts = MAX_ATTEMPTS) {
   for (const key of keys) {
     await sql`INSERT INTO auth_rate_limits(rate_key, attempts, window_started_at)
       VALUES(${key}, 1, now())
       ON CONFLICT(rate_key) DO UPDATE SET
         attempts = CASE
           WHEN now() - auth_rate_limits.window_started_at >= interval '15 minutes' THEN 1
-          ELSE auth_rate_limits.attempts + 1
+          ELSE LEAST(auth_rate_limits.attempts + 1, ${maxAttempts})
         END,
         window_started_at = CASE
           WHEN now() - auth_rate_limits.window_started_at >= interval '15 minutes' THEN now()
@@ -56,6 +67,113 @@ async function registerFailure(sql, keys) {
 
 async function clearFailure(sql, keys) {
   for (const key of keys) await sql`DELETE FROM auth_rate_limits WHERE rate_key=${key}`;
+}
+
+async function sendPasswordResetEmail({ token }) {
+  const apiKey = String(process.env.RESEND_API_KEY || '').trim();
+  const from = String(process.env.MAIL_FROM || '').trim();
+  const to = String(process.env.ADMIN_RESET_EMAIL || '').trim();
+  const publicSiteUrl = String(process.env.PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
+
+  if (!apiKey || !from || !to || !publicSiteUrl) {
+    console.error('Password reset email is not configured');
+    return false;
+  }
+
+  let baseUrl;
+  try {
+    baseUrl = new URL(publicSiteUrl);
+  } catch {
+    console.error('PUBLIC_SITE_URL is invalid');
+    return false;
+  }
+  if (baseUrl.protocol !== 'https:') {
+    console.error('PUBLIC_SITE_URL must use HTTPS');
+    return false;
+  }
+
+  const resetUrl = `${baseUrl.origin}/admin/login.html?token=${encodeURIComponent(token)}`;
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to: [to],
+      subject: 'Reimpostazione password | Bruniano',
+      html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#10213b;max-width:600px;margin:auto"><h2>Reimpostazione password</h2><p>È stata richiesta una nuova password per l'area riservata Bruniano.</p><p>Il link è valido per 30 minuti e può essere utilizzato una sola volta.</p><p><a href="${resetUrl}" style="display:inline-block;padding:12px 18px;background:#145cff;color:#fff;text-decoration:none;border-radius:8px">Reimposta password</a></p><p>Se non hai richiesto questa operazione, puoi ignorare questa email.</p></div>`,
+    }),
+  });
+
+  if (!response.ok) {
+    console.error('Password reset email failed:', response.status);
+    return false;
+  }
+  return true;
+}
+
+async function requestPasswordReset(sql, req, res) {
+  const ip = clientIp(req);
+  const key = resetRateKey(ip);
+  const rows = await sql`SELECT attempts, window_started_at FROM auth_rate_limits WHERE rate_key=${key} LIMIT 1`;
+  if (rows.length) {
+    const started = new Date(rows[0].window_started_at).getTime();
+    if (Date.now() - started >= WINDOW_MS) await sql`DELETE FROM auth_rate_limits WHERE rate_key=${key}`;
+    else if (Number(rows[0].attempts) >= MAX_RESET_ATTEMPTS) {
+      return send(res, { ok: true, message: 'Se l’account è configurato per il recupero, riceverai un’email con le istruzioni.' });
+    }
+  }
+
+  await registerFailure(sql, [key], MAX_RESET_ATTEMPTS);
+  const username = normalizeUsername(req.body?.username);
+  const users = username
+    ? await sql`SELECT id,username FROM admin_users WHERE username=${username} LIMIT 1`
+    : [];
+
+  if (users.length) {
+    const user = users[0];
+    const token = crypto.randomBytes(32).toString('base64url');
+    const tokenHash = hashValue(token);
+    const expires = new Date(Date.now() + RESET_TTL_MS);
+
+    await sql`DELETE FROM password_reset_tokens WHERE user_id=${user.id} AND used_at IS NULL`;
+    await sql`INSERT INTO password_reset_tokens(user_id,token_hash,expires_at) VALUES(${user.id},${tokenHash},${expires.toISOString()})`;
+
+    const sent = await sendPasswordResetEmail({ token });
+    if (!sent) await sql`DELETE FROM password_reset_tokens WHERE token_hash=${tokenHash}`;
+  }
+
+  return send(res, { ok: true, message: 'Se l’account è configurato per il recupero, riceverai un’email con le istruzioni.' });
+}
+
+async function resetPassword(sql, req, res) {
+  const token = String(req.body?.token || '').trim();
+  const newPassword = String(req.body?.newPassword || '');
+  const confirmPassword = String(req.body?.confirmPassword || '');
+
+  if (!token || token.length > MAX_RESET_TOKEN_LENGTH) return send(res, { error: 'Link di recupero non valido o scaduto' }, 400);
+  if (newPassword !== confirmPassword) return send(res, { error: 'Le password non coincidono' }, 400);
+  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,64}$/.test(newPassword)) {
+    return send(res, { error: 'La password deve avere 8-64 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale' }, 400);
+  }
+
+  const tokenHash = hashValue(token);
+  const claimed = await sql`
+    UPDATE password_reset_tokens
+    SET used_at=now()
+    WHERE token_hash=${tokenHash} AND used_at IS NULL AND expires_at > now()
+    RETURNING user_id`;
+  if (!claimed.length) return send(res, { error: 'Link di recupero non valido o scaduto' }, 400);
+
+  const userId = claimed[0].user_id;
+  const salt = crypto.randomBytes(16).toString('hex');
+  const passwordHash = crypto.scryptSync(newPassword, salt, 64, { N: 16384, r: 8, p: 1 }).toString('hex');
+  await sql`UPDATE admin_users SET password_hash=${passwordHash},password_salt=${salt},must_change_password=false,updated_at=now() WHERE id=${userId}`;
+  await sql`DELETE FROM admin_sessions WHERE user_id=${userId}`;
+  await sql`DELETE FROM password_reset_tokens WHERE user_id=${userId}`;
+  return send(res, { ok: true });
 }
 
 export default async function handler(req, res) {
@@ -96,7 +214,7 @@ export default async function handler(req, res) {
       await clearFailure(sql, keys);
       await sql`DELETE FROM admin_sessions WHERE expires_at <= now()`;
       const token = crypto.randomBytes(32).toString('base64url');
-      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      const tokenHash = hashValue(token);
       const expires = new Date(Date.now() + 8 * 60 * 60 * 1000);
       await sql`INSERT INTO admin_sessions(user_id, token_hash, expires_at)
         VALUES(${user.id}, ${tokenHash}, ${expires.toISOString()})`;
@@ -104,6 +222,8 @@ export default async function handler(req, res) {
       return send(res, { ok: true, username: user.username, must_change_password: user.must_change_password });
     }
 
+    if (action === 'request-password-reset') return requestPasswordReset(sql, req, res);
+    if (action === 'reset-password') return resetPassword(sql, req, res);
     if (action === 'logout') return logout(req, res);
     if (action === 'change-password') return changePassword(req, res);
 
