@@ -42,3 +42,11 @@ body button,body input,body textarea,body select{font-family:inherit}
   .section-heading>p,.intro-copy,.studio-story p{max-width:100%!important}.technology-feature,.technology-feature.reverse,.treatments-hero-grid,.studio-hero-grid,.studio-story-grid,.experience-grid,.info-band-grid,.path-grid{min-width:0!important}
   img,video{height:auto;max-width:100%}
 }
+
+/* Mobile header sizing: styles.css defines the desktop baseline at 82px.
+   Keep the shared mobile header at the intended compact 70px without changing the logo. */
+@media(max-width:950px){
+  #site-header{min-height:70px!important}
+  .site-header{min-height:70px!important}
+  .site-header .nav-wrap{height:70px!important;min-height:70px!important}
+}
