@@ -140,98 +140,95 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
     if(!header || header.dataset.smartHeaderReady==='1') return;
     header.dataset.smartHeaderReady='1';
 
-    let lastY=window.scrollY || document.scrollingElement?.scrollTop || 0;
+    let lastScrollY=window.scrollY || document.scrollingElement?.scrollTop || 0;
     let ticking=false;
     let touchStartY=null;
-    let pointerStartY=null;
-    const threshold=28;
+    let hidden=false;
+    let menuOpen=false;
 
     const isMobile=()=> (window.innerWidth || document.documentElement.clientWidth) <= 950;
     const getScrollY=()=>window.scrollY || document.scrollingElement?.scrollTop || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    const showHeader=()=>header.classList.remove('is-scroll-hidden');
-    const hideHeader=()=>{
-      if(header.classList.contains('is-menu-open')) return;
-      header.classList.add('is-scroll-hidden');
-    };
 
-    const handleDirection=(delta)=>{
-      if(Math.abs(delta)<0.5) return;
-      if(delta>0) hideHeader();
-      else showHeader();
-    };
-
-    const onScroll=()=>{
-      const currentY=getScrollY();
-      if(currentY<=threshold){
-        showHeader();
-        lastY=currentY;
-        ticking=false;
-        return;
+    const setHeaderVisible=(visible)=>{
+      if(menuOpen && !visible) return;
+      hidden=!visible;
+      header.classList.toggle('is-scroll-hidden',hidden);
+      if(isMobile()){
+        header.style.setProperty('transform','none');
+        header.style.setProperty('top',visible?'0px','important');
+        header.style.setProperty('opacity',visible?'1':'0','important');
+        header.style.setProperty('pointer-events',visible?'auto':'none','important');
+      }else{
+        header.style.removeProperty('top');
+        header.style.removeProperty('transform');
+        header.style.removeProperty('opacity');
+        header.style.removeProperty('pointer-events');
       }
-      handleDirection(currentY-lastY);
-      lastY=currentY;
+    };
+
+    const evaluateScroll=()=>{
+      const currentY=getScrollY();
+      if(currentY<=32){
+        setHeaderVisible(true);
+      }else if(currentY < lastScrollY - 0.5){
+        setHeaderVisible(true);
+      }else if(currentY > lastScrollY + 1.5){
+        setHeaderVisible(false);
+      }
+      lastScrollY=currentY;
       ticking=false;
     };
 
-    const handleScroll=()=>{
+    const onScroll=()=>{
       if(!ticking){
         ticking=true;
-        window.requestAnimationFrame(onScroll);
+        window.requestAnimationFrame(evaluateScroll);
       }
     };
 
-    window.addEventListener('scroll',handleScroll,{passive:true});
+    window.addEventListener('scroll',onScroll,{passive:true});
 
-    const handlePointerStart=(event)=>{
-      if(!isMobile() || event.pointerType!=='touch') return;
-      pointerStartY=event.clientY;
-      touchStartY=event.clientY;
-      if(header.classList.contains('is-menu-open')) showHeader();
-    };
-    const handlePointerMove=(event)=>{
-      if(!isMobile() || event.pointerType!=='touch' || pointerStartY===null) return;
-      const fingerDelta=event.clientY-pointerStartY;
-      if(Math.abs(fingerDelta)>=4){
-        if(fingerDelta<0) hideHeader();
-        else showHeader();
-        pointerStartY=event.clientY;
-      }
-    };
-    const clearPointer=()=>{
-      pointerStartY=null;
-      touchStartY=null;
-      lastY=getScrollY();
-    };
-
-    window.addEventListener('pointerdown',handlePointerStart,{passive:true});
-    window.addEventListener('pointermove',handlePointerMove,{passive:true});
-    window.addEventListener('pointerup',clearPointer,{passive:true});
-    window.addEventListener('pointercancel',clearPointer,{passive:true});
-
-    window.addEventListener('touchstart',(event)=>{
+    const handleTouchStart=(event)=>{
       if(!isMobile()) return;
       touchStartY=event.touches?.[0]?.clientY ?? null;
-      pointerStartY=touchStartY;
-      if(header.classList.contains('is-menu-open')) showHeader();
-    },{passive:true});
-    window.addEventListener('touchmove',(event)=>{
+      if(menuOpen) setHeaderVisible(true);
+    };
+
+    const handleTouchMove=(event)=>{
       if(!isMobile() || touchStartY===null) return;
       const currentY=event.touches?.[0]?.clientY;
       if(typeof currentY!=='number') return;
-      const fingerDelta=currentY-touchStartY;
-      if(Math.abs(fingerDelta)>=4){
-        if(fingerDelta<0) hideHeader();
-        else showHeader();
-        touchStartY=currentY;
-        pointerStartY=currentY;
-      }
-    },{passive:true});
-    window.addEventListener('touchend',clearPointer,{passive:true});
-    window.addEventListener('touchcancel',clearPointer,{passive:true});
+      const delta=currentY-touchStartY;
+      if(Math.abs(delta)<3) return;
+      if(delta>0) setHeaderVisible(true);
+      else setHeaderVisible(false);
+      touchStartY=currentY;
+    };
+
+    const checkMomentum=()=>{
+      const before=getScrollY();
+      window.setTimeout(()=>{
+        const after=getScrollY();
+        if(after < before - 0.5) setHeaderVisible(true);
+        else if(after > before + 0.5) setHeaderVisible(false);
+        lastScrollY=after;
+      },120);
+    };
+
+    const handleTouchEnd=()=>{
+      if(!isMobile()) return;
+      touchStartY=null;
+      checkMomentum();
+    };
+
+    window.addEventListener('touchstart',handleTouchStart,{passive:true});
+    window.addEventListener('touchmove',handleTouchMove,{passive:true});
+    window.addEventListener('touchend',handleTouchEnd,{passive:true});
+    window.addEventListener('touchcancel',handleTouchEnd,{passive:true});
 
     window.addEventListener('resize',()=>{
       if(!isMobile()){
-        header.classList.remove('is-menu-open');
+        menuOpen=false;
         const nav=header.querySelector('.mobile-nav');
         if(nav) nav.classList.remove('open');
         const toggle=header.querySelector('.menu-toggle');
@@ -240,9 +237,8 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
           toggle.setAttribute('aria-label','Apri menu');
         }
       }
-      showHeader();
-      lastY=getScrollY();
-      pointerStartY=null;
+      setHeaderVisible(true);
+      lastScrollY=getScrollY();
       touchStartY=null;
     },{passive:true});
 
@@ -250,11 +246,12 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
     const nav=header.querySelector('.mobile-nav');
     if(toggle && nav){
       const syncMenu=(open)=>{
+        menuOpen=open;
         nav.classList.toggle('open',open);
         toggle.setAttribute('aria-expanded',String(open));
         toggle.setAttribute('aria-label',open?'Chiudi menu':'Apri menu');
         header.classList.toggle('is-menu-open',open);
-        if(open) showHeader();
+        setHeaderVisible(true);
       };
       toggle.addEventListener('click',()=>syncMenu(!nav.classList.contains('open')));
       nav.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>syncMenu(false)));
@@ -266,13 +263,17 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
       const currentToggle=header.querySelector('.menu-toggle');
       if(currentNav && currentNav.classList.contains('open')){
         currentNav.classList.remove('open');
+        menuOpen=false;
         header.classList.remove('is-menu-open');
         if(currentToggle){
           currentToggle.setAttribute('aria-expanded','false');
           currentToggle.setAttribute('aria-label','Apri menu');
         }
+        setHeaderVisible(true);
       }
     });
+
+    setHeaderVisible(true);
   };
 
   const scan=()=>document.querySelectorAll('.site-header').forEach(initHeader);
