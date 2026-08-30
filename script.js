@@ -142,15 +142,22 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
 
     let lastY=window.scrollY || 0;
     let ticking=false;
+    let touchStartY=null;
     const threshold=28;
-    const revealDelta=4;
-    const hideDelta=8;
 
+    const isMobile=()=> (window.innerWidth || document.documentElement.clientWidth) <= 950;
     const showHeader=()=>header.classList.remove('is-scroll-hidden');
     const hideHeader=()=>{
       if(header.classList.contains('is-menu-open')) return;
       header.classList.add('is-scroll-hidden');
     };
+
+    const handleDirection=(delta)=>{
+      if(Math.abs(delta)<1) return;
+      if(delta>0) hideHeader();
+      else showHeader();
+    };
+
     const onScroll=()=>{
       const currentY=window.scrollY || 0;
       if(currentY<=threshold){
@@ -159,16 +166,11 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
         ticking=false;
         return;
       }
-      const delta=currentY-lastY;
-      if(Math.abs(delta)<1){
-        ticking=false;
-        return;
-      }
-      if(delta>hideDelta) hideHeader();
-      else if(delta< -revealDelta) showHeader();
+      handleDirection(currentY-lastY);
       lastY=currentY;
       ticking=false;
     };
+
     const handleScroll=()=>{
       if(!ticking){
         ticking=true;
@@ -177,16 +179,49 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
     };
 
     window.addEventListener('scroll',handleScroll,{passive:true});
+
+    window.addEventListener('touchstart',(event)=>{
+      if(!isMobile()) return;
+      touchStartY=event.touches?.[0]?.clientY ?? null;
+      if(header.classList.contains('is-menu-open')) showHeader();
+    },{passive:true});
+
+    window.addEventListener('touchmove',(event)=>{
+      if(!isMobile() || touchStartY===null) return;
+      const currentY=event.touches?.[0]?.clientY;
+      if(typeof currentY!=='number') return;
+      const fingerDelta=currentY-touchStartY;
+      if(Math.abs(fingerDelta)>=6){
+        if(fingerDelta<0) hideHeader();
+        else showHeader();
+        touchStartY=currentY;
+      }
+    },{passive:true});
+
+    window.addEventListener('touchend',()=>{
+      touchStartY=null;
+      lastY=window.scrollY || 0;
+    },{passive:true});
+
+    window.addEventListener('touchcancel',()=>{
+      touchStartY=null;
+      lastY=window.scrollY || 0;
+    },{passive:true});
+
     window.addEventListener('resize',()=>{
-      if((window.innerWidth || document.documentElement.clientWidth)>950){
+      if(!isMobile()){
         header.classList.remove('is-menu-open');
         const nav=header.querySelector('.mobile-nav');
         if(nav) nav.classList.remove('open');
         const toggle=header.querySelector('.menu-toggle');
-        if(toggle) toggle.setAttribute('aria-expanded','false');
+        if(toggle){
+          toggle.setAttribute('aria-expanded','false');
+          toggle.setAttribute('aria-label','Apri menu');
+        }
       }
       showHeader();
       lastY=window.scrollY || 0;
+      touchStartY=null;
     },{passive:true});
 
     const toggle=header.querySelector('.menu-toggle');
