@@ -140,12 +140,14 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
     if(!header || header.dataset.smartHeaderReady==='1') return;
     header.dataset.smartHeaderReady='1';
 
-    let lastY=window.scrollY || 0;
+    let lastY=window.scrollY || document.scrollingElement?.scrollTop || 0;
     let ticking=false;
     let touchStartY=null;
+    let pointerStartY=null;
     const threshold=28;
 
     const isMobile=()=> (window.innerWidth || document.documentElement.clientWidth) <= 950;
+    const getScrollY=()=>window.scrollY || document.scrollingElement?.scrollTop || document.documentElement.scrollTop || document.body.scrollTop || 0;
     const showHeader=()=>header.classList.remove('is-scroll-hidden');
     const hideHeader=()=>{
       if(header.classList.contains('is-menu-open')) return;
@@ -153,13 +155,13 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
     };
 
     const handleDirection=(delta)=>{
-      if(Math.abs(delta)<1) return;
+      if(Math.abs(delta)<0.5) return;
       if(delta>0) hideHeader();
       else showHeader();
     };
 
     const onScroll=()=>{
-      const currentY=window.scrollY || 0;
+      const currentY=getScrollY();
       if(currentY<=threshold){
         showHeader();
         lastY=currentY;
@@ -180,33 +182,52 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
 
     window.addEventListener('scroll',handleScroll,{passive:true});
 
+    const handlePointerStart=(event)=>{
+      if(!isMobile() || event.pointerType!=='touch') return;
+      pointerStartY=event.clientY;
+      touchStartY=event.clientY;
+      if(header.classList.contains('is-menu-open')) showHeader();
+    };
+    const handlePointerMove=(event)=>{
+      if(!isMobile() || event.pointerType!=='touch' || pointerStartY===null) return;
+      const fingerDelta=event.clientY-pointerStartY;
+      if(Math.abs(fingerDelta)>=4){
+        if(fingerDelta<0) hideHeader();
+        else showHeader();
+        pointerStartY=event.clientY;
+      }
+    };
+    const clearPointer=()=>{
+      pointerStartY=null;
+      touchStartY=null;
+      lastY=getScrollY();
+    };
+
+    window.addEventListener('pointerdown',handlePointerStart,{passive:true});
+    window.addEventListener('pointermove',handlePointerMove,{passive:true});
+    window.addEventListener('pointerup',clearPointer,{passive:true});
+    window.addEventListener('pointercancel',clearPointer,{passive:true});
+
     window.addEventListener('touchstart',(event)=>{
       if(!isMobile()) return;
       touchStartY=event.touches?.[0]?.clientY ?? null;
+      pointerStartY=touchStartY;
       if(header.classList.contains('is-menu-open')) showHeader();
     },{passive:true});
-
     window.addEventListener('touchmove',(event)=>{
       if(!isMobile() || touchStartY===null) return;
       const currentY=event.touches?.[0]?.clientY;
       if(typeof currentY!=='number') return;
       const fingerDelta=currentY-touchStartY;
-      if(Math.abs(fingerDelta)>=6){
+      if(Math.abs(fingerDelta)>=4){
         if(fingerDelta<0) hideHeader();
         else showHeader();
         touchStartY=currentY;
+        pointerStartY=currentY;
       }
     },{passive:true});
-
-    window.addEventListener('touchend',()=>{
-      touchStartY=null;
-      lastY=window.scrollY || 0;
-    },{passive:true});
-
-    window.addEventListener('touchcancel',()=>{
-      touchStartY=null;
-      lastY=window.scrollY || 0;
-    },{passive:true});
+    window.addEventListener('touchend',clearPointer,{passive:true});
+    window.addEventListener('touchcancel',clearPointer,{passive:true});
 
     window.addEventListener('resize',()=>{
       if(!isMobile()){
@@ -220,7 +241,8 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
         }
       }
       showHeader();
-      lastY=window.scrollY || 0;
+      lastY=getScrollY();
+      pointerStartY=null;
       touchStartY=null;
     },{passive:true});
 
