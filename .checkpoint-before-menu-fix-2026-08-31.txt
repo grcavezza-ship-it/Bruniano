@@ -1,0 +1,1 @@
+Checkpoint before mobile menu fix. Main state verified; preserve approved logo/header and backend/security state. This change will only consolidate mobile menu handling and animation.
