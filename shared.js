@@ -10,7 +10,7 @@ if (header) {
       <a href="trattamenti.html">Trattamenti</a><a href="studio.html">Lo studio</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a>
     </nav>
     <a class="button button-small button-primary" data-whatsapp href="#">Prenota</a>
-    <button class="menu-toggle" aria-label="Apri menu" aria-expanded="false"><span></span><span></span></button>
+    <button class="menu-toggle" type="button" aria-label="Apri menu" aria-expanded="false"><span></span><span></span></button>
   </div>
   <nav class="mobile-nav" aria-label="Menu mobile">
     <a href="trattamenti.html">Trattamenti</a><a href="studio.html">Lo studio</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a><a data-whatsapp href="#">Prenota su WhatsApp</a>
@@ -20,14 +20,25 @@ if (header) {
   const menuToggle = header.querySelector(".menu-toggle");
   const mobileNav = header.querySelector(".mobile-nav");
   if (menuToggle && mobileNav) {
-    menuToggle.addEventListener("click", () => {
-      const open = mobileNav.classList.toggle("open");
+    const setMenu = (open) => {
+      mobileNav.classList.toggle("open", open);
       menuToggle.setAttribute("aria-expanded", String(open));
+      menuToggle.setAttribute("aria-label", open ? "Chiudi menu" : "Apri menu");
+    };
+
+    menuToggle.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setMenu(!mobileNav.classList.contains("open"));
     });
-    mobileNav.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => {
-      mobileNav.classList.remove("open");
-      menuToggle.setAttribute("aria-expanded", "false");
-    }));
+
+    mobileNav.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => setMenu(false));
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") setMenu(false);
+    });
   }
 }
 
