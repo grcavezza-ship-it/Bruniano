@@ -1,0 +1,1 @@
+Checkpoint before header height correction. Preserve working hamburger/logo and all backend/security changes.
