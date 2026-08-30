@@ -42,12 +42,12 @@ export async function ensureSchema(sql) {
     username text NOT NULL UNIQUE,
     password_hash text NOT NULL,
     password_salt text NOT NULL,
-    password_scrypt_n integer NOT NULL DEFAULT ${SCRYPT_CURRENT_N},
+    password_scrypt_n integer NOT NULL DEFAULT ${SCRYPT_LEGACY_N},
     must_change_password boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
   )`;
-  await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS password_scrypt_n integer NOT NULL DEFAULT ${SCRYPT_CURRENT_N}`;
+  await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS password_scrypt_n integer NOT NULL DEFAULT ${SCRYPT_LEGACY_N}`;
   await sql`CREATE TABLE IF NOT EXISTS admin_sessions (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
@@ -125,12 +125,10 @@ export async function changePassword(req, res) {
   const body = req.body || {};
   const currentPassword = String(body.currentPassword || '');
   const newPassword = String(body.newPassword || '');
-  const userRows = await ctx.sql`SELECT password_hash,password_salt FROM admin_users WHERE id=${ctx.user.id} LIMIT 1`;
+  const userRows = await ctx.sql`SELECT password_hash,password_salt,password_scrypt_n FROM admin_users WHERE id=${ctx.user.id} LIMIT 1`;
   const current = userRows[0];
-  if (!current || !verifyPassword(currentPassword, current.password_salt, current.password_hash, SCRYPT_CURRENT_N)) {
-    const legacyValid = current && verifyPassword(currentPassword, current.password_salt, current.password_hash, SCRYPT_LEGACY_N);
-    if (!legacyValid) return send(res, { error: 'Password attuale non valida' }, 400);
-  }
+  const currentN = Number(current?.password_scrypt_n) || SCRYPT_LEGACY_N;
+  if (!current || !verifyPassword(currentPassword, current.password_salt, current.password_hash, currentN)) return send(res, { error: 'Password attuale non valida' }, 400);
   if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,64}$/.test(newPassword)) return send(res, { error: 'La password deve avere 8-64 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale' }, 400);
   const { salt, hash } = hashPassword(newPassword);
   await ctx.sql`UPDATE admin_users SET password_hash=${hash},password_salt=${salt},password_scrypt_n=${SCRYPT_CURRENT_N},must_change_password=false,updated_at=now() WHERE id=${ctx.user.id}`;
