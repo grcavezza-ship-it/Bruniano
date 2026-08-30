@@ -26,11 +26,15 @@ if (header) {
       menuToggle.setAttribute("aria-label", open ? "Chiudi menu" : "Apri menu");
     };
 
-    menuToggle.addEventListener("click", (event) => {
+    /* Capture phase prevents the legacy handler in script.js from toggling the
+       same button a second time. */
+    document.addEventListener("click", (event) => {
+      const toggle = event.target.closest?.(".menu-toggle");
+      if (toggle !== menuToggle) return;
       event.preventDefault();
       event.stopPropagation();
       setMenu(!mobileNav.classList.contains("open"));
-    });
+    }, true);
 
     mobileNav.querySelectorAll("a").forEach((link) => {
       link.addEventListener("click", () => setMenu(false));
@@ -40,6 +44,34 @@ if (header) {
       if (event.key === "Escape") setMenu(false);
     });
   }
+
+  const menuStyle = document.createElement("style");
+  menuStyle.textContent = `
+    @media (max-width: 950px) {
+      #site-header, .site-header { min-height: 70px; }
+      .site-header .nav-wrap { height: 70px; min-height: 70px; }
+      .site-header .mobile-nav {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        pointer-events: none;
+        transition: max-height .34s ease, opacity .24s ease, transform .30s ease, visibility 0s linear .34s;
+      }
+      .site-header .mobile-nav.open {
+        max-height: 520px;
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        pointer-events: auto;
+        transition: max-height .38s ease, opacity .24s ease, transform .30s ease, visibility 0s linear 0s;
+      }
+    }
+  `;
+  document.head.appendChild(menuStyle);
 }
 
 const footerMarkup = `<footer class="footer"><div class="container footer-grid"><img src="assets/logo-bruniano.svg" alt="Bruniano" class="footer-logo"><div><strong>BRUNIANO</strong><p>Fisioterapia & Riabilitazione</p></div><div class="footer-links"><a href="trattamenti.html">Trattamenti</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} Bruniano</span><span><a href="privacy.html">Privacy</a> · <a href="cookie.html">Cookie</a></span><span>Sito realizzato da <strong>Renderlab</strong></span><span><a href="admin/" class="operator-link">Operatori</a></span></div></footer>`;
