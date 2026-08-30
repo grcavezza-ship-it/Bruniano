@@ -51,13 +51,14 @@ export default async function handler(req, res) {
     const sql = db();
     if (req.method === 'GET') {
       const admin = getQuery(req).admin === '1';
-      if (admin && !(await requireAdmin(req, res))) return;
-      const rows = admin
-        ? await sql`SELECT id,name,role,specialty,bio,photo_url,sort_order,is_published,created_at,updated_at FROM team_members ORDER BY sort_order ASC,created_at ASC`
-        : await sql`SELECT id,name,role,specialty,bio,photo_url,sort_order,is_published,created_at,updated_at FROM team_members WHERE is_published=true ORDER BY sort_order ASC,created_at ASC`;
-      if (!rows.length) return send(res, { items: [] });
-      const curricula = await getCurricula(sql);
-      return send(res, { items: rows.map(item => ({ ...item, curriculum: curricula[item.id] || {} })) });
+      if (admin) {
+        if (!(await requireAdmin(req, res))) return;
+        const rows = await sql`SELECT id,name,role,specialty,bio,photo_url,sort_order,is_published,created_at,updated_at FROM team_members ORDER BY sort_order ASC,created_at ASC`;
+        const curricula = await getCurricula(sql);
+        return send(res, { items: rows.map(item => ({ ...item, curriculum: curricula[item.id] || {} })) });
+      }
+      const rows = await sql`SELECT id,name,role,specialty,bio,photo_url,sort_order,is_published,created_at,updated_at FROM team_members WHERE is_published=true ORDER BY sort_order ASC,created_at ASC`;
+      return send(res, { items: rows.map(({ id, name, role, specialty, bio, photo_url, sort_order, is_published, created_at, updated_at }) => ({ id, name, role, specialty, bio, photo_url, sort_order, is_published, created_at, updated_at })) });
     }
 
     if (!(await requireAdmin(req, res))) return;
@@ -73,9 +74,7 @@ export default async function handler(req, res) {
       const photoUrl = validateHttpsUrl(body.photo_url, 'URL foto');
       const sortOrder = Number.isInteger(Number(body.sort_order)) ? Number(body.sort_order) : 0;
       const isPublished = Boolean(body.is_published);
-      if (name.length > FIELD_LIMITS.name || role.length > FIELD_LIMITS.role || specialty.length > FIELD_LIMITS.specialty || bio.length > FIELD_LIMITS.bio) {
-        return send(res, { error: 'Dati professionista troppo lunghi' }, 400);
-      }
+      if (name.length > FIELD_LIMITS.name || role.length > FIELD_LIMITS.role || specialty.length > FIELD_LIMITS.specialty || bio.length > FIELD_LIMITS.bio) return send(res, { error: 'Dati professionista troppo lunghi' }, 400);
       const curriculum = normalizeCurriculum(body.curriculum);
       let saved;
       if (id) {
