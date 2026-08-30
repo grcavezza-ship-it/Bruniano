@@ -1,0 +1,1 @@
+Checkpoint before home-only mobile header correction. Preserve approved logo and hamburger behavior; only correct homepage header height.
