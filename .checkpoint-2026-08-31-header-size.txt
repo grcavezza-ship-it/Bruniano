@@ -1,0 +1,1 @@
+Checkpoint before final mobile header size correction. Preserve current working logo and hamburger behavior; only adjust header height.
