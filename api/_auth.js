@@ -5,6 +5,11 @@ const SESSION_COOKIE = '__Host-bruniano_session';
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 const DEMO_USERNAME = 'admin';
 const INITIAL_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD;
+const SCRYPT_LEGACY_N = 16384;
+const SCRYPT_CURRENT_N = 131072;
+const SCRYPT_R = 8;
+const SCRYPT_P = 1;
+const SCRYPT_KEYLEN = 64;
 
 function clearCookie(res) {
   res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`);
@@ -20,13 +25,13 @@ function hashSession(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
-function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
-  const hash = crypto.scryptSync(String(password), salt, 64, { N: 16384, r: 8, p: 1 }).toString('hex');
+function hashPassword(password, salt = crypto.randomBytes(16).toString('hex'), N = SCRYPT_CURRENT_N) {
+  const hash = crypto.scryptSync(String(password), salt, SCRYPT_KEYLEN, { N, r: SCRYPT_R, p: SCRYPT_P }).toString('hex');
   return { salt, hash };
 }
 
-export function verifyPassword(password, salt, expectedHash) {
-  const actual = crypto.scryptSync(String(password), salt, 64, { N: 16384, r: 8, p: 1 });
+export function verifyPassword(password, salt, expectedHash, N = SCRYPT_CURRENT_N) {
+  const actual = crypto.scryptSync(String(password), salt, SCRYPT_KEYLEN, { N, r: SCRYPT_R, p: SCRYPT_P });
   const expected = Buffer.from(expectedHash, 'hex');
   return expected.length === actual.length && crypto.timingSafeEqual(actual, expected);
 }
@@ -37,10 +42,12 @@ export async function ensureSchema(sql) {
     username text NOT NULL UNIQUE,
     password_hash text NOT NULL,
     password_salt text NOT NULL,
+    password_scrypt_n integer NOT NULL DEFAULT ${SCRYPT_CURRENT_N},
     must_change_password boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
   )`;
+  await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS password_scrypt_n integer NOT NULL DEFAULT ${SCRYPT_CURRENT_N}`;
   await sql`CREATE TABLE IF NOT EXISTS admin_sessions (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
@@ -70,7 +77,7 @@ export async function ensureSchema(sql) {
   if (!users.length) {
     if (!INITIAL_PASSWORD) throw new Error('ADMIN_INITIAL_PASSWORD is required to provision the first admin user');
     const { salt, hash } = hashPassword(INITIAL_PASSWORD);
-    await sql`INSERT INTO admin_users(username,password_hash,password_salt,must_change_password) VALUES(${DEMO_USERNAME},${hash},${salt},false)`;
+    await sql`INSERT INTO admin_users(username,password_hash,password_salt,password_scrypt_n,must_change_password) VALUES(${DEMO_USERNAME},${hash},${salt},${SCRYPT_CURRENT_N},false)`;
   }
 }
 
@@ -120,14 +127,17 @@ export async function changePassword(req, res) {
   const newPassword = String(body.newPassword || '');
   const userRows = await ctx.sql`SELECT password_hash,password_salt FROM admin_users WHERE id=${ctx.user.id} LIMIT 1`;
   const current = userRows[0];
-  if (!current || !verifyPassword(currentPassword, current.password_salt, current.password_hash)) return send(res, { error: 'Password attuale non valida' }, 400);
+  if (!current || !verifyPassword(currentPassword, current.password_salt, current.password_hash, SCRYPT_CURRENT_N)) {
+    const legacyValid = current && verifyPassword(currentPassword, current.password_salt, current.password_hash, SCRYPT_LEGACY_N);
+    if (!legacyValid) return send(res, { error: 'Password attuale non valida' }, 400);
+  }
   if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,64}$/.test(newPassword)) return send(res, { error: 'La password deve avere 8-64 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale' }, 400);
   const { salt, hash } = hashPassword(newPassword);
-  await ctx.sql`UPDATE admin_users SET password_hash=${hash},password_salt=${salt},must_change_password=false,updated_at=now() WHERE id=${ctx.user.id}`;
+  await ctx.sql`UPDATE admin_users SET password_hash=${hash},password_salt=${salt},password_scrypt_n=${SCRYPT_CURRENT_N},must_change_password=false,updated_at=now() WHERE id=${ctx.user.id}`;
   await ctx.sql`DELETE FROM admin_sessions WHERE user_id=${ctx.user.id}`;
   await ctx.sql`DELETE FROM password_reset_tokens WHERE user_id=${ctx.user.id}`;
   clearCookie(res);
   return send(res, { ok: true, loggedOut: true });
 }
 
-export { getCookie, SESSION_COOKIE, hashSession, hashPassword, clearCookie };
+export { getCookie, SESSION_COOKIE, hashSession, hashPassword, clearCookie, SCRYPT_CURRENT_N, SCRYPT_LEGACY_N };
