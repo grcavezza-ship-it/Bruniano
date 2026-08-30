@@ -1,0 +1,1 @@
+Checkpoint before header recovery. Main verified with canonical logo markup in shared.js and static index.html. Preserve backend/security state.
