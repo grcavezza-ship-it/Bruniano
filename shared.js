@@ -48,8 +48,9 @@ if (header) {
   const menuStyle = document.createElement("style");
   menuStyle.textContent = `
     @media (max-width: 950px) {
-      #site-header, .site-header { min-height: 70px; }
-      .site-header .nav-wrap { height: 70px; min-height: 70px; }
+      #site-header { min-height: 0 !important; height: 70px !important; }
+      #site-header > .site-header { min-height: 70px !important; height: 70px !important; }
+      #site-header > .site-header .nav-wrap { height: 70px !important; min-height: 70px !important; }
       .site-header .mobile-nav {
         display: flex;
         flex-direction: column;
