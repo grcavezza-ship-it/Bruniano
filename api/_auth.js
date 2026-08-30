@@ -43,12 +43,12 @@ export async function ensureSchema(sql) {
     username text NOT NULL UNIQUE,
     password_hash text NOT NULL,
     password_salt text NOT NULL,
-    password_scrypt_n integer NOT NULL DEFAULT ${SCRYPT_LEGACY_N},
+    password_scrypt_n integer NOT NULL DEFAULT 16384,
     must_change_password boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
   )`;
-  await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS password_scrypt_n integer NOT NULL DEFAULT ${SCRYPT_LEGACY_N}`;
+  await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS password_scrypt_n integer NOT NULL DEFAULT 16384`;
   await sql`CREATE TABLE IF NOT EXISTS admin_sessions (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
