@@ -37,19 +37,6 @@ function setupBrandLockup() {
 }
 setupBrandLockup();
 
-const menuToggle = document.querySelector(".menu-toggle");
-const mobileNav = document.querySelector(".mobile-nav");
-if (menuToggle && mobileNav) {
-  menuToggle.addEventListener("click", () => {
-    const open = mobileNav.classList.toggle("open");
-    menuToggle.setAttribute("aria-expanded", String(open));
-  });
-  mobileNav.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => {
-    mobileNav.classList.remove("open");
-    menuToggle.setAttribute("aria-expanded", "false");
-  }));
-}
-
 function setupHomeVideos() {
   const home = document.querySelector(".tech-showcase");
   if (!home) return;
@@ -159,9 +146,7 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
     const revealDelta=4;
     const hideDelta=8;
 
-    const showHeader=()=>{
-      header.classList.remove('is-scroll-hidden');
-    };
+    const showHeader=()=>header.classList.remove('is-scroll-hidden');
     const hideHeader=()=>{
       if(header.classList.contains('is-menu-open')) return;
       header.classList.add('is-scroll-hidden');
@@ -218,7 +203,7 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
       nav.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>syncMenu(false)));
     }
 
-    const closeOnEscape=(event)=>{
+    document.addEventListener('keydown',(event)=>{
       if(event.key!=='Escape') return;
       const currentNav=header.querySelector('.mobile-nav');
       const currentToggle=header.querySelector('.menu-toggle');
@@ -230,8 +215,7 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
           currentToggle.setAttribute('aria-label','Apri menu');
         }
       }
-    };
-    document.addEventListener('keydown',closeOnEscape);
+    });
   };
 
   const scan=()=>document.querySelectorAll('.site-header').forEach(initHeader);
