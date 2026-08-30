@@ -5,12 +5,14 @@ import { requireAdmin } from './_auth.js';
 const MAX_TITLE_LENGTH = 200;
 const MAX_EXCERPT_LENGTH = 1000;
 const MAX_CONTENT_LENGTH = 200000;
-const MAX_COVER_URL_LENGTH = 2048;
 const MAX_CATEGORY_LENGTH = 300;
 const MAX_META_LENGTH = 320;
 const MAX_AUTHOR_LENGTH = 200;
+const MAX_SLUG_LENGTH = 180;
 const ALLOWED_CONTENT_TAGS = new Set(['p','br','strong','em','b','i','u','s','ul','ol','li','blockquote','h2','h3','h4','a']);
 const ALLOWED_GLOBAL_ATTRIBUTES = new Set(['href','title','target','rel']);
+
+class ValidationError extends Error {}
 
 const slugify = value => String(value || '')
   .normalize('NFD')
@@ -23,26 +25,31 @@ const slugify = value => String(value || '')
 function validateHttpsUrl(value, field) {
   const url = String(value || '').trim();
   if (!url) return null;
-  if (url.length > 2048) throw new Error(`${field} troppo lungo`);
+  if (url.length > 2048) throw new ValidationError(`${field} troppo lungo`);
+  let parsed;
   try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== 'https:') throw new Error(`${field} deve usare HTTPS`);
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('deve usare HTTPS')) throw error;
-    throw new Error(`${field} non valido`);
+    parsed = new URL(url);
+  } catch {
+    throw new ValidationError(`${field} non valido`);
   }
-  return url;
+  if (parsed.protocol !== 'https:') throw new ValidationError(`${field} deve usare HTTPS`);
+  return parsed.toString();
+}
+
+function escapeAttribute(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function sanitizeContent(value) {
   const source = String(value || '').trim();
-  if (source.length > MAX_CONTENT_LENGTH) throw new Error('Contenuto troppo lungo');
+  if (source.length > MAX_CONTENT_LENGTH) throw new ValidationError('Contenuto troppo lungo');
 
-  const withoutDangerousBlocks = source
-    .replace(/<\/?(script|style|iframe|object|embed|form|input|button|textarea|select|option|svg|math|link|meta|base)[^>]*>/gi, '')
+  const cleanedBlocks = source
+    .replace(/<\s*(script|style|iframe|object|embed|form|svg|math|link|meta|base)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
+    .replace(/<\s*(script|style|iframe|object|embed|form|svg|math|link|meta|base)\b[^>]*\/?\s*>/gi, '')
     .replace(/<!--(?:[\s\S]*?)-->/g, '');
 
-  return withoutDangerousBlocks.replace(/<([a-z0-9]+)(\s[^>]*)?>/gi, (full, rawTag, rawAttributes = '') => {
+  return cleanedBlocks.replace(/<\s*\/?\s*([a-z0-9]+)(\s[^>]*)?>/gi, (full, rawTag, rawAttributes = '') => {
     const tag = String(rawTag).toLowerCase();
     if (!ALLOWED_CONTENT_TAGS.has(tag)) return '';
     if (!rawAttributes) return `<${tag}>`;
@@ -73,28 +80,24 @@ function sanitizeContent(value) {
   }).replace(/<\/?[a-z0-9]+\s*javascript:[^>]*>/gi, '');
 }
 
-function escapeAttribute(value) {
-  return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
 function preparePost(body) {
   const title = String(body.title || '').trim();
   const content = sanitizeContent(body.content);
-  if (!title || !content) throw new Error('Titolo e contenuto sono obbligatori');
-  if (title.length > MAX_TITLE_LENGTH) throw new Error('Titolo troppo lungo');
+  if (!title || !content) throw new ValidationError('Titolo e contenuto sono obbligatori');
+  if (title.length > MAX_TITLE_LENGTH) throw new ValidationError('Titolo troppo lungo');
 
   const excerpt = String(body.excerpt || '').trim() || null;
   const category = String(body.category || '').trim() || null;
   const metaDescription = String(body.meta_description || '').trim() || null;
   const author = String(body.author || '').trim() || null;
-  if (excerpt && excerpt.length > MAX_EXCERPT_LENGTH) throw new Error('Estratto troppo lungo');
-  if (category && category.length > MAX_CATEGORY_LENGTH) throw new Error('Categoria troppo lunga');
-  if (metaDescription && metaDescription.length > MAX_META_LENGTH) throw new Error('Meta description troppo lunga');
-  if (author && author.length > MAX_AUTHOR_LENGTH) throw new Error('Autore troppo lungo');
+  if (excerpt && excerpt.length > MAX_EXCERPT_LENGTH) throw new ValidationError('Estratto troppo lungo');
+  if (category && category.length > MAX_CATEGORY_LENGTH) throw new ValidationError('Categoria troppo lunga');
+  if (metaDescription && metaDescription.length > MAX_META_LENGTH) throw new ValidationError('Meta description troppo lunga');
+  if (author && author.length > MAX_AUTHOR_LENGTH) throw new ValidationError('Autore troppo lungo');
 
   const coverImageUrl = validateHttpsUrl(body.cover_image_url, 'URL copertina');
   const slug = slugify(body.slug || title);
-  if (slug.length > 180) throw new Error('Slug troppo lungo');
+  if (slug.length > MAX_SLUG_LENGTH) throw new ValidationError('Slug troppo lungo');
 
   return {
     title,
@@ -161,6 +164,7 @@ export default async function handler(req, res) {
     return send(res, { error: 'Method not allowed' }, 405);
   } catch (error) {
     console.error('Blog API error:', error);
-    return send(res, { error: error instanceof Error ? error.message : 'Internal server error' }, error instanceof Error ? 400 : 500);
+    if (error instanceof ValidationError) return send(res, { error: error.message }, 400);
+    return send(res, { error: 'Internal server error' }, 500);
   }
 }
