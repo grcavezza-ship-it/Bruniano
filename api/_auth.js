@@ -10,6 +10,7 @@ const SCRYPT_CURRENT_N = 131072;
 const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 const SCRYPT_KEYLEN = 64;
+const SCRYPT_MAXMEM = 256 * 1024 * 1024;
 
 function clearCookie(res) {
   res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`);
@@ -25,13 +26,13 @@ function hashSession(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
-function hashPassword(password, salt = crypto.randomBytes(16).toString('hex'), N = SCRYPT_CURRENT_N) {
-  const hash = crypto.scryptSync(String(password), salt, SCRYPT_KEYLEN, { N, r: SCRYPT_R, p: SCRYPT_P }).toString('hex');
+export function hashPassword(password, salt = crypto.randomBytes(16).toString('hex'), N = SCRYPT_CURRENT_N) {
+  const hash = crypto.scryptSync(String(password), salt, SCRYPT_KEYLEN, { N, r: SCRYPT_R, p: SCRYPT_P, maxmem: SCRYPT_MAXMEM }).toString('hex');
   return { salt, hash };
 }
 
 export function verifyPassword(password, salt, expectedHash, N = SCRYPT_CURRENT_N) {
-  const actual = crypto.scryptSync(String(password), salt, SCRYPT_KEYLEN, { N, r: SCRYPT_R, p: SCRYPT_P });
+  const actual = crypto.scryptSync(String(password), salt, SCRYPT_KEYLEN, { N, r: SCRYPT_R, p: SCRYPT_P, maxmem: SCRYPT_MAXMEM });
   const expected = Buffer.from(expectedHash, 'hex');
   return expected.length === actual.length && crypto.timingSafeEqual(actual, expected);
 }
@@ -138,4 +139,4 @@ export async function changePassword(req, res) {
   return send(res, { ok: true, loggedOut: true });
 }
 
-export { getCookie, SESSION_COOKIE, hashSession, hashPassword, clearCookie, SCRYPT_CURRENT_N, SCRYPT_LEGACY_N };
+export { getCookie, SESSION_COOKIE, hashSession, clearCookie, SCRYPT_CURRENT_N, SCRYPT_LEGACY_N };
