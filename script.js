@@ -69,27 +69,6 @@ function setupHomeVideos() {
 }
 setupHomeVideos();
 
-const curriculumData = {
-  "cv-01": {name:"Nome Cognome", role:"Fisioterapista · Specializzazione", sections:[{title:"Profilo",text:"Breve presentazione professionale da compilare dal pannello admin."},{title:"Formazione",text:"Titoli di studio, corsi e formazione specialistica."},{title:"Esperienza",text:"Esperienze professionali e principali aree di competenza."}]},
-  "cv-02": {name:"Nome Cognome", role:"Fisioterapista · Specializzazione", sections:[{title:"Profilo",text:"Breve presentazione professionale da compilare dal pannello admin."},{title:"Formazione",text:"Titoli di studio, corsi e formazione specialistica."},{title:"Esperienza",text:"Esperienze professionali e principali aree di competenza."}]},
-  "cv-03": {name:"Nome Cognome", role:"Professionista · Specializzazione", sections:[{title:"Profilo",text:"Breve presentazione professionale da compilare dal pannello admin."},{title:"Formazione",text:"Titoli di studio, corsi e formazione specialistica."},{title:"Esperienza",text:"Esperienze professionali e principali aree di competenza."}]}
-};
-
-function setupCurriculumModal(){
-  const modal=document.getElementById("curriculum-modal"); if(!modal)return;
-  const title=document.getElementById("curriculum-title"),content=document.getElementById("curriculum-content");
-  const close=()=>{modal.classList.remove("open");modal.setAttribute("aria-hidden","true");document.body.style.overflow=""};
-  document.querySelectorAll(".curriculum-open").forEach(btn=>btn.addEventListener("click",()=>{
-    const data=curriculumData[btn.dataset.curriculum]; if(!data)return;
-    title.textContent=data.name;
-    content.innerHTML=`<p class="team-role">${data.role}</p>${data.sections.map(s=>`<div class="cv-section"><h3>${s.title}</h3><p>${s.text}</p></div>`).join("")}`;
-    modal.classList.add("open");modal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";
-  }));
-  modal.querySelectorAll("[data-curriculum-close]").forEach(el=>el.addEventListener("click",close));
-  document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
-}
-setupCurriculumModal();
-
 function setupFinishedTreatmentsPage(){
   if(!document.body.classList.contains('treatments-page')) return;
 
