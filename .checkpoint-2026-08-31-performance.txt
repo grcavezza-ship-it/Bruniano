@@ -1,1 +1,0 @@
-Checkpoint before performance tuning. Header/logo/menu are frozen. Only non-visual loading hints may be changed.
