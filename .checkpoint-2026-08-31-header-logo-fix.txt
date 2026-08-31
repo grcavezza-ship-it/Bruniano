@@ -1,1 +1,0 @@
-Checkpoint before centralizing the approved header logo in shared.js. Do not change layout, colors, typography, menu behavior, or unrelated code.
