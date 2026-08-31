@@ -1,1 +1,0 @@
-Checkpoint before Home-only hamburger/height correction. Preserve approved logo and all existing security/backend changes.
