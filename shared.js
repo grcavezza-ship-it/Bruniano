@@ -1,9 +1,12 @@
-const header = document.getElementById("site-header");
+const header = document.getElementById("site-header") || document.querySelector(".home-impact .site-header");
 
 /* Shared layout is rendered once, from one source of truth, so every public page
    has exactly the same header and footer. */
 if (header) {
-  header.innerHTML = `<header class="site-header" id="top">
+  const isExistingHomeHeader = header.classList.contains("site-header");
+
+  if (!isExistingHomeHeader) {
+    header.innerHTML = `<header class="site-header" id="top">
   <div class="container nav-wrap">
     <a class="brand" href="index.html" aria-label="Bruniano home"><img src="assets/logo-bruniano.svg" alt="Bruniano" class="brand-logo"></a>
     <nav class="desktop-nav" aria-label="Navigazione principale">
@@ -16,6 +19,7 @@ if (header) {
     <a href="trattamenti.html">Trattamenti</a><a href="studio.html">Lo studio</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a><a data-whatsapp href="#">Prenota su WhatsApp</a>
   </nav>
 </header>`;
+  }
 
   const menuToggle = header.querySelector(".menu-toggle");
   const mobileNav = header.querySelector(".mobile-nav");
