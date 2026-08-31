@@ -1,0 +1,1 @@
+Checkpoint before privacy/cookie implementation. Header/logo/menu are frozen and must not be altered.
