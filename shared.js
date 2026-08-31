@@ -21,6 +21,24 @@ if (header) {
 </header>`;
   }
 
+  /* Approved Bruniano lockup. Keep this header visual independent from page-load order. */
+  document.querySelectorAll(".site-header .brand").forEach((brand) => {
+    brand.innerHTML = `<span class="brand-lockup"><img src="assets/logo-symbol.svg" alt="" class="brand-symbol"><span class="brand-name">bruniano</span><span class="brand-divider" aria-hidden="true"></span><span class="brand-tagline">CENTRO MEDICO<br>SPECIALISTICO</span></span>`;
+  });
+
+  const brandStyle = document.createElement("style");
+  brandStyle.textContent = `
+    .site-header .brand{display:flex;align-items:center;flex:0 0 auto;text-decoration:none}
+    .site-header .brand-lockup{display:flex;align-items:center;gap:12px;min-height:54px}
+    .site-header .brand-symbol{width:48px;height:48px;display:block;flex:0 0 48px}
+    .site-header .brand-name{font-family:Manrope,system-ui,sans-serif;font-size:35px;line-height:1;font-weight:800;letter-spacing:-.065em;color:#111a2c}
+    .site-header .brand-divider{width:1px;height:38px;background:#d8dde6;margin:0 10px 0 6px}
+    .site-header .brand-tagline{font-family:Manrope,system-ui,sans-serif;font-size:12px;line-height:1.12;font-weight:800;letter-spacing:.10em;color:#687385;white-space:nowrap}
+    @media(max-width:900px){.site-header .brand-lockup{gap:10px;min-height:52px}.site-header .brand-symbol{width:46px;height:46px;flex-basis:46px}.site-header .brand-name{font-size:30px}.site-header .brand-divider{height:34px;margin:0 8px 0 3px}.site-header .brand-tagline{font-size:10px;letter-spacing:.085em}}
+    @media(max-width:600px){.site-header .brand-lockup{gap:9px}.site-header .brand-symbol{width:42px;height:42px;flex-basis:42px}.site-header .brand-name{font-size:27px}.site-header .brand-divider{height:31px;margin:0 6px 0 1px}.site-header .brand-tagline{font-size:9px;letter-spacing:.075em}}
+  `;
+  document.head.appendChild(brandStyle);
+
   const menuToggle = header.querySelector(".menu-toggle");
   const mobileNav = header.querySelector(".mobile-nav");
   if (menuToggle && mobileNav) {
@@ -30,8 +48,7 @@ if (header) {
       menuToggle.setAttribute("aria-label", open ? "Chiudi menu" : "Apri menu");
     };
 
-    /* Capture phase prevents the legacy handler in script.js from toggling the
-       same button a second time. */
+    /* Capture phase prevents any legacy handler from toggling the same button twice. */
     document.addEventListener("click", (event) => {
       const toggle = event.target.closest?.(".menu-toggle");
       if (toggle !== menuToggle) return;
