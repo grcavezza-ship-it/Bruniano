@@ -4,7 +4,6 @@ const header = document.getElementById("site-header") || document.querySelector(
    has exactly the same header and footer. */
 if (header) {
   const isExistingHomeHeader = header.classList.contains("site-header");
-
   if (!isExistingHomeHeader) {
     header.innerHTML = `<header class="site-header" id="top">
   <div class="container nav-wrap">
@@ -20,12 +19,9 @@ if (header) {
   </nav>
 </header>`;
   }
-
-  /* Approved Bruniano lockup. Keep this header visual independent from page-load order. */
   document.querySelectorAll(".site-header .brand").forEach((brand) => {
     brand.innerHTML = `<span class="brand-lockup"><img src="assets/logo-symbol.svg" alt="" class="brand-symbol"><span class="brand-name">bruniano</span><span class="brand-divider" aria-hidden="true"></span><span class="brand-tagline">CENTRO MEDICO<br>SPECIALISTICO</span></span>`;
   });
-
   const brandStyle = document.createElement("style");
   brandStyle.textContent = `
     .site-header .brand{display:flex;align-items:center;flex:0 0 auto;text-decoration:none}
@@ -38,99 +34,37 @@ if (header) {
     @media(max-width:600px){.site-header .brand-lockup{gap:9px}.site-header .brand-symbol{width:42px;height:42px;flex-basis:42px}.site-header .brand-name{font-size:27px}.site-header .brand-divider{height:31px;margin:0 6px 0 1px}.site-header .brand-tagline{font-size:9px;letter-spacing:.075em}}
   `;
   document.head.appendChild(brandStyle);
-
   const menuToggle = header.querySelector(".menu-toggle");
   const mobileNav = header.querySelector(".mobile-nav");
   if (menuToggle && mobileNav) {
-    const setMenu = (open) => {
-      mobileNav.classList.toggle("open", open);
-      menuToggle.setAttribute("aria-expanded", String(open));
-      menuToggle.setAttribute("aria-label", open ? "Chiudi menu" : "Apri menu");
-    };
-
-    /* Capture phase prevents any legacy handler from toggling the same button twice. */
-    document.addEventListener("click", (event) => {
-      const toggle = event.target.closest?.(".menu-toggle");
-      if (toggle !== menuToggle) return;
-      event.preventDefault();
-      event.stopPropagation();
-      setMenu(!mobileNav.classList.contains("open"));
-    }, true);
-
-    mobileNav.querySelectorAll("a").forEach((link) => {
-      link.addEventListener("click", () => setMenu(false));
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") setMenu(false);
-    });
+    const setMenu = (open) => { mobileNav.classList.toggle("open", open); menuToggle.setAttribute("aria-expanded", String(open)); menuToggle.setAttribute("aria-label", open ? "Chiudi menu" : "Apri menu"); };
+    document.addEventListener("click", (event) => { const toggle = event.target.closest?.(".menu-toggle"); if (toggle !== menuToggle) return; event.preventDefault(); event.stopPropagation(); setMenu(!mobileNav.classList.contains("open")); }, true);
+    mobileNav.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => setMenu(false)));
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") setMenu(false); });
   }
-
   const menuStyle = document.createElement("style");
-  menuStyle.textContent = `
-    @media (max-width: 950px) {
-      #site-header { min-height: 0 !important; height: 70px !important; }
-      #site-header > .site-header { min-height: 70px !important; height: 70px !important; }
-      #site-header > .site-header .nav-wrap { height: 70px !important; min-height: 70px !important; }
-      .site-header .mobile-nav {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        max-height: 0;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-10px);
-        pointer-events: none;
-        transition: max-height .34s ease, opacity .24s ease, transform .30s ease, visibility 0s linear .34s;
-      }
-      .site-header .mobile-nav.open {
-        max-height: 520px;
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-        pointer-events: auto;
-        transition: max-height .38s ease, opacity .24s ease, transform .30s ease, visibility 0s linear 0s;
-      }
-    }
-  `;
+  menuStyle.textContent = `@media (max-width:950px){#site-header{min-height:0!important;height:70px!important}#site-header>.site-header{min-height:70px!important;height:70px!important}#site-header>.site-header .nav-wrap{height:70px!important;min-height:70px!important}.site-header .mobile-nav{display:flex;flex-direction:column;overflow:hidden;max-height:0;opacity:0;visibility:hidden;transform:translateY(-10px);pointer-events:none;transition:max-height .34s ease,opacity .24s ease,transform .30s ease,visibility 0s linear .34s}.site-header .mobile-nav.open{max-height:520px;opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;transition:max-height .38s ease,opacity .24s ease,transform .30s ease,visibility 0s linear 0s}}`;
   document.head.appendChild(menuStyle);
 }
 
 const footerMarkup = `<footer class="footer"><div class="container footer-grid"><img src="assets/logo-bruniano.svg" alt="Bruniano" class="footer-logo"><div><strong>BRUNIANO</strong><p>Fisioterapia & Riabilitazione</p></div><div class="footer-links"><a href="trattamenti.html">Trattamenti</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} Bruniano</span><span><a href="privacy.html">Privacy</a> · <a href="cookie.html">Cookie</a></span><span>Sito realizzato da <strong>Renderlab</strong></span><span><a href="admin/" class="operator-link">Operatori</a></span></div></footer>`;
-
 const footerPlaceholder = document.getElementById("site-footer");
 const legacyFooter = document.querySelector("footer.footer");
 const footerHost = footerPlaceholder || legacyFooter;
-if (footerHost) {
-  if (footerHost.tagName === "FOOTER") footerHost.outerHTML = footerMarkup;
-  else footerHost.innerHTML = footerMarkup;
-} else {
-  const host = document.createElement("div");
-  host.id = "site-footer";
-  host.innerHTML = footerMarkup;
-  document.body.appendChild(host);
-}
+if (footerHost) { if (footerHost.tagName === "FOOTER") footerHost.outerHTML = footerMarkup; else footerHost.innerHTML = footerMarkup; }
+else { const host = document.createElement("div"); host.id = "site-footer"; host.innerHTML = footerMarkup; document.body.appendChild(host); }
 
 function setupStudioGallery(){
   if(!document.body.classList.contains('studio-page')) return;
-  const grid=document.querySelector('.studio-grid');
-  const hero=document.querySelector('.studio-hero-media img');
-  if(!grid) return;
-  fetch('/api/gallery?admin=0',{cache:'no-store'})
-    .then(r=>r.ok?r.json():Promise.reject(new Error('gallery')))
-    .then(data=>{
-      const items=(data.items||[]).filter(x=>x.media_url).slice(0,12);
-      if(!items.length) return;
-      const images=items.filter(x=>String(x.media_type).startsWith('image'));
-      if(hero && images[0]){hero.src=images[0].media_url;hero.alt=images[0].alt_text||images[0].title||'Ambiente Bruniano';}
-      grid.innerHTML=items.slice(0,4).map((m,i)=>{
-        const media=String(m.media_type).startsWith('video')
-          ? `<video src="${m.media_url}" autoplay muted loop playsinline preload="metadata" aria-label="${m.alt_text||m.title||'Video Bruniano'}"></video>`
-          : `<img src="${m.media_url}" alt="${m.alt_text||m.title||'Ambiente Bruniano'}" loading="lazy">`;
-        const classes=i===0?'studio-tile large':i===3?'studio-tile wide':'studio-tile';
-        return `<div class="${classes}">${media}<div class="tile-copy"><small>${String(m.title||'BRUNIANO').toUpperCase()}</small><strong>${m.alt_text||'Scopri gli ambienti del Centro Medico Specialistico Bruniano.'}</strong></div></div>`;
-      }).join('');
-      grid.querySelectorAll('img,video').forEach(el=>{el.style.width='100%';el.style.height='100%';el.style.objectFit='cover';el.style.display='block';});
-    }).catch(()=>{});
+  const grid=document.querySelector('.studio-grid'); const hero=document.querySelector('.studio-hero-media img'); if(!grid) return;
+  fetch('/api/gallery?admin=0',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject(new Error('gallery'))).then(data=>{
+    const items=(data.items||[]).filter(x=>x.media_url).slice(0,12); if(!items.length) return;
+    const images=items.filter(x=>String(x.media_type).startsWith('image'));
+    if(hero&&images[0]){hero.src=images[0].media_url;hero.alt=images[0].alt_text||images[0].title||'Ambiente Bruniano';}
+    grid.innerHTML=items.slice(0,4).map((m,i)=>{const media=String(m.media_type).startsWith('video')?`<video src="${m.media_url}" autoplay muted loop playsinline preload="metadata" aria-label="${m.alt_text||m.title||'Video Bruniano'}"></video>`:`<img src="${m.media_url}" alt="${m.alt_text||m.title||'Ambiente Bruniano'}" loading="lazy">`;const classes=i===0?'studio-tile large':i===3?'studio-tile wide':'studio-tile';return `<div class="${classes}">${media}<div class="tile-copy"><small>${String(m.title||'BRUNIANO').toUpperCase()}</small><strong>${m.alt_text||'Scopri gli ambienti del Centro Medico Specialistico Bruniano.'}</strong></div></div>`;}).join('');
+    grid.querySelectorAll('img,video').forEach(el=>{el.style.width='100%';el.style.height='100%';el.style.objectFit='cover';el.style.display='block';});
+  }).catch(()=>{});
 }
 setupStudioGallery();
+
+const seoLoader=document.createElement('script');seoLoader.src='seo.js';document.head.appendChild(seoLoader);
