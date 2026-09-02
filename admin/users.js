@@ -38,7 +38,8 @@
           ${statusChip(u)}
           ${u.username !== 'admin' && u.email && u.must_change_password ? `<button class="mini" type="button" data-user-invite="${u.id}">${u.is_active ? 'Reinvia invito' : 'Invia invito'}</button>` : ''}
           <button class="mini" type="button" data-user-edit="${u.id}">Modifica</button>
-          <button class="mini" type="button" data-user-toggle="${u.id}" data-active="${u.is_active}">${u.is_active ? 'Disattiva' : 'Riattiva'}</button>
+          ${u.username !== 'admin' ? `<button class="mini danger" type="button" data-user-delete="${u.id}">Cancella</button>` : ''}
+          ${u.username !== 'admin' ? `<button class="mini" type="button" data-user-toggle="${u.id}" data-active="${u.is_active}">${u.is_active ? 'Disattiva' : 'Riattiva'}</button>` : ''}
         </div>
       </div>`).join('') : '<div class="form-card note">Nessun utente registrato.</div>';
     const count = $('count-users');
@@ -108,6 +109,20 @@
     } catch (error) { alert(error.message); }
   }
 
+  async function remove(id) {
+    const item = state.items.find(x => x.id === id);
+    if (!item || item.username === 'admin') return;
+    const name = displayName(item);
+    const confirmed = confirm(`Stai per cancellare definitivamente ${name}.\n\nL’operatore verrà rimosso dal gestionale e perderà immediatamente ogni accesso. L’operazione non può essere annullata.\n\nContinuare?`);
+    if (!confirmed) return;
+    try {
+      await api('/api/users', { method: 'DELETE', body: JSON.stringify({ id }) });
+      await load();
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
   async function load() {
     try { const d = await api('/api/users'); state.items = d.items || []; render(); }
     catch (error) { const host = $('users-list'); if (host) host.innerHTML = `<div class="form-card note">${esc(error.message)}</div>`; }
@@ -117,9 +132,11 @@
   $('users-list')?.addEventListener('click', e => {
     const edit = e.target.closest('[data-user-edit]');
     const invite = e.target.closest('[data-user-invite]');
+    const deleteBtn = e.target.closest('[data-user-delete]');
     const toggleBtn = e.target.closest('[data-user-toggle]');
     if (edit) form(state.items.find(x => x.id === edit.dataset.userEdit));
     if (invite) resendInvite(invite.dataset.userInvite);
+    if (deleteBtn) remove(deleteBtn.dataset.userDelete);
     if (toggleBtn) toggle(toggleBtn.dataset.userToggle, toggleBtn.dataset.active === 'true');
   });
 
