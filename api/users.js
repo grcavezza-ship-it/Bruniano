@@ -1,12 +1,11 @@
 import crypto from 'node:crypto';
 import { db, send } from './_db.js';
-import { requireAdmin, hashPassword, hashSession, SCRYPT_CURRENT_N } from './_auth.js';
+import { requireAdmin, hashPassword, SCRYPT_CURRENT_N } from './_auth.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const clean = value => String(value ?? '').trim();
 const normalizeEmail = value => clean(value).toLowerCase();
 const FIRST_ACCESS_TTL_MS = 24 * 60 * 60 * 1000;
-const MAX_TOKEN_LENGTH = 256;
 
 function hashValue(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
@@ -39,6 +38,7 @@ async function sendActivationEmail({ to, firstName, token }) {
   try { site = new URL(baseUrl); } catch { return false; }
   if (site.protocol !== 'https:') return false;
   const activationUrl = `${site.origin}/admin/login.html?activate=${encodeURIComponent(token)}`;
+  const safeName = String(firstName || '').replace(/[&<>\"]/g, '');
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -46,7 +46,7 @@ async function sendActivationEmail({ to, firstName, token }) {
       from,
       to: [to],
       subject: 'Attiva il tuo accesso | Bruniano',
-      html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#10213b;max-width:600px;margin:auto"><h2>Attiva il tuo accesso Bruniano</h2><p>Ciao ${String(firstName || '').replace(/[&<>\"]/g, '')},</p><p>È stato creato per te un account operatore per l’area riservata Bruniano.</p><p>Per completare il primo accesso, imposta personalmente la tua password usando il pulsante qui sotto.</p><p><a href="${activationUrl}" style="display:inline-block;padding:12px 18px;background:#145cff;color:#fff;text-decoration:none;border-radius:8px">Attiva account</a></p><p>Il link è valido 24 ore e può essere utilizzato una sola volta.</p><p>Se non riconosci questa richiesta, ignora questa email.</p></div>`,
+      html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#10213b;max-width:600px;margin:auto"><h2>Attiva il tuo accesso Bruniano</h2><p>Ciao ${safeName},</p><p>È stato creato per te un account operatore per l’area riservata Bruniano.</p><p>Per completare il primo accesso, imposta personalmente la tua password usando il pulsante qui sotto.</p><p><a href="${activationUrl}" style="display:inline-block;padding:12px 18px;background:#145cff;color:#fff;text-decoration:none;border-radius:8px">Attiva account</a></p><p>Il link è valido 24 ore e può essere utilizzato una sola volta.</p><p>Se non riconosci questa richiesta, ignora questa email.</p></div>`,
     }),
   });
   return response.ok;
@@ -134,20 +134,19 @@ export default async function handler(req, res) {
       if (duplicate.length) return send(res, { error: 'Esiste già un utente con questa email.' }, 409);
 
       const rows = await ctx.sql`UPDATE admin_users SET first_name=${firstName},last_name=${lastName},email=${email},username=${current.username === 'admin' ? 'admin' : email},is_active=${isActive},updated_at=now() WHERE id=${id} RETURNING id,first_name,last_name,email,username,is_active,must_change_password,created_at,last_login_at`;
-      if (!isActive) {
-        await ctx.sql`DELETE FROM admin_sessions WHERE user_id=${id}`;
-      }
+      if (!isActive) await ctx.sql`DELETE FROM admin_sessions WHERE user_id=${id}`;
       return send(res, { item: serialize(rows[0]) });
     }
 
     if (req.method === 'DELETE') {
       const id = clean(req.body?.id);
       if (!id) return send(res, { error: 'Utente non valido.' }, 400);
-      if (id === ctx.user.id) return send(res, { error: 'Non puoi disattivare l’utente con cui sei collegato.' }, 400);
-      const rows = await ctx.sql`UPDATE admin_users SET is_active=false,updated_at=now() WHERE id=${id} RETURNING id`;
-      if (!rows.length) return send(res, { error: 'Utente non trovato.' }, 404);
-      await ctx.sql`DELETE FROM admin_sessions WHERE user_id=${id}`;
-      return send(res, { ok: true });
+      if (id === ctx.user.id) return send(res, { error: 'Non puoi cancellare l’utente con cui sei collegato.' }, 400);
+      const targetRows = await ctx.sql`SELECT id,username FROM admin_users WHERE id=${id} LIMIT 1`;
+      if (!targetRows.length) return send(res, { error: 'Utente non trovato.' }, 404);
+      if (targetRows[0].username === 'admin') return send(res, { error: 'L’account amministratore principale non può essere cancellato.' }, 400);
+      await ctx.sql`DELETE FROM admin_users WHERE id=${id}`;
+      return send(res, { ok: true, message: 'Operatore cancellato definitivamente.' });
     }
 
     res.setHeader('Allow', 'GET, POST, PUT, DELETE');
