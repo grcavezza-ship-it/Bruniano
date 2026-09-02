@@ -69,6 +69,19 @@
 }
 `;
 
+  function ensureFavicon() {
+    const existing = document.querySelector('link[data-bruniano-favicon]');
+    if (existing) return;
+    const link = document.createElement('link');
+    link.rel = 'icon';
+    link.type = 'image/svg+xml';
+    link.href = '/assets/favicon.svg?v=20260903';
+    link.dataset.brunianoFavicon = '1';
+    document.head.appendChild(link);
+  }
+
+  ensureFavicon();
+
   function mountHeader() {
     let host = document.getElementById(HEADER_ID);
     let header = document.querySelector('header.site-header');
