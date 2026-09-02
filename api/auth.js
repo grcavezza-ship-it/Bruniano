@@ -36,6 +36,12 @@ function resetRateKey(ip) {
   return hashValue(`password-reset|${ip}`);
 }
 
+function mailFrom() {
+  const configured = String(process.env.MAIL_FROM || '').trim();
+  if (!configured) return '';
+  return configured.includes('<') ? configured : `Centro Medico Bruniano <${configured}>`;
+}
+
 async function isBlocked(sql, keys) {
   for (const key of keys) {
     const rows = await sql`SELECT attempts, window_started_at FROM auth_rate_limits WHERE rate_key=${key} LIMIT 1`;
@@ -72,7 +78,7 @@ async function clearFailure(sql, keys) {
 
 async function sendPasswordResetEmail({ token, to, firstName }) {
   const apiKey = String(process.env.RESEND_API_KEY || '').trim();
-  const from = String(process.env.MAIL_FROM || '').trim();
+  const from = mailFrom();
   const publicSiteUrl = String(process.env.PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
   if (!apiKey || !from || !to || !publicSiteUrl) return false;
   let baseUrl;
