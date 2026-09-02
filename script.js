@@ -1,8 +1,3 @@
-const responsiveLink = document.createElement("link");
-responsiveLink.rel = "stylesheet";
-responsiveLink.href = "responsive-site.css?v=1";
-document.head.appendChild(responsiveLink);
-
 const WHATSAPP_NUMBER = "393343755885";
 const WHATSAPP_MESSAGE = "Buongiorno, vorrei ricevere informazioni e prenotare un appuntamento presso Bruniano.";
 
