@@ -1,0 +1,28 @@
+/* Home video responsive fix — preserve the full Tecar frame at every width. */
+body:has(.home-impact) .machine-video{
+  min-height:0!important;
+  aspect-ratio:16/9;
+  height:auto;
+}
+
+body:has(.home-impact) .machine-video video{
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  aspect-ratio:16/9;
+  object-fit:cover!important;
+  object-position:center center!important;
+  display:block;
+}
+
+@media(max-width:650px){
+  body:has(.home-impact) .machine-video{
+    aspect-ratio:16/9;
+  }
+
+  body:has(.home-impact) .machine-video video{
+    aspect-ratio:16/9;
+    object-fit:cover!important;
+    object-position:center center!important;
+  }
+}
