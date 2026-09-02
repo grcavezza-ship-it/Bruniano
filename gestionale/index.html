@@ -13,10 +13,7 @@
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-      <div class="brand">
-        <div class="brand-mark">B</div>
-        <div><strong>bruniano</strong><span>GESTIONALE</span></div>
-      </div>
+      <div class="brand"><div class="brand-mark">B</div><div><strong>bruniano</strong><span>GESTIONALE</span></div></div>
       <div class="env-badge">DEVELOP · AREA TEST</div>
       <nav class="nav" aria-label="Navigazione gestionale">
         <button class="nav-item active" data-view="dashboard"><span>⌂</span>Dashboard</button>
@@ -26,66 +23,21 @@
         <button class="nav-item" data-view="professionals"><span>✦</span>Professionisti</button>
         <button class="nav-item" data-view="treatments"><span>◇</span>Trattamenti</button>
         <button class="nav-item" data-view="promotions"><span>%</span>Promozioni</button>
-        <div class="nav-separator"></div>
-        <p class="nav-label">CONTENUTI</p>
+        <div class="nav-separator"></div><p class="nav-label">CONTENUTI</p>
         <button class="nav-item" data-view="content"><span>▦</span>Sito e contenuti</button>
         <button class="nav-item" data-view="reviews"><span>★</span>Recensioni</button>
-        <div class="nav-separator"></div>
-        <p class="nav-label">AMMINISTRAZIONE</p>
+        <div class="nav-separator"></div><p class="nav-label">AMMINISTRAZIONE</p>
         <button class="nav-item" data-view="users"><span>◎</span>Utenti e ruoli</button>
         <button class="nav-item" data-view="settings"><span>⚙</span>Impostazioni</button>
       </nav>
       <div class="sidebar-footer"><span class="status-dot"></span><div><strong>Sistema operativo</strong><small>Ambiente di sviluppo</small></div></div>
     </aside>
-
     <main class="main">
-      <header class="topbar">
-        <button class="mobile-menu" id="mobile-menu" aria-label="Apri menu">☰</button>
-        <div class="topbar-title"><span id="breadcrumb">Dashboard</span><span class="slash">/</span><strong id="page-title">Panoramica</strong></div>
-        <div class="topbar-actions">
-          <button class="icon-button" aria-label="Notifiche">♢<i></i></button>
-          <div class="user-menu"><div class="avatar">G</div><div><strong>Gestore</strong><small>Amministratore</small></div></div>
-        </div>
-      </header>
-
-      <section class="content" id="app-content">
-        <div class="page-head">
-          <div><p class="eyebrow">CONTROL CENTER</p><h1>Buon pomeriggio.</h1><p class="lead">Ecco cosa succede oggi al Centro Medico Bruniano.</p></div>
-          <button class="primary" id="quick-appointment">+ Nuovo appuntamento</button>
-        </div>
-
-        <div class="stats">
-          <article class="stat-card"><span>OGGI</span><strong>8</strong><small>appuntamenti</small><em>↑ 2 rispetto a ieri</em></article>
-          <article class="stat-card"><span>IN ATTESA</span><strong>3</strong><small>da confermare</small><em class="neutral">Da gestire</em></article>
-          <article class="stat-card"><span>DISPONIBILITÀ</span><strong>11</strong><small>slot liberi oggi</small><em class="neutral">Tra tutti i professionisti</em></article>
-          <article class="stat-card"><span>NUOVI PAZIENTI</span><strong>6</strong><small>questa settimana</small><em>↑ 18%</em></article>
-        </div>
-
-        <div class="grid-main">
-          <section class="panel agenda-preview">
-            <div class="panel-head"><div><span class="eyebrow">AGENDA</span><h2>Oggi · Mercoledì 2 settembre</h2></div><button class="text-button" data-view-link="agenda">Apri agenda →</button></div>
-            <div class="timeline">
-              <div class="time-row"><time>09:00</time><div class="slot busy"><span class="slot-line"></span><div><strong>Mario Rossi</strong><small>Fisioterapia · Dott. Luca Bianchi</small></div><b>09:00–10:00</b></div></div>
-              <div class="time-row"><time>10:00</time><div class="slot busy blue"><span class="slot-line"></span><div><strong>Anna Esposito</strong><small>Tecar · Dott.ssa Chiara Ferri</small></div><b>10:00–10:45</b></div></div>
-              <div class="time-row"><time>11:00</time><div class="slot free"><span class="slot-line"></span><div><strong>Slot disponibile</strong><small>Dott. Luca Bianchi</small></div><button class="mini">Prenota</button></div></div>
-              <div class="time-row"><time>12:00</time><div class="slot busy violet"><span class="slot-line"></span><div><strong>Giuseppe Romano</strong><small>Laser · Dott.ssa Chiara Ferri</small></div><b>12:00–13:00</b></div></div>
-              <div class="time-row"><time>13:00</time><div class="slot lunch"><span class="slot-line"></span><div><strong>Pausa</strong><small>Agenda chiusa</small></div></div></div>
-              <div class="time-row"><time>14:00</time><div class="slot busy green"><span class="slot-line"></span><div><strong>Francesca Russo</strong><small>Riabilitazione · Dott. Luca Bianchi</small></div><b>14:00–15:00</b></div></div>
-            </div>
-          </section>
-
-          <aside class="side-stack">
-            <section class="panel quick-panel"><div class="panel-head"><div><span class="eyebrow">DA FARE</span><h2>Attività</h2></div><span class="counter">4</span></div><div class="task"><span class="task-dot amber"></span><div><strong>Confermare appuntamenti</strong><small>3 richieste in attesa</small></div><button>→</button></div><div class="task"><span class="task-dot blue-dot"></span><div><strong>Nuovo contatto WhatsApp</strong><small>Ricevuto 18 min fa</small></div><button>→</button></div><div class="task"><span class="task-dot green-dot"></span><div><strong>Nuova recensione</strong><small>Da verificare</small></div><button>→</button></div><div class="task"><span class="task-dot grey-dot"></span><div><strong>Promozione in scadenza</strong><small>Tra 4 giorni</small></div><button>→</button></div></section>
-            <section class="panel today-card"><span class="eyebrow">PROSSIMO</span><strong>Anna Esposito</strong><small>Tecar · 10:00</small><div class="progress"><span style="width:58%"></span></div><small>Fra 24 minuti</small></section>
-          </aside>
-        </div>
-
-        <section class="panel recent"><div class="panel-head"><div><span class="eyebrow">ATTIVITÀ RECENTI</span><h2>Ultime operazioni</h2></div></div><div class="activity-list"><div><span class="activity-avatar">MR</span><p><strong>Mario Rossi</strong> · appuntamento completato<small>oggi, 08:42</small></p><b>Agenda</b></div><div><span class="activity-avatar blue-bg">CF</span><p><strong>Chiara Ferri</strong> ha modificato un appuntamento<small>oggi, 08:31</small></p><b>Agenda</b></div><div><span class="activity-avatar amber-bg">GS</span><p><strong>Gestore</strong> ha pubblicato una promozione<small>ieri, 18:10</small></p><b>Contenuti</b></div></div></section>
-      </section>
+      <header class="topbar"><button class="mobile-menu" id="mobile-menu" aria-label="Apri menu">☰</button><div class="topbar-title"><span id="breadcrumb">Dashboard</span><span class="slash">/</span><strong id="page-title">Panoramica</strong></div><div class="topbar-actions"><button class="icon-button" aria-label="Notifiche">♢<i></i></button><div class="user-menu"><div class="avatar">G</div><div><strong>Gestore</strong><small>Amministratore</small></div></div></div></header>
+      <section class="content" id="app-content"></section>
     </main>
   </div>
-
-  <div class="modal-backdrop" id="modal" aria-hidden="true"><div class="modal"><button class="modal-close" id="modal-close" aria-label="Chiudi">×</button><span class="eyebrow">NUOVO APPUNTAMENTO</span><h2>Prenota un appuntamento</h2><p class="modal-intro">Prototipo operativo: i dati sono temporanei e non vengono salvati.</p><form id="appointment-form"><label>Paziente<input placeholder="Cerca paziente..." required></label><div class="form-grid"><label>Data<input type="date" value="2026-09-02" required></label><label>Ora<input type="time" value="11:00" required></label></div><div class="form-grid"><label>Professionista<select><option>Dott. Luca Bianchi</option><option>Dott.ssa Chiara Ferri</option></select></label><label>Trattamento<select><option>Fisioterapia</option><option>Tecar</option><option>Laser</option><option>Riabilitazione</option></select></label></div><label>Note<textarea rows="3" placeholder="Note operative... "></textarea></label><div class="modal-actions"><button type="button" class="secondary" id="modal-cancel">Annulla</button><button class="primary" type="submit">Salva appuntamento</button></div></form></div></div>
-  <script src="app.js"></script>
+  <div class="modal-backdrop" id="modal" aria-hidden="true"><div class="modal"></div></div>
+  <script src="app-v2.js"></script>
 </body>
 </html>
