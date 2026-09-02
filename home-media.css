@@ -109,6 +109,15 @@ body:has(.hero-media-home) .hero-media-home .floating-card-bottom{bottom:54px;le
   body:has(.hero-media-home) .offer-ribbon-inner>div{width:100%;display:flex;flex-direction:column;gap:5px}
   body:has(.hero-media-home) .offer-kicker{font-size:9px;line-height:1.2}
   body:has(.hero-media-home) .offer-ribbon strong{font-size:17px;line-height:1.25;white-space:normal}
-  body:has(.hero-media-home) .offer-ribbon small{font-size:12px;line-height:1.45;display:block;white-space:normal}
+  body:has(.hero-media-home) .offer-ribbon small{display:block;white-space:normal;font-size:12px;line-height:1.45}
   body:has(.hero-media-home) .offer-link{margin:0!important;font-size:14px;line-height:1.2}
+}
+
+/* Home stability fixes: keep the hero content below the promo strip and avoid duplicated header copy. */
+body:has(.hero-media-home) .brand::after{content:none!important;display:none!important}
+body:has(.hero-media-home) .offer-ribbon small{display:none!important}
+@media(min-width:951px){
+  body:has(.hero-media-home) .hero-media-home .hero-grid{padding-top:28px;padding-bottom:24px;box-sizing:border-box}
+  body:has(.hero-media-home) .hero-media-home .hero-copy{transform:none}
+  body:has(.hero-media-home) .offer-ribbon{position:relative;z-index:70}
 }
