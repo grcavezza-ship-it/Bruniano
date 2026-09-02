@@ -9,11 +9,10 @@
   `;
   document.head.appendChild(style);
 
-  // Server-side logout control. The visible button is injected into the existing admin header.
   const actions = document.querySelector('.admin-header-actions');
-  if (actions && !document.getElementById('admin-logout')) {
+  if (actions && !document.getElementById('ux-admin-logout')) {
     const btn = document.createElement('button');
-    btn.id = 'admin-logout';
+    btn.id = 'ux-admin-logout';
     btn.className = 'admin-logout';
     btn.type = 'button';
     btn.textContent = 'Esci';
@@ -37,52 +36,15 @@
 
   async function uploadBlogCover(){
     const status=$('blog-cover-status');
+    if(!status)return;
     try{
       await loadCloudinary();
       status.textContent='Apertura caricamento…';
       await window.BrunianoCloudinary.uploadImage(info=>{
-        $('blog-cover').value=info.secure_url||info.url||'';
+        if($('blog-cover'))$('blog-cover').value=info.secure_url||info.url||'';
         status.textContent='Copertina caricata su Cloudinary';
       });
     }catch(e){status.textContent=e?.message||'Impossibile caricare la copertina';}
   }
   $('blog-cover-upload')?.addEventListener('click',uploadBlogCover);
-
-  let galleryItems=[];
-  async function loadGallery(){
-    const list=$('gallery-list'); if(!list) return;
-    try{
-      const r=await fetch('../api/gallery?admin=1',{cache:'no-store'}); const d=await r.json();
-      if(r.status===401){window.location.replace('login.html');return;}
-      galleryItems=d.items||[]; renderGallery();
-      const published=galleryItems.filter(x=>x.is_published).length; if($('count-gallery'))$('count-gallery').textContent=published;
-    }catch(e){list.innerHTML='<div class="form-card note"><strong>Galleria non disponibile</strong><span>Il backend media non risponde.</span></div>';}
-  }
-  function renderGallery(){
-    const filter=$('gallery-filter')?.value||'all';
-    const list=$('gallery-list'); if(!list)return;
-    const items=galleryItems.filter(x=>filter==='all'||(filter==='published'?x.is_published:!x.is_published));
-    if(!items.length){list.innerHTML='<div class="form-card note"><strong>Nessun media</strong><span>Carica la prima foto o il primo video dello studio.</span></div>';return;}
-    list.innerHTML=items.map(m=>{
-      const media=String(m.media_type).startsWith('video')?`<video src="${esc(m.media_url)}" muted playsinline preload="metadata"></video>`:`<img src="${esc(m.media_url)}" alt="${esc(m.alt_text||m.title)}">`;
-      return `<article class="media-admin-card"><div class="media-admin-thumb">${media}<span class="media-status">${m.is_published?'PUBBLICATO':'BOZZA'}</span></div><div class="media-admin-body"><strong>${esc(m.title||'Media Bruniano')}</strong><small>${esc(m.alt_text||'')}${m.media_type?' · '+esc(m.media_type):''}</small><div class="media-admin-actions"><button class="mini" data-media-toggle="${m.id}" data-published="${m.is_published?'1':'0'}">${m.is_published?'Nascondi':'Pubblica'}</button><button class="mini" data-media-delete="${m.id}">Elimina</button></div></div></article>`;
-    }).join('');
-  }
-  async function mediaAction(url,method,id){
-    const existing=galleryItems.find(x=>x.id===id); if(!existing)return;
-    const body=method==='DELETE'?{id}:{...existing,is_published:!existing.is_published};
-    const r=await fetch(url,{method,headers:{'content-type':'application/json'},body:JSON.stringify(body)}); if(!r.ok){if(r.status===401)window.location.replace('login.html');throw new Error('Operazione non riuscita');} return r;
-  }
-  $('gallery-filter')?.addEventListener('change',renderGallery);
-  $('gallery-list')?.addEventListener('click',async e=>{
-    const toggle=e.target.closest('[data-media-toggle]'),del=e.target.closest('[data-media-delete]');
-    try{
-      if(toggle){await mediaAction('../api/gallery','PUT',toggle.dataset.mediaToggle);await loadGallery();}
-      if(del && confirm('Eliminare definitivamente questo media?')){await mediaAction('../api/gallery','DELETE',del.dataset.mediaDelete);await loadGallery();}
-    }catch(err){alert(err.message)}
-  });
-  $('add-gallery')?.addEventListener('click',()=>document.querySelector('.upload-drop strong')?.click());
-  const observer=new MutationObserver(()=>{if($('gallery-list')&&galleryItems.length===0)loadGallery();});
-  observer.observe(document.body,{childList:true,subtree:true});
-  loadGallery();
 })();
