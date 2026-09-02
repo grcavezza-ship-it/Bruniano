@@ -6,9 +6,10 @@ const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 10;
 const MAX_RESET_ATTEMPTS = 5;
 const RESET_TTL_MS = 30 * 60 * 1000;
-const MAX_USERNAME_LENGTH = 100;
+const MAX_USERNAME_LENGTH = 160;
 const MAX_LOGIN_PASSWORD_LENGTH = 128;
 const MAX_RESET_TOKEN_LENGTH = 256;
+const MAX_ACTIVATION_TOKEN_LENGTH = 256;
 
 function normalizeUsername(value) {
   return String(value || '').trim().toLowerCase().slice(0, MAX_USERNAME_LENGTH);
@@ -117,21 +118,44 @@ async function requestPasswordReset(sql, req, res) {
   return send(res, { ok: true, message: 'Se l’account è configurato per il recupero, riceverai un’email con le istruzioni.' });
 }
 
+function validPassword(value) {
+  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,64}$/.test(value);
+}
+
 async function resetPassword(sql, req, res) {
   const token = String(req.body?.token || '').trim();
   const newPassword = String(req.body?.newPassword || '');
   const confirmPassword = String(req.body?.confirmPassword || '');
   if (!token || token.length > MAX_RESET_TOKEN_LENGTH) return send(res, { error: 'Link di recupero non valido o scaduto' }, 400);
   if (newPassword !== confirmPassword) return send(res, { error: 'Le password non coincidono' }, 400);
-  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,64}$/.test(newPassword)) return send(res, { error: 'La password deve avere 8-64 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale' }, 400);
+  if (!validPassword(newPassword)) return send(res, { error: 'La password deve avere 8-64 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale' }, 400);
   const tokenHash = hashValue(token);
   const claimed = await sql`UPDATE password_reset_tokens SET used_at=now() WHERE token_hash=${tokenHash} AND used_at IS NULL AND expires_at > now() RETURNING user_id`;
   if (!claimed.length) return send(res, { error: 'Link di recupero non valido o scaduto' }, 400);
   const userId = claimed[0].user_id;
   const { salt, hash } = hashPassword(newPassword);
-  await sql`UPDATE admin_users SET password_hash=${hash},password_salt=${salt},password_scrypt_n=${SCRYPT_CURRENT_N},must_change_password=false,updated_at=now() WHERE id=${userId}`;
+  await sql`UPDATE admin_users SET password_hash=${hash},password_salt=${salt},password_scrypt_n=${SCRYPT_CURRENT_N},must_change_password=false,is_active=true,updated_at=now() WHERE id=${userId}`;
   await sql`DELETE FROM admin_sessions WHERE user_id=${userId}`;
   await sql`DELETE FROM password_reset_tokens WHERE user_id=${userId}`;
+  await sql`DELETE FROM first_access_tokens WHERE user_id=${userId}`;
+  return send(res, { ok: true });
+}
+
+async function activateAccount(sql, req, res) {
+  const token = String(req.body?.token || '').trim();
+  const newPassword = String(req.body?.newPassword || '');
+  const confirmPassword = String(req.body?.confirmPassword || '');
+  if (!token || token.length > MAX_ACTIVATION_TOKEN_LENGTH) return send(res, { error: 'Link di attivazione non valido o scaduto' }, 400);
+  if (newPassword !== confirmPassword) return send(res, { error: 'Le password non coincidono' }, 400);
+  if (!validPassword(newPassword)) return send(res, { error: 'La password deve avere 8-64 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale' }, 400);
+  const tokenHash = hashValue(token);
+  const claimed = await sql`UPDATE first_access_tokens SET used_at=now() WHERE token_hash=${tokenHash} AND used_at IS NULL AND expires_at > now() RETURNING user_id`;
+  if (!claimed.length) return send(res, { error: 'Link di attivazione non valido o scaduto' }, 400);
+  const userId = claimed[0].user_id;
+  const { salt, hash } = hashPassword(newPassword);
+  await sql`UPDATE admin_users SET password_hash=${hash},password_salt=${salt},password_scrypt_n=${SCRYPT_CURRENT_N},must_change_password=false,is_active=true,updated_at=now() WHERE id=${userId}`;
+  await sql`DELETE FROM admin_sessions WHERE user_id=${userId}`;
+  await sql`DELETE FROM first_access_tokens WHERE user_id=${userId}`;
   return send(res, { ok: true });
 }
 
@@ -150,7 +174,7 @@ export default async function handler(req, res) {
       const ip = clientIp(req);
       const keys = [rateKey(username, ip), ipRateKey(ip)];
       if (await isBlocked(sql, keys)) return send(res, { error: 'Troppi tentativi. Riprova tra qualche minuto.' }, 429);
-      const rows = await sql`SELECT id,username,password_hash,password_salt,password_scrypt_n,must_change_password,is_active FROM admin_users WHERE username=${username} LIMIT 1`;
+      const rows = await sql`SELECT id,username,password_hash,password_salt,password_scrypt_n,must_change_password,is_active FROM admin_users WHERE username=${username} OR lower(coalesce(email,''))=${username} LIMIT 1`;
       const user = rows[0];
       const hashN = Number(user?.password_scrypt_n) || SCRYPT_LEGACY_N;
       const valid = Boolean(user && user.is_active !== false && verifyPassword(password, user.password_salt, user.password_hash, hashN));
@@ -170,6 +194,7 @@ export default async function handler(req, res) {
     }
     if (action === 'request-password-reset') return requestPasswordReset(sql, req, res);
     if (action === 'reset-password') return resetPassword(sql, req, res);
+    if (action === 'activate-account') return activateAccount(sql, req, res);
     if (action === 'logout') return logout(req, res);
     if (action === 'change-password') return changePassword(req, res);
     return send(res, { error: 'Azione non valida' }, 400);
