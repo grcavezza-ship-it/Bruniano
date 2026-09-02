@@ -2,7 +2,6 @@ import crypto from 'node:crypto';
 import { db, send } from './_db.js';
 
 const SESSION_COOKIE = '__Host-bruniano_session';
-const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 const DEMO_USERNAME = 'admin';
 const INITIAL_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD;
 const SCRYPT_LEGACY_N = 16384;
@@ -49,6 +48,11 @@ export async function ensureSchema(sql) {
     updated_at timestamptz NOT NULL DEFAULT now()
   )`;
   await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS password_scrypt_n integer NOT NULL DEFAULT 16384`;
+  await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS first_name text`;
+  await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS last_name text`;
+  await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS email text`;
+  await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true`;
+  await sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_users_email ON admin_users (lower(email)) WHERE email IS NOT NULL`;
   await sql`CREATE TABLE IF NOT EXISTS admin_sessions (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
@@ -78,7 +82,7 @@ export async function ensureSchema(sql) {
   if (!users.length) {
     if (!INITIAL_PASSWORD) throw new Error('ADMIN_INITIAL_PASSWORD is required to provision the first admin user');
     const { salt, hash } = hashPassword(INITIAL_PASSWORD);
-    await sql`INSERT INTO admin_users(username,password_hash,password_salt,password_scrypt_n,must_change_password) VALUES(${DEMO_USERNAME},${hash},${salt},${SCRYPT_CURRENT_N},false)`;
+    await sql`INSERT INTO admin_users(username,password_hash,password_salt,password_scrypt_n,must_change_password,is_active) VALUES(${DEMO_USERNAME},${hash},${salt},${SCRYPT_CURRENT_N},false,true)`;
   }
 }
 
@@ -92,14 +96,14 @@ export async function requireAdmin(req, res) {
   }
   const tokenHash = hashSession(token);
   const rows = await sql`
-    SELECT u.id,u.username,u.must_change_password,s.id AS session_id
+    SELECT u.id,u.username,u.first_name,u.last_name,u.email,u.must_change_password,u.is_active,s.id AS session_id
     FROM admin_sessions s
     JOIN admin_users u ON u.id=s.user_id
-    WHERE s.token_hash=${tokenHash} AND s.expires_at > now()
+    WHERE s.token_hash=${tokenHash} AND s.expires_at > now() AND u.is_active=true
     LIMIT 1`;
   if (!rows.length) {
     clearCookie(res);
-    send(res, { error: 'Sessione non valida o scaduta' }, 401);
+    send(res, { error: 'Sessione non valida, scaduta o utente disattivato' }, 401);
     return null;
   }
   return { sql, user: rows[0], tokenHash };
@@ -117,7 +121,7 @@ export async function logout(req, res) {
 export async function me(req, res) {
   const ctx = await requireAdmin(req, res);
   if (!ctx) return;
-  return send(res, { ok: true, username: ctx.user.username, must_change_password: ctx.user.must_change_password });
+  return send(res, { ok: true, username: ctx.user.username, first_name: ctx.user.first_name, last_name: ctx.user.last_name, email: ctx.user.email, must_change_password: ctx.user.must_change_password });
 }
 
 export async function changePassword(req, res) {
