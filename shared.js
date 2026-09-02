@@ -110,6 +110,14 @@
       mobileNav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenu(false)));
       document.addEventListener('keydown', (event) => { if (event.key === 'Escape') setMenu(false); });
     }
+
+    header.querySelectorAll('[data-whatsapp]').forEach((link) => {
+      const message = link.dataset.whatsappMessage || 'Buongiorno, vorrei ricevere informazioni e prenotare un appuntamento presso Bruniano.';
+      link.href = `https://wa.me/393343755885?text=${encodeURIComponent(message)}`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+    });
+
     return header;
   }
 
@@ -134,7 +142,6 @@
     return (!p.starts_at || new Date(p.starts_at).getTime() <= now) && (!p.ends_at || new Date(p.ends_at).getTime() >= now);
   }
   function promoText(p) { return p.subtitle || p.description || ''; }
-  function promoWa(p) { return encodeURIComponent(p.whatsapp_message || `Buongiorno, vorrei ricevere informazioni sulla promozione "${p.title}" presso Bruniano.`); }
 
   function setupStudioGallery() {
     if (!document.body.classList.contains('studio-page')) return;
