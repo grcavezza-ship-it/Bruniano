@@ -29,6 +29,26 @@ function normalizeCurriculum(value) {
   return result;
 }
 
+async function ensureTeamSchema(sql) {
+  await sql`CREATE TABLE IF NOT EXISTS site_settings (
+    key text PRIMARY KEY,
+    value text NOT NULL,
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`;
+  await sql`CREATE TABLE IF NOT EXISTS team_members (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL,
+    role text NOT NULL,
+    specialty text,
+    bio text,
+    photo_url text,
+    sort_order integer NOT NULL DEFAULT 0,
+    is_published boolean NOT NULL DEFAULT true,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`;
+}
+
 async function getCurricula(sql) {
   const rows = await sql`SELECT value FROM site_settings WHERE key = 'team_curricula' LIMIT 1`;
   if (!rows.length) return {};
@@ -49,6 +69,7 @@ async function saveCurricula(sql, curricula) {
 export default async function handler(req, res) {
   try {
     const sql = db();
+    await ensureTeamSchema(sql);
     if (req.method === 'GET') {
       const admin = getQuery(req).admin === '1';
       if (admin) {
