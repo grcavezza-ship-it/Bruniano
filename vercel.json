@@ -11,6 +11,10 @@
       ]
     },
     {
+      "source": "/(.*\\.html)",
+      "headers": [{ "key": "Link", "value": "</footer-unified.css?v=20260902>; rel=\"stylesheet\"" }]
+    },
+    {
       "source": "/admin/(.*)",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
     },
