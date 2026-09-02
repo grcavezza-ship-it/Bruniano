@@ -108,12 +108,12 @@
       };
       menuToggle.addEventListener('click', (event) => {
         event.preventDefault();
-        event.stopPropagation();
+        event.stopImmediatePropagation();
         setMenu(!mobileNav.classList.contains('open'));
       }, { passive: false });
       menuToggle.addEventListener('touchend', (event) => {
         event.preventDefault();
-        event.stopPropagation();
+        event.stopImmediatePropagation();
         setMenu(!mobileNav.classList.contains('open'));
       }, { passive: false });
       mobileNav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenu(false)));
