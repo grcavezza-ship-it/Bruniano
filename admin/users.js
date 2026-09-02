@@ -15,14 +15,23 @@
     return `<span class="media-status ${active ? '' : 'draft'}">${active ? 'ATTIVO' : 'DISATTIVATO'}</span>`;
   }
 
+  function displayName(u) {
+    const full = [u.first_name, u.last_name].filter(Boolean).join(' ').trim();
+    return full || (u.username === 'admin' ? 'Amministratore' : u.username || 'Utente');
+  }
+
+  function displayIdentifier(u) {
+    return u.email ? u.email : `Username: ${u.username || '—'}`;
+  }
+
   function render() {
     const list = $('users-list');
     if (!list) return;
     list.innerHTML = state.items.length ? state.items.map(u => `
       <div class="managed-item">
         <div>
-          <strong>${esc([u.first_name, u.last_name].filter(Boolean).join(' '))}</strong>
-          <small>${esc(u.email)} · Accesso completo</small>
+          <strong>${esc(displayName(u))}</strong>
+          <small>${esc(displayIdentifier(u))} · Accesso completo</small>
         </div>
         <div class="managed-actions">
           ${statusChip(u.is_active)}
@@ -38,12 +47,13 @@
     const editing = Boolean(item.id);
     const host = $('user-form');
     host.classList.remove('hidden');
+    const emailRequired = item.username === 'admin' && !item.email ? '' : 'required';
     host.innerHTML = `<div class="panel-title"><div><p>UTENTE GESTIONALE</p><h3>${editing ? 'Modifica utente' : 'Nuovo utente'}</h3><span>Accesso completo al gestionale. Nessuna gestione dei ruoli.</span></div><button class="mini" type="button" id="user-cancel">Annulla</button></div>
       <form id="user-editor">
         <input type="hidden" id="user-id" value="${esc(item.id || '')}">
         <div class="form-row"><label>Nome<input id="user-first-name" required maxlength="80" value="${esc(item.first_name || '')}"></label><label>Cognome<input id="user-last-name" required maxlength="80" value="${esc(item.last_name || '')}"></label></div>
-        <label>Email<input id="user-email" type="email" required maxlength="160" value="${esc(item.email || '')}" placeholder="nome@dominio.it"></label>
-        <div class="form-card note"><strong>Accesso</strong><span>Il sistema usa l’email come identificativo di accesso. La password non viene richiesta in questo modulo.</span></div>
+        <label>Email<input id="user-email" type="email" maxlength="160" ${emailRequired} value="${esc(item.email || '')}" placeholder="nome@dominio.it"></label>
+        <div class="form-card note"><strong>Accesso</strong><span>${item.username === 'admin' ? 'Account amministratore principale. L’accesso attuale resta con username “admin”.' : 'Il sistema usa l’email come identificativo di accesso. La password non viene richiesta in questo modulo.'}</span></div>
         <div class="form-actions"><button class="primary" type="submit">${editing ? 'Salva modifiche' : 'Crea utente'}</button><span id="user-form-status"></span></div>
       </form>`;
     $('user-cancel').onclick = () => host.classList.add('hidden');
@@ -72,16 +82,16 @@
     const item = state.items.find(x => x.id === id);
     if (!item) return;
     const action = active ? 'disattivare' : 'riattivare';
-    if (!confirm(`Vuoi ${action} ${[item.first_name, item.last_name].filter(Boolean).join(' ')}?`)) return;
+    if (!confirm(`Vuoi ${action} ${displayName(item)}?`)) return;
     try {
-      await api('/api/users', { method: 'PUT', body: JSON.stringify({ id, first_name: item.first_name, last_name: item.last_name, email: item.email, is_active: !active }) });
+      await api('/api/users', { method: 'PUT', body: JSON.stringify({ id, first_name: item.first_name, last_name: item.last_name, email: item.email || '', is_active: !active }) });
       await load();
     } catch (error) { alert(error.message); }
   }
 
   async function load() {
     try { const d = await api('/api/users'); state.items = d.items || []; render(); }
-    catch (error) { $('users-list').innerHTML = `<div class="form-card note">${esc(error.message)}</div>`; }
+    catch (error) { const host = $('users-list'); if (host) host.innerHTML = `<div class="form-card note">${esc(error.message)}</div>`; }
   }
 
   $('add-user')?.addEventListener('click', () => form());
