@@ -1,6 +1,6 @@
 (() => {
   const $ = id => document.getElementById(id);
-  const state = { items: [] };
+  const state = { items: [], openMenu: null };
   const esc = v => String(v ?? '').replace(/[&<>\"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[s]));
 
   async function api(url, options = {}) {
@@ -12,8 +12,9 @@
   }
 
   function statusChip(user) {
-    if (!user.is_active && user.must_change_password) return '<span class="media-status draft">IN ATTESA</span>';
-    return `<span class="media-status ${user.is_active ? '' : 'draft'}">${user.is_active ? 'ATTIVO' : 'DISATTIVATO'}</span>`;
+    const active = user.is_active === true;
+    const label = active ? 'Attivo' : 'Disattivo';
+    return `<span class="user-status"><span class="user-status-dot ${active ? 'is-active' : 'is-inactive'}" aria-hidden="true"></span><span>${label}</span></span>`;
   }
 
   function displayName(u) {
@@ -36,10 +37,15 @@
         </div>
         <div class="managed-actions">
           ${statusChip(u)}
-          ${u.username !== 'admin' && u.email && u.must_change_password ? `<button class="mini" type="button" data-user-invite="${u.id}">${u.is_active ? 'Reinvia invito' : 'Invia invito'}</button>` : ''}
-          <button class="mini" type="button" data-user-edit="${u.id}">Modifica</button>
-          ${u.username !== 'admin' ? `<button class="mini danger" type="button" data-user-delete="${u.id}">Cancella</button>` : ''}
-          ${u.username !== 'admin' ? `<button class="mini" type="button" data-user-toggle="${u.id}" data-active="${u.is_active}">${u.is_active ? 'Disattiva' : 'Riattiva'}</button>` : ''}
+          <div class="user-action-menu ${state.openMenu === u.id ? 'is-open' : ''}">
+            <button class="mini" type="button" data-user-edit-menu="${u.id}" aria-haspopup="true" aria-expanded="${state.openMenu === u.id}">Modifica <span aria-hidden="true">⌄</span></button>
+            ${state.openMenu === u.id ? `<div class="user-action-dropdown" role="menu">
+              <button type="button" data-user-edit="${u.id}" role="menuitem">Modifica dati</button>
+              ${u.username !== 'admin' && u.email && u.must_change_password ? `<button type="button" data-user-invite="${u.id}" role="menuitem">${u.is_active ? 'Reinvia invito' : 'Invia invito'}</button>` : ''}
+              ${u.username !== 'admin' ? `<button type="button" data-user-toggle="${u.id}" data-active="${u.is_active}" role="menuitem">${u.is_active ? 'Disattiva' : 'Riattiva'}</button>` : ''}
+              ${u.username !== 'admin' ? '<button class="danger-text" type="button" data-user-delete="' + u.id + '" role="menuitem">Cancella operatore</button>' : ''}
+            </div>` : ''}
+          </div>
         </div>
       </div>`).join('') : '<div class="form-card note">Nessun utente registrato.</div>';
     const count = $('count-users');
@@ -88,6 +94,8 @@
   async function resendInvite(id) {
     const item = state.items.find(x => x.id === id);
     if (!item || !item.email) return;
+    state.openMenu = null;
+    render();
     if (!confirm(`Inviare un nuovo link di primo accesso a ${item.email}? Il link precedente verrà invalidato.`)) return;
     try {
       const d = await api('/api/users', { method: 'POST', body: JSON.stringify({ action: 'resend-invite', id }) });
@@ -101,6 +109,8 @@
   async function toggle(id, active) {
     const item = state.items.find(x => x.id === id);
     if (!item) return;
+    state.openMenu = null;
+    render();
     const action = active ? 'disattivare' : 'riattivare';
     if (!confirm(`Vuoi ${action} ${displayName(item)}?`)) return;
     try {
@@ -112,6 +122,8 @@
   async function remove(id) {
     const item = state.items.find(x => x.id === id);
     if (!item || item.username === 'admin') return;
+    state.openMenu = null;
+    render();
     const name = displayName(item);
     const confirmed = confirm(`Stai per cancellare definitivamente ${name}.\n\nL’operatore verrà rimosso dal gestionale e perderà immediatamente ogni accesso. L’operazione non può essere annullata.\n\nContinuare?`);
     if (!confirmed) return;
@@ -130,14 +142,28 @@
 
   $('add-user')?.addEventListener('click', () => form());
   $('users-list')?.addEventListener('click', e => {
+    const menuBtn = e.target.closest('[data-user-edit-menu]');
     const edit = e.target.closest('[data-user-edit]');
     const invite = e.target.closest('[data-user-invite]');
     const deleteBtn = e.target.closest('[data-user-delete]');
     const toggleBtn = e.target.closest('[data-user-toggle]');
-    if (edit) form(state.items.find(x => x.id === edit.dataset.userEdit));
+    if (menuBtn) {
+      e.stopPropagation();
+      state.openMenu = state.openMenu === menuBtn.dataset.userEditMenu ? null : menuBtn.dataset.userEditMenu;
+      render();
+      return;
+    }
+    if (edit) { state.openMenu = null; render(); form(state.items.find(x => x.id === edit.dataset.userEdit)); }
     if (invite) resendInvite(invite.dataset.userInvite);
     if (deleteBtn) remove(deleteBtn.dataset.userDelete);
     if (toggleBtn) toggle(toggleBtn.dataset.userToggle, toggleBtn.dataset.active === 'true');
+  });
+
+  document.addEventListener('click', e => {
+    if (state.openMenu && !e.target.closest('.user-action-menu')) {
+      state.openMenu = null;
+      render();
+    }
   });
 
   load();
