@@ -36,7 +36,7 @@
 </header>`;
 
   const HEADER_CSS = `
-.site-header{position:relative;z-index:50;background:#fff;border-bottom:1px solid #e5eaf1}
+.site-header{position:relative;z-index:50;background:#fff;border-bottom:1px solid #e5eaf1;overflow:visible}
 .site-header .container{max-width:1200px;margin:0 auto;padding:0 24px}
 .site-header .nav-wrap{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:28px}
 .site-header .brand{display:flex;align-items:center;flex:0 0 auto;text-decoration:none}
@@ -49,13 +49,13 @@
 .site-header .desktop-nav a{color:#566377;font-size:13px;font-weight:700;text-decoration:none;transition:color .2s ease}
 .site-header .desktop-nav a:hover,.site-header .desktop-nav a[aria-current="page"]{color:#125cff}
 .site-header .header-book{white-space:nowrap}
-.site-header .menu-toggle{display:none;border:0;background:transparent;padding:10px;cursor:pointer}
+.site-header .menu-toggle{display:none;border:0;background:transparent;padding:10px;cursor:pointer;position:relative;z-index:60;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .site-header .menu-toggle span{display:block;width:25px;height:2px;background:#111a2c;border-radius:3px;margin:5px 0}
 .site-header .mobile-nav{display:none}
 @media(max-width:950px){
   .site-header .desktop-nav,.site-header .header-book{display:none}
   .site-header .menu-toggle{display:block}
-  .site-header .mobile-nav{display:flex;flex-direction:column;overflow:hidden;max-height:0;opacity:0;visibility:hidden;transform:translateY(-10px);pointer-events:none;padding:0 24px;transition:max-height .38s ease,opacity .24s ease,transform .30s ease,visibility 0s linear .38s}
+  .site-header .mobile-nav{display:flex;flex-direction:column;overflow:hidden;max-height:0;opacity:0;visibility:hidden;transform:translateY(-10px);pointer-events:none;padding:0 24px;position:relative;z-index:55;transition:max-height .38s ease,opacity .24s ease,transform .30s ease,visibility 0s linear .38s}
   .site-header .mobile-nav.open{max-height:520px;opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;padding-bottom:15px;transition:max-height .42s ease,opacity .24s ease,transform .30s ease,visibility 0s linear 0s}
   .site-header .mobile-nav a{padding:12px 0;border-bottom:1px solid #edf1f5;color:#344257;font-size:13px;font-weight:800;text-decoration:none}
 }
@@ -106,7 +106,16 @@
         menuToggle.setAttribute('aria-expanded', String(open));
         menuToggle.setAttribute('aria-label', open ? 'Chiudi menu' : 'Apri menu');
       };
-      menuToggle.addEventListener('click', () => setMenu(!mobileNav.classList.contains('open')));
+      menuToggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setMenu(!mobileNav.classList.contains('open'));
+      }, { passive: false });
+      menuToggle.addEventListener('touchend', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setMenu(!mobileNav.classList.contains('open'));
+      }, { passive: false });
       mobileNav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenu(false)));
       document.addEventListener('keydown', (event) => { if (event.key === 'Escape') setMenu(false); });
     }
