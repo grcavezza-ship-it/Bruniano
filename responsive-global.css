@@ -1,5 +1,6 @@
 /* Canonical public-site responsive system — same scale and behavior as the Home. */
 @import url('footer-unified.css?v=1');
+@import url('home-video-fix.css?v=1');
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 :root{--site-max:1480px;--site-gutter:clamp(24px,2.5vw,48px)}
 html{font-size:16px}
