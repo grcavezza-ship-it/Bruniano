@@ -74,10 +74,20 @@ export async function ensureSchema(sql) {
     used_at timestamptz,
     created_at timestamptz NOT NULL DEFAULT now()
   )`;
+  await sql`CREATE TABLE IF NOT EXISTS first_access_tokens (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
+    token_hash text NOT NULL UNIQUE,
+    expires_at timestamptz NOT NULL,
+    used_at timestamptz,
+    created_at timestamptz NOT NULL DEFAULT now()
+  )`;
   await sql`CREATE INDEX IF NOT EXISTS idx_admin_sessions_token ON admin_sessions(token_hash)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_admin_sessions_expiry ON admin_sessions(expires_at)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user ON password_reset_tokens(user_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expiry ON password_reset_tokens(expires_at)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_first_access_tokens_user ON first_access_tokens(user_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_first_access_tokens_expiry ON first_access_tokens(expires_at)`;
 
   const users = await sql`SELECT id FROM admin_users WHERE username=${DEMO_USERNAME} LIMIT 1`;
   if (!users.length) {
