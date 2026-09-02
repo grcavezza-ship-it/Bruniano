@@ -150,10 +150,10 @@ export default async function handler(req, res) {
       const ip = clientIp(req);
       const keys = [rateKey(username, ip), ipRateKey(ip)];
       if (await isBlocked(sql, keys)) return send(res, { error: 'Troppi tentativi. Riprova tra qualche minuto.' }, 429);
-      const rows = await sql`SELECT id,username,password_hash,password_salt,password_scrypt_n,must_change_password FROM admin_users WHERE username=${username} LIMIT 1`;
+      const rows = await sql`SELECT id,username,password_hash,password_salt,password_scrypt_n,must_change_password,is_active FROM admin_users WHERE username=${username} LIMIT 1`;
       const user = rows[0];
       const hashN = Number(user?.password_scrypt_n) || SCRYPT_LEGACY_N;
-      const valid = Boolean(user && verifyPassword(password, user.password_salt, user.password_hash, hashN));
+      const valid = Boolean(user && user.is_active !== false && verifyPassword(password, user.password_salt, user.password_hash, hashN));
       if (!valid) { await registerFailure(sql, keys); return send(res, { error: 'Username o password non corretti' }, 401); }
       if (hashN < SCRYPT_CURRENT_N) {
         const { salt, hash } = hashPassword(password);
