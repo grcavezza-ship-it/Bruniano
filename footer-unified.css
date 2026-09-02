@@ -3,16 +3,16 @@
 .footer:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 12% 0%,rgba(18,92,255,.20),transparent 34%),linear-gradient(135deg,rgba(7,21,47,.98),rgba(7,21,47,1));pointer-events:none}
 .footer>*{position:relative;z-index:1}
 .footer .container{width:min(1180px,calc(100% - 48px));max-width:1180px;margin:auto}
-.footer-grid{display:grid!important;grid-template-columns:auto max-content 1fr;gap:26px 8px!important;align-items:center!important;padding:0 0 42px!important}
+.footer-grid{display:grid!important;grid-template-columns:50px max-content 1fr!important;gap:26px 8px!important;align-items:center!important;padding:0 0 42px!important}
 .footer-logo{content:url("assets/logo-symbol.svg");width:50px!important;height:50px!important;object-fit:contain;display:block;filter:none!important;opacity:1!important}
-.footer-grid>div:nth-child(2){display:flex;align-items:center;gap:18px;min-width:0}
+.footer-grid>div:nth-child(2){display:flex;align-items:center;gap:18px;min-width:0;grid-column:2!important;justify-self:start!important}
 .footer-grid>div:nth-child(2) strong{display:block;font-family:Manrope,system-ui,sans-serif;font-size:35px;line-height:1;font-weight:800;letter-spacing:-.065em;color:#fff;text-transform:lowercase;white-space:nowrap}
 .footer-grid>div:nth-child(2) strong:after{content:"\A Fisioterapia & Riabilitazione";white-space:pre;display:block;margin-top:9px;font-size:11px;line-height:1.2;font-weight:600;letter-spacing:.02em;color:#8190a6;text-transform:none}
 .footer-grid>div:nth-child(2) p{margin:0;padding-left:18px;border-left:1px solid rgba(255,255,255,.17);font-family:Manrope,system-ui,sans-serif;font-size:10px;line-height:1.15;font-weight:800;letter-spacing:.11em;color:#b9c5d7;text-transform:uppercase;white-space:nowrap}
 .footer-grid>div:nth-child(2) p{font-size:0}
 .footer-grid>div:nth-child(2) p:before{content:"CENTRO MEDICO";font-size:10px}
 .footer-grid>div:nth-child(2) p:after{content:"SPECIALISTICO";display:block;font-size:10px;margin-top:2px}
-.footer-links{display:flex;justify-content:flex-end;align-items:center;gap:22px;flex-wrap:wrap}
+.footer-links{display:flex;justify-content:flex-end;align-items:center;gap:22px;flex-wrap:wrap;grid-column:3!important}
 .footer-links a{font-size:11px!important;font-weight:800;color:#dce5f3!important;text-decoration:none;transition:color .2s ease}
 .footer-links a:hover{color:#fff!important}
 .footer-bottom{margin-top:0!important;padding:18px 0 0!important;border-top:1px solid var(--br-footer-line)!important;display:flex!important;justify-content:space-between!important;align-items:center!important;gap:14px;flex-wrap:wrap;color:var(--br-footer-muted)!important;font-size:10px!important}
