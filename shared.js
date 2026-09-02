@@ -67,4 +67,35 @@ function setupStudioGallery(){
 }
 setupStudioGallery();
 
+function promoActive(p){const now=Date.now();return (!p.starts_at||new Date(p.starts_at).getTime()<=now)&&(!p.ends_at||new Date(p.ends_at).getTime()>=now)}
+function promoText(p){return p.subtitle||p.description||''}
+function promoWa(p){return encodeURIComponent(p.whatsapp_message||`Buongiorno, vorrei ricevere informazioni sulla promozione "${p.title}" presso Bruniano.`)}
+function setupHomePromotions(){
+ if(!document.body.classList.contains('home-impact'))return;
+ const ribbon=document.querySelector('.offer-ribbon'),band=document.querySelector('.promo-home');
+ if(!ribbon&&!band)return;
+ fetch('/api/promotions',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(data=>{
+  const items=(data.items||[]).filter(p=>p.is_published!==false&&promoActive(p));
+  const top=items.filter(p=>p.show_home_top).sort((a,b)=>(a.home_top_order||0)-(b.home_top_order||0))[0];
+  const center=items.filter(p=>p.show_home_center).sort((a,b)=>(a.home_center_order||0)-(b.home_center_order||0))[0];
+  const apply=(el,p,type)=>{if(!el||!p)return;if(type==='top'){const strong=el.querySelector('.offer-ribbon-inner strong'),small=el.querySelector('.offer-ribbon-inner small'),link=el.querySelector('.offer-link');if(strong)strong.textContent=p.title;if(small)small.textContent=promoText(p);if(link){link.href=p.id?`promozioni.html#promo-${p.id}`:'promozioni.html';link.textContent=`${p.cta_label||'Scopri l’offerta'} →`}}else{const h=el.querySelector('h2'),desc=el.querySelector('p'),link=el.querySelector('a.button');if(h)h.innerHTML=`${p.title.replace(/\n/g,'<br>')}${p.subtitle?`<br><em>${p.subtitle}</em>`:''}`;if(desc)desc.textContent=p.description||p.subtitle||'';if(link){link.href=p.id?`promozioni.html#promo-${p.id}`:'promozioni.html';link.textContent=p.cta_label||'Scopri l’offerta'}}};
+  if(top)apply(ribbon,top,'top');else if(ribbon)ribbon.style.display='none';
+  if(center)apply(band,center,'center');else if(band)band.style.display='none';
+ }).catch(()=>{});
+}
+setupHomePromotions();
+
+function setupPublicPromotions(){
+ if(!document.body.classList.contains('promos-page'))return;
+ const featured=document.querySelector('.featured-promo'),grid=document.querySelector('.promo-system .promo-grid');
+ fetch('/api/promotions',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(data=>{
+  const items=(data.items||[]).filter(p=>p.is_published!==false&&promoActive(p));
+  const pageItems=items.filter(p=>p.page_published);
+  if(featured){if(!pageItems.length){featured.style.display='none'}else{featured.innerHTML=pageItems.map((p,i)=>`<div class="container" id="promo-${p.id}"><div class="featured-card"><div class="featured-media">${p.image_url?`<img src="${p.image_url}" alt="${p.title}" loading="lazy">`:''}<span class="featured-badge">${i===0?'PROMOZIONE IN EVIDENZA':'PROMOZIONE'}</span></div><div class="featured-copy"><p class="eyebrow">OFFERTA BRUNIANO</p><h2>${p.title}${p.subtitle?`<br><em>${p.subtitle}</em>`:''}</h2><p>${p.description||''}</p><div class="promo-actions"><a class="button button-light" href="https://wa.me/393343755885?text=${promoWa(p)}">${p.cta_label||'Chiedi informazioni'} ↗</a><a class="button button-large" href="contatti.html">Contatti</a></div>${p.ends_at?`<p class="small-note">Offerta valida fino al ${new Date(p.ends_at).toLocaleDateString('it-IT')}.</p>`:''}</div></div></div>`).join('')}}
+  }
+  if(grid){const cards=pageItems.map((p,i)=>`<article class="promo-card"><div class="promo-card-media">${p.image_url?`<img src="${p.image_url}" alt="${p.title}" loading="lazy">`:''}</div><div class="promo-card-body"><p class="eyebrow">${String(i+1).padStart(2,'0')} · PROMOZIONE</p><h3>${p.title}${p.subtitle?` · ${p.subtitle}`:''}</h3><p>${p.description||''}</p><a class="text-link" href="#promo-${p.id}">Scopri <span>→</span></a></div></article>`);if(cards.length)grid.innerHTML=cards.join('')}
+ }).catch(()=>{});
+}
+setupPublicPromotions();
+
 const seoLoader=document.createElement('script');seoLoader.src='seo.js';document.head.appendChild(seoLoader);
