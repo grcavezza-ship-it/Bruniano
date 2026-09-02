@@ -1,56 +1,18 @@
 (() => {
   const $ = id => document.getElementById(id);
-
-  async function loadCloudinary(){
-    if(window.BrunianoCloudinary) return;
-    await new Promise((resolve,reject)=>{
-      const s=document.createElement('script');
-      s.src='cloudinary-upload.js';
-      s.onload=resolve;
-      s.onerror=reject;
-      document.head.appendChild(s);
-    });
-  }
-
-  async function uploadBlogCover(){
-    const status=$('blog-cover-status');
-    if(!status)return;
-    try{
-      await loadCloudinary();
-      status.textContent='Apertura caricamento…';
-      await window.BrunianoCloudinary.uploadImage(info=>{
-        if($('blog-cover'))$('blog-cover').value=info.secure_url||info.url||'';
-        status.textContent='Copertina caricata su Cloudinary';
-      });
-    }catch(e){ status.textContent=e?.message||'Impossibile caricare la copertina'; }
-  }
-
-  async function logout(){
-    const btn=$('admin-logout');
-    if(btn){btn.disabled=true;btn.textContent='Uscita…';}
-    try{
-      await fetch('../api/auth?action=logout',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'}});
-    }finally{
-      window.location.replace('login.html');
-    }
-  }
-
-  function updateHeader(panel){
-    const titles={dashboard:['Dashboard','Panoramica'],team:['Team','Professionisti'],gallery:['Studio','Foto e video'],promos:['Promozioni','Offerte'],blog:['Blog','Articoli e SEO'],reviews:['Recensioni','Google Reviews'],users:['Utenti','Accessi al gestionale']};
-    const value=titles[panel]||titles.dashboard;
-    if($('breadcrumb'))$('breadcrumb').textContent=value[0];
-    if($('page-title'))$('page-title').textContent=value[1];
-  }
-
-  function setupNavigation(){
-    document.querySelectorAll('.dash-card[data-panel]').forEach(btn=>btn.addEventListener('click',()=>{const panel=btn.dataset.panel;updateHeader(panel);$('sidebar')?.classList.remove('open');$('mobile-menu')?.setAttribute('aria-expanded','false');}));
-    document.querySelectorAll('[data-view-link]').forEach(btn=>btn.addEventListener('click',()=>{const target=document.querySelector(`.dash-card[data-panel="${btn.dataset.viewLink}"]`);if(target)target.click();}));
-    const menu=$('mobile-menu');
-    menu?.addEventListener('click',()=>{const sidebar=$('sidebar');if(!sidebar)return;const open=!sidebar.classList.contains('open');sidebar.classList.toggle('open',open);menu.setAttribute('aria-expanded',String(open));});
-    $('admin-logout')?.addEventListener('click',logout);
-  }
-
-  $('blog-cover-upload')?.addEventListener('click',uploadBlogCover);
-  setupNavigation();
-  updateHeader('dashboard');
+  async function loadCloudinary(){if(window.BrunianoCloudinary)return;await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='cloudinary-upload.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)})}
+  async function uploadBlogCover(){const status=$('blog-cover-status');if(!status)return;try{await loadCloudinary();status.textContent='Apertura caricamento…';await window.BrunianoCloudinary.uploadImage(info=>{if($('blog-cover'))$('blog-cover').value=info.secure_url||info.url||'';status.textContent='Copertina caricata su Cloudinary'})}catch(e){status.textContent=e?.message||'Impossibile caricare la copertina'}}
+  async function logout(){const btn=$('admin-logout');if(btn){btn.disabled=true;btn.textContent='Uscita…'}try{await fetch('../api/auth?action=logout',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'}})}finally{window.location.replace('login.html')}}
+  function updateHeader(panel){const titles={dashboard:['Dashboard','Panoramica'],team:['Team','Professionisti'],gallery:['Studio','Foto e video'],promos:['Promozioni','Offerte'],blog:['Blog','Articoli e SEO'],reviews:['Recensioni','Google Reviews'],users:['Utenti','Accessi al gestionale']};const value=titles[panel]||titles.dashboard;if($('breadcrumb'))$('breadcrumb').textContent=value[0];if($('page-title'))$('page-title').textContent=value[1]}
+  function setupNavigation(){document.querySelectorAll('.dash-card[data-panel]').forEach(btn=>btn.addEventListener('click',()=>{const panel=btn.dataset.panel;updateHeader(panel);$('sidebar')?.classList.remove('open');$('mobile-menu')?.setAttribute('aria-expanded','false')}));document.querySelectorAll('[data-view-link]').forEach(btn=>btn.addEventListener('click',()=>{const target=document.querySelector(`.dash-card[data-panel="${btn.dataset.viewLink}"]`);if(target)target.click()}));const menu=$('mobile-menu');menu?.addEventListener('click',()=>{const sidebar=$('sidebar');if(!sidebar)return;const open=!sidebar.classList.contains('open');sidebar.classList.toggle('open',open);menu.setAttribute('aria-expanded',String(open))});$('admin-logout')?.addEventListener('click',logout)}
+  function esc(v){return String(v??'').replace(/[&<>\"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[s]))}
+  async function promoApi(url,options={}){const r=await fetch(url,{credentials:'same-origin',headers:{'content-type':'application/json',...(options.headers||{})},...options});const d=await r.json().catch(()=>({}));if(r.status===401){location.replace('login.html');throw new Error('Sessione scaduta')}if(!r.ok)throw new Error(d.error||`HTTP ${r.status}`);return d}
+  const promoState={items:[]};
+  function promoForm(p={}){const box=$('promo-list');if(!box)return;box.innerHTML=`<div class="form-card"><div class="panel-head"><div><span class="eyebrow">SCHEDA PROMOZIONE</span><h2>${p.id?'Modifica promozione':'Nuova promozione'}</h2></div><button class="mini" type="button" id="promo-cancel">Annulla</button></div><form id="promo-editor"><input type="hidden" id="promo-id" value="${esc(p.id||'')}"><div class="form-row"><label>Titolo<input id="promo-title" required value="${esc(p.title||'')}" placeholder="Es. Settimana della prevenzione"></label><label>Sottotitolo<input id="promo-subtitle" value="${esc(p.subtitle||'')}" placeholder="Messaggio breve in evidenza"></label></div><label>Descrizione<textarea id="promo-description" rows="5" placeholder="Descrizione dell'offerta">${esc(p.description||'')}</textarea></label><label>Immagine<div class="media-input-row"><input id="promo-image" value="${esc(p.image_url||'')}" placeholder="URL Cloudinary"><button class="mini" type="button" id="promo-image-upload">Carica</button></div><small id="promo-image-status">Puoi caricare l'immagine direttamente su Cloudinary.</small></label><div class="form-row"><label>Inizio<input id="promo-start" type="datetime-local" value="${p.starts_at?new Date(p.starts_at).toISOString().slice(0,16):''}"></label><label>Fine<input id="promo-end" type="datetime-local" value="${p.ends_at?new Date(p.ends_at).toISOString().slice(0,16):''}"></label></div><div class="form-row"><label>Testo pulsante<input id="promo-cta" value="${esc(p.cta_label||'Scopri l'offerta')}"></label><label>Messaggio WhatsApp<input id="promo-wa" value="${esc(p.whatsapp_message||'')}"></label></div><div class="form-card note"><strong>Dove vuoi pubblicarla?</strong><div class="check-stack"><label class="check-inline"><input id="promo-page" type="checkbox" ${p.page_published!==false?'checked':''}> Pagina Promozioni</label><label class="check-inline"><input id="promo-top" type="checkbox" ${p.show_home_top?'checked':''}> Fascia alta della Home</label><label class="check-inline"><input id="promo-center" type="checkbox" ${p.show_home_center?'checked':''}> Sezione centrale della Home</label></div><div class="form-row"><label>Ordine fascia alta<input id="promo-top-order" type="number" value="${Number(p.home_top_order||0)}"></label><label>Ordine sezione centrale<input id="promo-center-order" type="number" value="${Number(p.home_center_order||0)}"></label></div></div><label class="check-inline"><input id="promo-published" type="checkbox" ${p.is_published?'checked':''}> Promozione attiva</label><div class="form-actions"><button class="primary" type="submit">Salva promozione</button><span id="promo-form-status"></span></div></form></div>`;$('promo-cancel')?.addEventListener('click',loadPromos);$('promo-image-upload')?.addEventListener('click',async()=>{const s=$('promo-image-status');try{await loadCloudinary();s.textContent='Apertura caricamento…';await window.BrunianoCloudinary.uploadImage(info=>{$('promo-image').value=info.secure_url||info.url||'';s.textContent='Immagine caricata su Cloudinary'})}catch(e){s.textContent=e.message}});$('promo-editor')?.addEventListener('submit',savePromo)}
+  function renderPromos(){const box=$('promo-list');if(!box)return;box.innerHTML=promoState.items.length?promoState.items.map(p=>`<div class="managed-item"><div><strong>${esc(p.title)}</strong><small>${p.is_published?'ATTIVA':'BOZZA'} · Pagina ${p.page_published?'ON':'OFF'} · Home alta ${p.show_home_top?'ON':'OFF'} · Home centrale ${p.show_home_center?'ON':'OFF'}</small></div><div class="managed-actions"><button class="mini" data-promo-edit="${p.id}">Modifica</button><button class="mini" data-promo-delete="${p.id}">Elimina</button></div></div>`).join(''):'<div class="form-card note">Nessuna promozione presente. Crea la prima promozione per controllare anche i due spazi della Home.</div>';}
+  async function loadPromos(){try{const d=await promoApi('/api/promotions?admin=1');promoState.items=d.items||[];renderPromos();if($('count-promos'))$('count-promos').textContent=promoState.items.filter(x=>x.is_published).length}catch(e){if($('promo-list'))$('promo-list').innerHTML=`<div class="form-card note">${esc(e.message)}</div>`}}
+  async function savePromo(e){e.preventDefault();const status=$('promo-form-status');status.textContent='Salvataggio…';const id=$('promo-id').value||undefined;const payload={id,title:$('promo-title').value,subtitle:$('promo-subtitle').value,description:$('promo-description').value,image_url:$('promo-image').value,starts_at:$('promo-start').value||null,ends_at:$('promo-end').value||null,cta_label:$('promo-cta').value,whatsapp_message:$('promo-wa').value,page_published:$('promo-page').checked,show_home_top:$('promo-top').checked,show_home_center:$('promo-center').checked,home_top_order:Number($('promo-top-order').value||0),home_center_order:Number($('promo-center-order').value||0),is_published:$('promo-published').checked};try{const saved=await promoApi('/api/promotions',{method:id?'PUT':'POST',body:JSON.stringify(payload)});const i=promoState.items.findIndex(x=>x.id===saved.id);if(i>=0)promoState.items[i]=saved;else promoState.items.unshift(saved);renderPromos();status.textContent='Promozione salvata'}catch(e){status.textContent=e.message}}
+  async function deletePromo(id){if(!confirm('Eliminare definitivamente questa promozione?'))return;try{await promoApi('/api/promotions',{method:'DELETE',body:JSON.stringify({id})});promoState.items=promoState.items.filter(x=>x.id!==id);renderPromos()}catch(e){alert(e.message)}}
+  function setupPromos(){const add=$('add-promo');add?.addEventListener('click',()=>promoForm());$('promo-list')?.addEventListener('click',e=>{const edit=e.target.closest('[data-promo-edit]'),del=e.target.closest('[data-promo-delete]');if(edit){const p=promoState.items.find(x=>x.id===edit.dataset.promoEdit);if(p)promoForm(p)}if(del)deletePromo(del.dataset.promoDelete)});loadPromos()}
+  $('blog-cover-upload')?.addEventListener('click',uploadBlogCover);setupNavigation();updateHeader('dashboard');setupPromos();
 })();
