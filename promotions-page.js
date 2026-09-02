@@ -1,105 +1,95 @@
 (() => {
-  const escapeHtml = (value = '') => String(value).replace(/[&<>\"']/g, (char) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '\"': '&quot;',
-    "'": '&#39;'
-  }[char]));
-
-  const promoIsActive = (promo) => {
+  const $ = (selector) => document.querySelector(selector);
+  const escapeHtml = (value = '') => String(value).replace(/[&<>\"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;' }[char]));
+  const activeNow = (p) => {
     const now = Date.now();
-    const start = promo.starts_at ? new Date(promo.starts_at).getTime() : null;
-    const end = promo.ends_at ? new Date(promo.ends_at).getTime() : null;
-    return (!start || start <= now) && (!end || end >= now);
+    return (!p.starts_at || new Date(p.starts_at).getTime() <= now) && (!p.ends_at || new Date(p.ends_at).getTime() >= now);
   };
-
-  const waUrl = (promo) => {
-    const message = promo.whatsapp_message || `Buongiorno, vorrei informazioni sulla promozione "${promo.title}" presso Bruniano.`;
-    return `https://wa.me/393343755885?text=${encodeURIComponent(message)}`;
+  const wa = (p) => {
+    const text = p.whatsapp_message || `Buongiorno, vorrei ricevere informazioni sulla promozione "${p.title}" presso Bruniano.`;
+    return `https://wa.me/393343755885?text=${encodeURIComponent(text)}`;
   };
-
-  const formatDate = (value) => {
-    if (!value) return '';
-    return new Date(value).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
-  };
+  const date = (v) => v ? new Date(v).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
 
   const render = (items) => {
-    const active = items.filter((promo) => promo.is_published !== false && promo.page_published !== false && promoIsActive(promo));
-    const featured = document.getElementById('promo-featured');
-    const grid = document.getElementById('promo-grid');
-    const count = document.getElementById('promo-count');
+    const promos = (items || []).filter((p) => p.is_published !== false && p.page_published !== false && activeNow(p));
+    const featured = $('#promo-featured');
+    const grid = $('#promo-grid');
+    const count = $('#promo-count');
+    if (count) count.textContent = `${promos.length} ${promos.length === 1 ? 'offerta attiva' : 'offerte attive'}`;
 
-    if (count) count.textContent = `${active.length} ${active.length === 1 ? 'offerta disponibile' : 'offerte disponibili'}`;
-
-    if (!active.length) {
-      if (featured) featured.innerHTML = '<div class="promo-empty"><span>Nessuna promozione attiva</span><h2>Stiamo preparando le prossime offerte.</h2><p>Per informazioni sui trattamenti e sulle disponibilità puoi contattarci direttamente.</p><a class="button button-primary" href="contatti.html">Contatti</a></div>';
+    if (!promos.length) {
+      if (featured) featured.innerHTML = '<div class="promo-empty"><span>Nessuna promozione attiva</span><h2>Stiamo preparando le prossime offerte.</h2><p>Contattaci direttamente per conoscere trattamenti e disponibilità.</p><a class="button button-primary" href="contatti.html">Contatti</a></div>';
       if (grid) grid.innerHTML = '';
       return;
     }
 
-    const lead = active[0];
+    const lead = promos[0];
     if (featured) {
-      featured.innerHTML = `
-        <article class="featured-card" id="promo-${escapeHtml(lead.id)}">
-          <div class="featured-accent"><span>${escapeHtml(lead.subtitle || 'PROMO IN EVIDENZA')}</span><b>OFFERTA</b></div>
-          <div class="featured-main">
-            <div class="featured-copy">
-              <p class="eyebrow">CENTRO MEDICO SPECIALISTICO · PROMOZIONE</p>
-              <h2>${escapeHtml(lead.title)}</h2>
-              ${lead.description ? `<p class="featured-description">${escapeHtml(lead.description)}</p>` : ''}
-              <div class="featured-actions">
-                <a class="button button-primary button-large" href="${waUrl(lead)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lead.cta_label || 'Scopri l’offerta')} ↗</a>
-                <a class="button button-large" href="contatti.html">Contatti</a>
-              </div>
-              ${lead.ends_at ? `<small class="promo-validity">Valida fino al ${formatDate(lead.ends_at)}</small>` : ''}
-            </div>
-            <div class="featured-number" aria-hidden="true"><span>01</span><strong>%</strong></div>
+      featured.innerHTML = `<article class="featured-card" id="promo-${escapeHtml(lead.id)}">
+        <div class="featured-visual">
+          ${lead.image_url ? `<img src="${escapeHtml(lead.image_url)}" alt="${escapeHtml(lead.title)}">` : '<div class="visual-fallback" aria-hidden="true"><span>%</span></div>'}
+          <div class="featured-badge">${escapeHtml(lead.subtitle || 'PROMO IN EVIDENZA')}</div>
+        </div>
+        <div class="featured-copy">
+          <p class="eyebrow">CENTRO MEDICO SPECIALISTICO · PROMOZIONE</p>
+          <h2>${escapeHtml(lead.title)}</h2>
+          ${lead.description ? `<p>${escapeHtml(lead.description)}</p>` : ''}
+          <div class="promo-actions">
+            <a class="button button-primary button-large" href="${wa(lead)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lead.cta_label || 'Scopri l’offerta')} ↗</a>
+            <a class="button button-large" href="contatti.html">Contatti</a>
           </div>
-        </article>`;
+          ${lead.ends_at ? `<small class="promo-validity">Offerta valida fino al ${date(lead.ends_at)}</small>` : '<small class="promo-validity">Offerta attualmente attiva</small>'}
+        </div>
+      </article>`;
     }
 
     if (grid) {
-      const cards = active.slice(1).map((promo, index) => `
-        <article class="promo-card" id="promo-${escapeHtml(promo.id)}">
-          <div class="promo-card-top"><span>${escapeHtml(promo.subtitle || 'PROMOZIONE')}</span><strong>${String(index + 2).padStart(2, '0')}</strong></div>
-          <div class="promo-card-body">
-            <h3>${escapeHtml(promo.title)}</h3>
-            ${promo.description ? `<p>${escapeHtml(promo.description)}</p>` : ''}
-            <div class="promo-card-bottom">
-              ${promo.ends_at ? `<small>Fino al ${formatDate(promo.ends_at)}</small>` : '<small>Offerta attiva</small>'}
-              <a href="${waUrl(promo)}" target="_blank" rel="noopener noreferrer">${escapeHtml(promo.cta_label || 'Scopri')} <span>↗</span></a>
-            </div>
-          </div>
-        </article>`).join('');
+      const cards = promos.slice(1).map((promo, index) => `<article class="promo-card" id="promo-${escapeHtml(promo.id)}">
+        <div class="promo-card-head"><span>${escapeHtml(promo.subtitle || 'PROMOZIONE')}</span><strong>${String(index + 2).padStart(2, '0')}</strong></div>
+        <div class="promo-card-body">
+          <h3>${escapeHtml(promo.title)}</h3>
+          ${promo.description ? `<p>${escapeHtml(promo.description)}</p>` : ''}
+          <div class="promo-card-foot"><small>${promo.ends_at ? `Fino al ${date(promo.ends_at)}` : 'Offerta attiva'}</small><a href="${wa(promo)}" target="_blank" rel="noopener noreferrer">${escapeHtml(promo.cta_label || 'Scopri')} ↗</a></div>
+        </div>
+      </article>`).join('');
       grid.innerHTML = cards || '<p class="promo-single-note">La promozione in evidenza è l’offerta attualmente disponibile.</p>';
     }
   };
 
-  const init = async () => {
+  const load = async () => {
     try {
       const response = await fetch('/api/promotions', { cache: 'no-store' });
-      if (!response.ok) throw new Error('Impossibile caricare le promozioni');
+      if (!response.ok) throw new Error('Promozioni non disponibili');
       const data = await response.json();
-      render(data.items || []);
+      render(data.items);
     } catch (error) {
-      const featured = document.getElementById('promo-featured');
-      if (featured) featured.innerHTML = '<div class="promo-empty"><span>Servizio temporaneamente non disponibile</span><h2>Le promozioni non sono al momento consultabili.</h2><p>Puoi comunque contattarci direttamente per conoscere le offerte attive.</p><a class="button button-primary" href="contatti.html">Contatti</a></div>';
+      const target = $('#promo-featured');
+      if (target) target.innerHTML = '<div class="promo-empty"><span>Servizio temporaneamente non disponibile</span><h2>Impossibile caricare le promozioni.</h2><p>Puoi contattarci direttamente per ricevere le offerte attive.</p><a class="button button-primary" href="contatti.html">Contatti</a></div>';
     }
   };
 
-  document.querySelector('.menu-toggle')?.addEventListener('click', () => {
-    const button = document.querySelector('.menu-toggle');
-    const menu = document.querySelector('.mobile-nav');
-    if (!button || !menu) return;
-    const open = menu.classList.toggle('open');
-    button.setAttribute('aria-expanded', String(open));
+  const menu = $('.mobile-nav');
+  const toggle = $('.menu-toggle');
+  if (toggle && menu) {
+    toggle.addEventListener('click', () => {
+      const open = menu.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+    menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
+      menu.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }));
+  }
+
+  document.querySelectorAll('[data-whatsapp]').forEach((link) => {
+    const text = link.dataset.whatsappMessage || 'Buongiorno, vorrei ricevere informazioni e prenotare un appuntamento presso Bruniano.';
+    link.href = `https://wa.me/393343755885?text=${encodeURIComponent(text)}`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
   });
 
-  document.querySelectorAll('.mobile-nav a').forEach((link) => link.addEventListener('click', () => {
-    document.querySelector('.mobile-nav')?.classList.remove('open');
-    document.querySelector('.menu-toggle')?.setAttribute('aria-expanded', 'false');
-  }));
-
-  init();
+  const year = $('#year');
+  if (year) year.textContent = new Date().getFullYear();
+  load();
 })();
