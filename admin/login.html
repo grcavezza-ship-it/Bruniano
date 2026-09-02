@@ -11,212 +11,34 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{font-family:Manrope,system-ui,sans-serif;color:#10213b;background:#f5f8fc}
-    *{box-sizing:border-box}
-    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}
-    .login{width:min(430px,100%);background:#fff;border:1px solid #e6edf5;border-radius:24px;padding:42px;box-shadow:0 24px 70px #10213b14}
-    .brand{text-align:center;margin-bottom:32px}.brand img{width:190px;max-width:100%;height:auto}
-    .eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#145cff;margin:0 0 8px}
-    .title{font-size:30px;line-height:1.15;margin:0 0 10px}.intro{color:#66758a;font-size:14px;line-height:1.6;margin:0 0 28px}
-    label{display:block;font-size:13px;font-weight:700;margin:0 0 8px}
-    input{width:100%;height:50px;border:1px solid #d9e2ec;border-radius:12px;padding:0 15px;font:inherit;outline:none;margin-bottom:18px}
-    input:focus{border-color:#145cff;box-shadow:0 0 0 4px #145cff14}
-    .btn{width:100%;height:52px;border:0;border-radius:12px;background:#145cff;color:#fff;font:700 15px Manrope;cursor:pointer}.btn:disabled{opacity:.6;cursor:wait}
-    .secondary{background:#eef3f8;color:#10213b;margin-top:10px}
-    .message{display:none;margin:16px 0 0;padding:12px;border-radius:10px;font-size:13px;line-height:1.5}.error{background:#fff0f0;color:#b42318}.success{background:#edf9f0;color:#176b2c}.notice{display:block;background:#f1f5f9;color:#475569}
-    .forgot{display:block;text-align:right;margin:-6px 0 18px;color:#145cff;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}
-    .requirements{font-size:12px;color:#66758a;line-height:1.6;margin:-8px 0 18px}
-    .back{display:block;text-align:center;margin-top:24px;color:#66758a;text-decoration:none;font-size:13px}
-    .hidden{display:none!important}
-    @media(max-width:520px){.login{padding:30px 24px;border-radius:20px}.title{font-size:26px}}
+    :root{font-family:Manrope,system-ui,sans-serif;color:#10213b;background:#f5f8fc}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}.login{width:min(430px,100%);background:#fff;border:1px solid #e6edf5;border-radius:24px;padding:42px;box-shadow:0 24px 70px #10213b14}.brand{text-align:center;margin-bottom:32px}.brand img{width:190px;max-width:100%;height:auto}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#145cff;margin:0 0 8px}.title{font-size:30px;line-height:1.15;margin:0 0 10px}.intro{color:#66758a;font-size:14px;line-height:1.6;margin:0 0 28px}label{display:block;font-size:13px;font-weight:700;margin:0 0 8px}.field{position:relative;margin-bottom:18px}.field input{margin:0}input{width:100%;height:50px;border:1px solid #d9e2ec;border-radius:12px;padding:0 15px;font:inherit;outline:none}input.has-toggle{padding-right:50px}input:focus{border-color:#145cff;box-shadow:0 0 0 4px #145cff14}.password-toggle{position:absolute;right:8px;top:7px;width:36px;height:36px;border:0;border-radius:9px;background:transparent;color:#66758a;display:grid;place-items:center;cursor:pointer;padding:0}.password-toggle:hover{background:#f1f5f9;color:#145cff}.password-toggle:focus-visible{outline:2px solid #145cff;outline-offset:1px}.password-toggle svg{width:19px;height:19px;pointer-events:none}.btn{width:100%;height:52px;border:0;border-radius:12px;background:#145cff;color:#fff;font:700 15px Manrope;cursor:pointer}.btn:disabled{opacity:.6;cursor:wait}.secondary{background:#eef3f8;color:#10213b;margin-top:10px}.message{display:none;margin:16px 0 0;padding:12px;border-radius:10px;font-size:13px;line-height:1.5}.error{background:#fff0f0;color:#b42318}.success{background:#edf9f0;color:#176b2c}.forgot{display:block;text-align:right;margin:-6px 0 18px;color:#145cff;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}.requirements{font-size:12px;color:#66758a;line-height:1.6;margin:-8px 0 18px}.back{display:block;text-align:center;margin-top:24px;color:#66758a;text-decoration:none;font-size:13px}.hidden{display:none!important}@media(max-width:520px){.login{padding:30px 24px;border-radius:20px}.title{font-size:26px}}
   </style>
 </head>
 <body>
-  <main class="login">
-    <div class="brand"><img src="../assets/logo-bruniano.svg" alt="Bruniano"></div>
-
-    <section id="loginView">
-      <p class="eyebrow">Area riservata</p>
-      <h1 class="title">Accesso operatori</h1>
-      <p class="intro">Accedi al pannello di gestione di Bruniano.</p>
-      <form id="loginForm" novalidate>
-        <label for="username">Username</label>
-        <input id="username" autocomplete="username" required>
-        <label for="password">Password</label>
-        <input id="password" type="password" autocomplete="current-password" required>
-        <a class="forgot" id="forgot" href="#">Password dimenticata?</a>
-        <button class="btn" id="loginBtn" type="submit">Accedi</button>
-        <div id="loginMessage" class="message error" role="alert"></div>
-      </form>
-    </section>
-
-    <section id="changeView" class="hidden">
-      <p class="eyebrow">Sicurezza</p>
-      <h1 class="title">Crea una nuova password</h1>
-      <p class="intro">Per completare il primo accesso devi sostituire la password iniziale.</p>
-      <form id="changeForm" novalidate>
-        <label for="currentPassword">Password attuale</label>
-        <input id="currentPassword" type="password" autocomplete="current-password" required>
-        <label for="newPassword">Nuova password</label>
-        <input id="newPassword" type="password" autocomplete="new-password" required>
-        <div class="requirements">Almeno 8 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale.</div>
-        <label for="confirmPassword">Conferma password</label>
-        <input id="confirmPassword" type="password" autocomplete="new-password" required>
-        <button class="btn" type="submit">Salva e continua</button>
-        <div id="changeMessage" class="message error" role="alert"></div>
-      </form>
-    </section>
-
-    <section id="forgotView" class="hidden">
-      <p class="eyebrow">Recupero accesso</p>
-      <h1 class="title">Password dimenticata?</h1>
-      <p class="intro">Inserisci il tuo username. Se il recupero è configurato, riceverai le istruzioni via email.</p>
-      <form id="forgotForm" novalidate>
-        <label for="resetUsername">Username</label>
-        <input id="resetUsername" autocomplete="username" maxlength="100" required>
-        <button class="btn" id="resetBtn" type="submit">Invia istruzioni</button>
-        <div id="forgotMessage" class="message" role="status"></div>
-      </form>
-      <button class="btn secondary" id="backToLogin" type="button">Torna al login</button>
-    </section>
-
-    <section id="resetView" class="hidden">
-      <p class="eyebrow">Recupero accesso</p>
-      <h1 class="title">Imposta nuova password</h1>
-      <p class="intro">Il link di recupero è personale, temporaneo e utilizzabile una sola volta.</p>
-      <form id="resetForm" novalidate>
-        <label for="resetPassword">Nuova password</label>
-        <input id="resetPassword" type="password" autocomplete="new-password" maxlength="64" required>
-        <div class="requirements">Almeno 8 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale.</div>
-        <label for="resetConfirmPassword">Conferma password</label>
-        <input id="resetConfirmPassword" type="password" autocomplete="new-password" maxlength="64" required>
-        <button class="btn" id="resetSaveBtn" type="submit">Salva nuova password</button>
-        <div id="resetMessage" class="message" role="alert"></div>
-      </form>
-    </section>
-
-    <a class="back" href="../index.html">← Torna al sito</a>
-  </main>
-
-  <script>
-    const $ = id => document.getElementById(id);
-    const views = ['loginView','changeView','forgotView','resetView'];
-    const show = view => views.forEach(id => $(id).classList.toggle('hidden', id !== view));
-    const token = new URLSearchParams(window.location.search).get('token') || '';
-
-    async function api(body) {
-      const response = await fetch('/api/auth', {
-        method: 'POST',
-        headers: {'content-type': 'application/json'},
-        credentials: 'same-origin',
-        body: JSON.stringify(body)
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || 'Operazione non riuscita');
-      return data;
-    }
-
-    $('loginForm').addEventListener('submit', async event => {
-      event.preventDefault();
-      const message = $('loginMessage');
-      const button = $('loginBtn');
-      message.style.display = 'none';
-      message.className = 'message error';
-      button.disabled = true;
-      button.textContent = 'Accesso…';
-      try {
-        const data = await api({action:'login',username:$('username').value.trim(),password:$('password').value});
-        if (data.must_change_password) {
-          $('currentPassword').value = $('password').value;
-          show('changeView');
-        } else {
-          window.location.replace('index.html');
-        }
-      } catch (error) {
-        message.textContent = error.message;
-        message.style.display = 'block';
-      } finally {
-        button.disabled = false;
-        button.textContent = 'Accedi';
-      }
-    });
-
-    $('changeForm').addEventListener('submit', async event => {
-      event.preventDefault();
-      const message = $('changeMessage');
-      message.style.display = 'none';
-      const newPassword = $('newPassword').value;
-      const confirmation = $('confirmPassword').value;
-      if (newPassword !== confirmation) {
-        message.textContent = 'Le password non coincidono.';
-        message.style.display = 'block';
-        return;
-      }
-      try {
-        await api({action:'change-password',currentPassword:$('currentPassword').value,newPassword});
-        show('loginView');
-        $('password').value = '';
-        const loginMessage = $('loginMessage');
-        loginMessage.className = 'message success';
-        loginMessage.textContent = 'Password aggiornata. Effettua nuovamente l’accesso.';
-        loginMessage.style.display = 'block';
-      } catch (error) {
-        message.textContent = error.message;
-        message.style.display = 'block';
-      }
-    });
-
-    $('forgot').addEventListener('click', event => {event.preventDefault();show('forgotView');});
-    $('backToLogin').addEventListener('click', () => show('loginView'));
-
-    $('forgotForm').addEventListener('submit', async event => {
-      event.preventDefault();
-      const message = $('forgotMessage');
-      const button = $('resetBtn');
-      message.style.display = 'none';
-      message.className = 'message';
-      button.disabled = true;
-      button.textContent = 'Invio…';
-      try {
-        const data = await api({action:'request-password-reset',username:$('resetUsername').value.trim()});
-        message.className = 'message success';
-        message.textContent = data.message || 'Se l’account è configurato per il recupero, riceverai un’email con le istruzioni.';
-      } catch (error) {
-        message.className = 'message error';
-        message.textContent = 'Se l’account è configurato per il recupero, riceverai un’email con le istruzioni.';
-      } finally {
-        message.style.display = 'block';
-        button.disabled = false;
-        button.textContent = 'Invia istruzioni';
-      }
-    });
-
-    $('resetForm').addEventListener('submit', async event => {
-      event.preventDefault();
-      const message = $('resetMessage');
-      const button = $('resetSaveBtn');
-      message.style.display = 'none';
-      button.disabled = true;
-      button.textContent = 'Salvataggio…';
-      try {
-        await api({action:'reset-password',token,newPassword:$('resetPassword').value,confirmPassword:$('resetConfirmPassword').value});
-        show('loginView');
-        history.replaceState({}, document.title, 'login.html');
-        const loginMessage = $('loginMessage');
-        loginMessage.className = 'message success';
-        loginMessage.textContent = 'Password aggiornata. Effettua nuovamente l’accesso.';
-        loginMessage.style.display = 'block';
-      } catch (error) {
-        message.className = 'message error';
-        message.textContent = error.message;
-        message.style.display = 'block';
-      } finally {
-        button.disabled = false;
-        button.textContent = 'Salva nuova password';
-      }
-    });
-
-    if (token) show('resetView');
-  </script>
-</body>
-</html>
+<main class="login">
+<div class="brand"><img src="../assets/logo-bruniano.svg" alt="Bruniano"></div>
+<section id="loginView"><p class="eyebrow">Area riservata</p><h1 class="title">Accesso operatori</h1><p class="intro">Accedi al pannello di gestione di Bruniano.</p>
+<form id="loginForm" novalidate>
+<label for="username">Username</label><div class="field"><input id="username" autocomplete="username" maxlength="100" required></div>
+<label for="password">Password</label><div class="field"><input id="password" class="has-toggle" type="password" autocomplete="current-password" maxlength="128" required><button class="password-toggle" type="button" data-password-toggle="password" aria-label="Mostra password" aria-pressed="false" title="Mostra password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div>
+<a class="forgot" id="forgot" href="#">Password dimenticata?</a><button class="btn" id="loginBtn" type="submit">Accedi</button><div id="loginMessage" class="message error" role="alert"></div>
+</form></section>
+<section id="changeView" class="hidden"><p class="eyebrow">Sicurezza</p><h1 class="title">Crea una nuova password</h1><p class="intro">Per completare il primo accesso devi sostituire la password iniziale.</p>
+<form id="changeForm" novalidate><label for="currentPassword">Password attuale</label><div class="field"><input id="currentPassword" class="has-toggle" type="password" autocomplete="current-password" maxlength="128" required><button class="password-toggle" type="button" data-password-toggle="currentPassword" aria-label="Mostra password" aria-pressed="false" title="Mostra password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div>
+<label for="newPassword">Nuova password</label><div class="field"><input id="newPassword" class="has-toggle" type="password" autocomplete="new-password" maxlength="64" required><button class="password-toggle" type="button" data-password-toggle="newPassword" aria-label="Mostra password" aria-pressed="false" title="Mostra password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div><div class="requirements">Almeno 8 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale.</div>
+<label for="confirmPassword">Conferma password</label><div class="field"><input id="confirmPassword" class="has-toggle" type="password" autocomplete="new-password" maxlength="64" required><button class="password-toggle" type="button" data-password-toggle="confirmPassword" aria-label="Mostra password" aria-pressed="false" title="Mostra password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div><button class="btn" type="submit">Salva e continua</button><div id="changeMessage" class="message error" role="alert"></div></form></section>
+<section id="forgotView" class="hidden"><p class="eyebrow">Recupero accesso</p><h1 class="title">Password dimenticata?</h1><p class="intro">Inserisci il tuo username. Se il recupero è configurato, riceverai le istruzioni via email.</p><form id="forgotForm" novalidate><label for="resetUsername">Username</label><div class="field"><input id="resetUsername" autocomplete="username" maxlength="100" required></div><button class="btn" id="resetBtn" type="submit">Invia istruzioni</button><div id="forgotMessage" class="message" role="status"></div></form><button class="btn secondary" id="backToLogin" type="button">Torna al login</button></section>
+<section id="resetView" class="hidden"><p class="eyebrow">Recupero accesso</p><h1 class="title">Imposta nuova password</h1><p class="intro">Il link di recupero è personale, temporaneo e utilizzabile una sola volta.</p><form id="resetForm" novalidate><label for="resetPassword">Nuova password</label><div class="field"><input id="resetPassword" class="has-toggle" type="password" autocomplete="new-password" maxlength="64" required><button class="password-toggle" type="button" data-password-toggle="resetPassword" aria-label="Mostra password" aria-pressed="false" title="Mostra password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div><div class="requirements">Almeno 8 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale.</div><label for="resetConfirmPassword">Conferma password</label><div class="field"><input id="resetConfirmPassword" class="has-toggle" type="password" autocomplete="new-password" maxlength="64" required><button class="password-toggle" type="button" data-password-toggle="resetConfirmPassword" aria-label="Mostra password" aria-pressed="false" title="Mostra password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div><button class="btn" id="resetSaveBtn" type="submit">Salva nuova password</button><div id="resetMessage" class="message" role="alert"></div></form></section>
+<a class="back" href="../index.html">← Torna al sito</a>
+</main>
+<script>
+const $=id=>document.getElementById(id),views=['loginView','changeView','forgotView','resetView'],show=v=>views.forEach(id=>$(id).classList.toggle('hidden',id!==v)),token=new URLSearchParams(location.search).get('token')||'';
+document.querySelectorAll('[data-password-toggle]').forEach(button=>button.addEventListener('click',()=>{const input=$(button.dataset.passwordToggle),visible=input.type==='text';input.type=visible?'password':'text';button.setAttribute('aria-pressed',String(!visible));button.setAttribute('aria-label',visible?'Mostra password':'Nascondi password');button.title=visible?'Mostra password':'Nascondi password';input.focus({preventScroll:true})}));
+async function api(body){const r=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},credentials:'same-origin',body:JSON.stringify(body)}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Operazione non riuscita');return d}
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();const m=$('loginMessage'),b=$('loginBtn');m.style.display='none';m.className='message error';b.disabled=true;b.textContent='Accesso…';try{const d=await api({action:'login',username:$('username').value.trim(),password:$('password').value});if(d.must_change_password){$('currentPassword').value=$('password').value;show('changeView')}else location.replace('index.html')}catch(x){m.textContent=x.message;m.style.display='block'}finally{b.disabled=false;b.textContent='Accedi'}});
+$('changeForm').addEventListener('submit',async e=>{e.preventDefault();const m=$('changeMessage'),n=$('newPassword').value,c=$('confirmPassword').value;m.style.display='none';if(n!==c){m.textContent='Le password non coincidono.';m.style.display='block';return}try{await api({action:'change-password',currentPassword:$('currentPassword').value,newPassword:n});show('loginView');$('password').value='';const lm=$('loginMessage');lm.className='message success';lm.textContent='Password aggiornata. Effettua nuovamente l’accesso.';lm.style.display='block'}catch(x){m.textContent=x.message;m.style.display='block'}});
+$('forgot').addEventListener('click',e=>{e.preventDefault();show('forgotView')});$('backToLogin').addEventListener('click',()=>show('loginView'));
+$('forgotForm').addEventListener('submit',async e=>{e.preventDefault();const m=$('forgotMessage'),b=$('resetBtn');m.style.display='none';m.className='message';b.disabled=true;b.textContent='Invio…';try{const d=await api({action:'request-password-reset',username:$('resetUsername').value.trim()});m.className='message success';m.textContent=d.message||'Se l’account è configurato per il recupero, riceverai un’email con le istruzioni.'}catch(x){m.className='message success';m.textContent='Se l’account è configurato per il recupero, riceverai un’email con le istruzioni.'}finally{m.style.display='block';b.disabled=false;b.textContent='Invia istruzioni'}});
+$('resetForm').addEventListener('submit',async e=>{e.preventDefault();const m=$('resetMessage'),b=$('resetSaveBtn');m.style.display='none';b.disabled=true;b.textContent='Salvataggio…';try{await api({action:'reset-password',token,newPassword:$('resetPassword').value,confirmPassword:$('resetConfirmPassword').value});show('loginView');history.replaceState({},document.title,'login.html');const lm=$('loginMessage');lm.className='message success';lm.textContent='Password aggiornata. Effettua nuovamente l’accesso.';lm.style.display='block'}catch(x){m.className='message error';m.textContent=x.message;m.style.display='block'}finally{b.disabled=false;b.textContent='Salva nuova password'}});if(token)show('resetView');
+</script>
+</body></html>
