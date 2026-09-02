@@ -11,6 +11,12 @@ function hashValue(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
 }
 
+function mailFrom() {
+  const configured = String(process.env.MAIL_FROM || '').trim();
+  if (!configured) return '';
+  return configured.includes('<') ? configured : `Centro Medico Bruniano <${configured}>`;
+}
+
 function serialize(row) {
   return {
     id: row.id,
@@ -31,7 +37,7 @@ function publicSiteUrl() {
 
 async function sendActivationEmail({ to, firstName, token }) {
   const apiKey = String(process.env.RESEND_API_KEY || '').trim();
-  const from = String(process.env.MAIL_FROM || '').trim();
+  const from = mailFrom();
   const baseUrl = publicSiteUrl();
   if (!apiKey || !from || !baseUrl) return false;
   let site;
