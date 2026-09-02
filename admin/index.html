@@ -1,1 +1,125 @@
-<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Pannello amministrativo Bruniano"><title>Bruniano Admin</title><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="blog.css"></head><body class="admin-shell"><header class="admin-header"><div class="admin-brand"><a href="../index.html" aria-label="Bruniano home" class="admin-logo"><img src="../assets/logo-symbol.svg" alt=""><span><strong>bruniano</strong><small>CENTRO MEDICO<br>SPECIALISTICO</small></span></a><div class="admin-context"><strong>Area amministrativa</strong><span>Gestione contenuti e presenza digitale</span></div></div><div class="admin-header-actions"><span id="system-status" class="status-pill"><i></i>Connessione in attesa</span><a href="../index.html">Vai al sito ↗</a><button id="admin-logout" class="mini" type="button">Esci</button></div></header><main class="admin-main"><section class="admin-hero"><div><p>CONTROL CENTER</p><h1>Gestisci il sito in pochi minuti.</h1><span>Team, immagini e video dello studio, promozioni, blog, recensioni e accessi.</span></div><div class="hero-note"><strong>Ultimo controllo</strong><span id="last-check">—</span></div></section><nav class="dashboard-grid" aria-label="Sezioni amministrative"><button class="dash-card active" data-panel="dashboard"><strong>Dashboard</strong><span>Stato generale</span></button><button class="dash-card" data-panel="team"><strong>Team</strong><span>Professionisti</span></button><button class="dash-card" data-panel="gallery"><strong>Studio</strong><span>Foto e video</span></button><button class="dash-card" data-panel="promos"><strong>Promozioni</strong><span>Offerte</span></button><button class="dash-card" data-panel="blog"><strong>Blog</strong><span>Articoli e SEO</span></button><button class="dash-card" data-panel="reviews"><strong>Recensioni</strong><span>Google</span></button><button class="dash-card" data-panel="users"><strong>Utenti</strong><span>Accessi al gestionale</span></button></nav><section id="panel-dashboard" class="panel active"><div class="panel-title"><div><p>OVERVIEW</p><h2>Lo stato di Bruniano</h2></div></div><div class="stats-grid"><div class="stat"><span>TEAM</span><b id="count-team">—</b><small>professionisti</small></div><div class="stat"><span>MEDIA</span><b id="count-gallery">—</b><small>pubblicati nello Studio</small></div><div class="stat"><span>ARTICOLI</span><b id="count-blog">—</b><small>pubblicati</small></div><div class="stat"><span>UTENTI</span><b id="count-users">—</b><small>accessi attivi</small></div></div><div class="check-list"><div><i class="ok"></i>Sito pubblico collegato</div><div><i class="ok"></i>WhatsApp attivo</div><div><i class="ok"></i>Cloudinary collegato per i media</div><div><i class="ok"></i>Database collegato</div><div><i class="warn"></i>Protezione accesso admin da completare prima della consegna</div><div><i class="warn"></i>Google Reviews da collegare</div></div></section><section id="panel-team" class="panel"><div class="panel-title"><div><p>TEAM</p><h2>Professionisti</h2></div><button class="primary" id="add-team">+ Aggiungi professionista</button></div><div id="team-list" class="managed-list"></div><div id="team-form" class="form-card hidden"></div></section><section id="panel-gallery" class="panel"><div class="panel-title"><div><p>STUDIO</p><h2>Foto e video</h2><span>Carica dal PC → Cloudinary → pubblica sul sito</span></div><button class="primary" id="add-gallery">+ Carica media</button></div><div class="upload-drop"><strong>Trascina qui foto e video</strong><span>Oppure premi “Carica media”. I file vengono ottimizzati e archiviati su Cloudinary.</span></div><div class="gallery-toolbar"><label>Mostra <select id="gallery-filter"><option value="all">Tutti</option><option value="published">Pubblicati</option><option value="draft">Bozze</option></select></label><span id="gallery-status"></span></div><div id="gallery-list" class="media-admin-grid"></div></section><section id="panel-promos" class="panel"><div class="panel-title"><div><p>COMMERCIALE</p><h2>Promozioni</h2><span>Offerte, validità, immagine e pulsante WhatsApp.</span></div><button class="primary" id="add-promo">+ Nuova promozione</button></div><div id="promo-list" class="managed-list"><div class="form-card note"><strong>Modulo promozioni in preparazione</strong><span>La struttura grafica è pronta; il salvataggio verrà collegato al backend dedicato prima della consegna.</span></div></div></section><section id="panel-blog" class="panel"><div class="panel-title"><div><p>CONTENUTI</p><h2>Blog</h2><span>Articoli completi, immagini di copertina e campi SEO.</span></div><button class="primary" id="new-post">+ Nuovo articolo</button></div><div class="blog-layout"><div><div class="form-card"><form id="blog-form"><div class="form-row"><label>Titolo<input id="blog-title" required placeholder="Titolo dell'articolo"></label><label>Categoria<input id="blog-category" placeholder="Es. Fisioterapia"></label></div><div class="form-row"><label>Autore<input id="blog-author" placeholder="Nome professionista"></label><label>Data pubblicazione<input id="blog-published-at" type="datetime-local"></label></div><label>URL / slug<input id="blog-slug" placeholder="titolo-articolo"></label><label>Estratto<textarea id="blog-excerpt" rows="3" placeholder="Breve testo per anteprima"></textarea></label><label>Contenuto<div id="blog-content" class="editor-content" contenteditable="true"></div></label><label>Immagine di copertina<div class="media-input-row"><input id="blog-cover" placeholder="URL Cloudinary"><button class="mini" type="button" id="blog-cover-upload">Carica</button></div><small id="blog-cover-status">Carica direttamente su Cloudinary.</small></label><label>Meta description<textarea id="blog-meta" rows="3" placeholder="Descrizione SEO"></textarea></label><label class="check-inline"><input id="blog-is-published" type="checkbox"> Pubblica subito</label><input type="hidden" id="blog-id"><div class="form-actions"><button class="primary" type="submit">Salva articolo</button><button class="mini" id="cancel-post" type="button">Pulisci</button><span id="blog-form-status"></span></div></form></div></div><div><div class="panel-title"><div><p>ARCHIVIO</p><h3>Articoli</h3></div></div><div id="blog-list" class="managed-list"></div></div></div></section><section id="panel-reviews" class="panel"><div class="panel-title"><div><p>FIDUCIA</p><h2>Google Reviews</h2><span>Collegamento al profilo Google del centro.</span></div></div><div class="google-card"><strong>★★★★★</strong><div><b id="google-rating-preview">—</b><p id="google-reviews-note">Collegamento al profilo Google da completare.</p></div></div></section><section id="panel-users" class="panel"><div class="panel-title"><div><p>ACCESSI</p><h2>Utenti del gestionale</h2><span>Gestisci chi può accedere al pannello. Tutti gli utenti hanno accesso completo.</span></div><button class="primary" id="add-user">+ Aggiungi utente</button></div><div id="users-list" class="managed-list"></div><div id="user-form" class="form-card hidden"></div></section></main><div id="team-cv-modal" class="cv-modal" aria-hidden="true"><div class="cv-modal-card"><button id="cv-close" class="mini" type="button">Chiudi</button><p class="eyebrow">CURRICULUM</p><h2 id="cv-name">—</h2><p id="cv-specialty" class="cv-subtitle">—</p><div id="cv-body"></div></div></div><script src="admin.js"></script><script src="team.js"></script><script src="users.js"></script><script src="ux.js"></script></body></html>
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Gestionale Bruniano">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Bruniano · Gestionale</title>
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="blog.css">
+</head>
+<body class="admin-shell">
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <a href="../index.html" aria-label="Bruniano home" class="admin-logo">
+          <img src="../assets/logo-symbol.svg" alt="">
+          <span><strong>bruniano</strong><small>CENTRO MEDICO<br>SPECIALISTICO</small></span>
+        </a>
+        <div class="sidebar-context">
+          <strong>Area amministrativa</strong>
+          <span>Gestione sito e contenuti</span>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Navigazione gestionale">
+        <button class="dash-card nav-item active" data-panel="dashboard" type="button"><span class="nav-icon">⌂</span><span><strong>Dashboard</strong><small>Panoramica</small></span></button>
+        <button class="dash-card nav-item" data-panel="team" type="button"><span class="nav-icon">✦</span><span><strong>Team</strong><small>Professionisti</small></span></button>
+        <button class="dash-card nav-item" data-panel="gallery" type="button"><span class="nav-icon">▧</span><span><strong>Studio</strong><small>Foto e video</small></span></button>
+        <button class="dash-card nav-item" data-panel="promos" type="button"><span class="nav-icon">%</span><span><strong>Promozioni</strong><small>Offerte</small></span></button>
+        <button class="dash-card nav-item" data-panel="blog" type="button"><span class="nav-icon">▤</span><span><strong>Blog</strong><small>Articoli e SEO</small></span></button>
+        <button class="dash-card nav-item" data-panel="reviews" type="button"><span class="nav-icon">★</span><span><strong>Recensioni</strong><small>Google</small></span></button>
+        <div class="nav-separator"></div>
+        <button class="dash-card nav-item" data-panel="users" type="button"><span class="nav-icon">◎</span><span><strong>Utenti</strong><small>Accessi al gestionale</small></span></button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <div><strong>Sistema operativo</strong><small>Gestionale Bruniano</small></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobile-menu" type="button" aria-label="Apri menu" aria-expanded="false">☰</button>
+        <div class="topbar-title"><span id="breadcrumb">Dashboard</span><span class="slash">/</span><strong id="page-title">Panoramica</strong></div>
+        <div class="topbar-actions">
+          <a class="site-link" href="../index.html">Vai al sito ↗</a>
+          <div class="user-menu"><div class="avatar" id="user-avatar">A</div><div><strong id="user-name">Amministratore</strong><small id="user-role">Accesso completo</small></div></div>
+          <button id="admin-logout" class="mini topbar-logout" type="button">Esci</button>
+        </div>
+      </header>
+
+      <section class="content">
+        <section id="panel-dashboard" class="panel active">
+          <div class="page-head">
+            <div><p class="eyebrow">CONTROL CENTER</p><h1>Il centro, sotto controllo.</h1><p class="lead">Gestisci presenza digitale, professionisti, media e contenuti da un unico spazio.</p></div>
+          </div>
+          <div class="stats-grid">
+            <article class="stat-card"><span>TEAM</span><strong id="count-team">—</strong><small>professionisti</small><em>Gestione completa</em></article>
+            <article class="stat-card"><span>STUDIO</span><strong id="count-gallery">—</strong><small>media pubblicati</small><em class="neutral">Foto e video</em></article>
+            <article class="stat-card"><span>BLOG</span><strong id="count-blog">—</strong><small>articoli pubblicati</small><em class="neutral">Contenuti SEO</em></article>
+            <article class="stat-card"><span>UTENTI</span><strong id="count-users">—</strong><small>accessi attivi</small><em>Accesso protetto</em></article>
+          </div>
+          <div class="dashboard-layout">
+            <section class="panel-inner">
+              <div class="panel-head"><div><span class="eyebrow">GESTIONE</span><h2>Sezioni del gestionale</h2></div></div>
+              <div class="module-grid compact">
+                <button class="module-card" data-view-link="team"><span class="module-icon">✦</span><div><strong>Team</strong><small>Professionisti e curriculum</small></div><b>→</b></button>
+                <button class="module-card" data-view-link="gallery"><span class="module-icon">▧</span><div><strong>Studio</strong><small>Foto e video pubblicati sul sito</small></div><b>→</b></button>
+                <button class="module-card" data-view-link="promos"><span class="module-icon">%</span><div><strong>Promozioni</strong><small>Offerte e campagne</small></div><b>→</b></button>
+                <button class="module-card" data-view-link="blog"><span class="module-icon">▤</span><div><strong>Blog</strong><small>Articoli, immagini e SEO</small></div><b>→</b></button>
+                <button class="module-card" data-view-link="reviews"><span class="module-icon">★</span><div><strong>Recensioni</strong><small>Presenza Google</small></div><b>→</b></button>
+                <button class="module-card" data-view-link="users"><span class="module-icon">◎</span><div><strong>Utenti</strong><small>Accessi e stato account</small></div><b>→</b></button>
+              </div>
+            </section>
+            <aside class="panel-inner activity-panel">
+              <div class="panel-head"><div><span class="eyebrow">STATO</span><h2>Controlli</h2></div></div>
+              <div class="check-list"><div><i class="ok"></i>Sito pubblico collegato</div><div><i class="ok"></i>WhatsApp attivo</div><div><i class="ok"></i>Cloudinary media attivo</div><div><i class="ok"></i>Database collegato</div><div><i class="ok"></i>Autenticazione admin attiva</div><div><i class="warn"></i>Google Reviews da collegare</div></div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="panel-team" class="panel">
+          <div class="page-head"><div><p class="eyebrow">TEAM</p><h1>Professionisti</h1><p class="lead">Gestisci le schede del team e i relativi curriculum.</p></div><button class="primary" id="add-team" type="button">+ Aggiungi professionista</button></div>
+          <div id="team-list" class="managed-list"></div><div id="team-form" class="form-card hidden"></div>
+        </section>
+
+        <section id="panel-gallery" class="panel">
+          <div class="page-head"><div><p class="eyebrow">STUDIO</p><h1>Foto e video</h1><p class="lead">Qui gestisci le immagini e i video che vuoi pubblicare nella sezione “Lo Studio” del sito.</p></div><button class="primary" id="add-gallery" type="button">+ Carica media</button></div>
+          <div class="upload-drop"><strong>Trascina qui foto e video</strong><span>Oppure premi “Carica media”. I file vengono ottimizzati e archiviati su Cloudinary.</span></div>
+          <div class="gallery-toolbar"><label>Mostra <select id="gallery-filter"><option value="all">Tutti</option><option value="published">Pubblicati</option><option value="draft">Bozze</option></select></label><span id="gallery-status"></span></div>
+          <div id="gallery-list" class="media-admin-grid"></div>
+        </section>
+
+        <section id="panel-promos" class="panel">
+          <div class="page-head"><div><p class="eyebrow">COMMERCIALE</p><h1>Promozioni</h1><p class="lead">Offerte e campagne da pubblicare sul sito.</p></div><button class="primary" id="add-promo" type="button">+ Nuova promozione</button></div>
+          <div id="promo-list" class="managed-list"><div class="coming-soon-card"><div class="coming-soon-icon">%</div><div><strong>Modulo promozioni</strong><p>La struttura grafica è pronta. Il collegamento al backend delle promozioni verrà completato prima della consegna.</p></div></div></div>
+        </section>
+
+        <section id="panel-blog" class="panel">
+          <div class="page-head"><div><p class="eyebrow">CONTENUTI</p><h1>Blog</h1><p class="lead">Articoli completi, immagini di copertina e campi SEO.</p></div><button class="primary" id="new-post" type="button">+ Nuovo articolo</button></div>
+          <div class="blog-layout"><div><div class="form-card"><form id="blog-form"><div class="form-row"><label>Titolo<input id="blog-title" required placeholder="Titolo dell'articolo"></label><label>Categoria<input id="blog-category" placeholder="Es. Fisioterapia"></label></div><div class="form-row"><label>Autore<input id="blog-author" placeholder="Nome professionista"></label><label>Data pubblicazione<input id="blog-published-at" type="datetime-local"></label></div><label>URL / slug<input id="blog-slug" placeholder="titolo-articolo"></label><label>Estratto<textarea id="blog-excerpt" rows="3" placeholder="Breve testo per anteprima"></textarea></label><label>Contenuto<div id="blog-content" class="editor-content" contenteditable="true"></div></label><label>Immagine di copertina<div class="media-input-row"><input id="blog-cover" placeholder="URL Cloudinary"><button class="mini" type="button" id="blog-cover-upload">Carica</button></div><small id="blog-cover-status">Carica direttamente su Cloudinary.</small></label><label>Meta description<textarea id="blog-meta" rows="3" placeholder="Descrizione SEO"></textarea></label><label class="check-inline"><input id="blog-is-published" type="checkbox"> Pubblica subito</label><input type="hidden" id="blog-id"><div class="form-actions"><button class="primary" type="submit">Salva articolo</button><button class="mini" id="cancel-post" type="button">Pulisci</button><span id="blog-form-status"></span></div></form></div></div><div><div class="panel-head archive-head"><div><span class="eyebrow">ARCHIVIO</span><h2>Articoli</h2></div></div><div id="blog-list" class="managed-list"></div></div></div>
+        </section>
+
+        <section id="panel-reviews" class="panel">
+          <div class="page-head"><div><p class="eyebrow">FIDUCIA</p><h1>Google Reviews</h1><p class="lead">Gestione della presenza pubblica e collegamento al profilo Google del centro.</p></div></div>
+          <div class="review-card"><div class="review-score">★★★★★</div><div><strong id="google-rating-preview">—</strong><p id="google-reviews-note">Collegamento al profilo Google da completare.</p></div></div>
+        </section>
+
+        <section id="panel-users" class="panel">
+          <div class="page-head"><div><p class="eyebrow">ACCESSI</p><h1>Utenti del gestionale</h1><p class="lead">Gestisci chi può accedere al pannello. Tutti gli utenti hanno accesso completo.</p></div><button class="primary" id="add-user" type="button">+ Aggiungi utente</button></div>
+          <div id="users-list" class="managed-list"></div><div id="user-form" class="form-card hidden"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="team-cv-modal" class="cv-modal" aria-hidden="true"><div class="cv-modal-card"><button id="cv-close" class="mini" type="button">Chiudi</button><p class="eyebrow">CURRICULUM</p><h2 id="cv-name">—</h2><p id="cv-specialty" class="cv-subtitle">—</p><div id="cv-body"></div></div></div>
+  <script src="admin.js"></script>
+  <script src="team.js"></script>
+  <script src="users.js"></script>
+  <script src="ux.js"></script>
+</body>
+</html>
