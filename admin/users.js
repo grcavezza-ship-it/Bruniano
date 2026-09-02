@@ -11,8 +11,9 @@
     return d;
   }
 
-  function statusChip(active) {
-    return `<span class="media-status ${active ? '' : 'draft'}">${active ? 'ATTIVO' : 'DISATTIVATO'}</span>`;
+  function statusChip(user) {
+    if (!user.is_active && user.must_change_password) return '<span class="media-status draft">IN ATTESA</span>';
+    return `<span class="media-status ${user.is_active ? '' : 'draft'}">${user.is_active ? 'ATTIVO' : 'DISATTIVATO'}</span>`;
   }
 
   function displayName(u) {
@@ -34,7 +35,8 @@
           <small>${esc(displayIdentifier(u))} · Accesso completo</small>
         </div>
         <div class="managed-actions">
-          ${statusChip(u.is_active)}
+          ${statusChip(u)}
+          ${u.username !== 'admin' && u.email && u.must_change_password ? `<button class="mini" type="button" data-user-invite="${u.id}">${u.is_active ? 'Reinvia invito' : 'Invia invito'}</button>` : ''}
           <button class="mini" type="button" data-user-edit="${u.id}">Modifica</button>
           <button class="mini" type="button" data-user-toggle="${u.id}" data-active="${u.is_active}">${u.is_active ? 'Disattiva' : 'Riattiva'}</button>
         </div>
@@ -48,12 +50,12 @@
     const host = $('user-form');
     host.classList.remove('hidden');
     const emailRequired = item.username === 'admin' && !item.email ? '' : 'required';
-    host.innerHTML = `<div class="panel-title"><div><p>UTENTE GESTIONALE</p><h3>${editing ? 'Modifica utente' : 'Nuovo utente'}</h3><span>Accesso completo al gestionale. Nessuna gestione dei ruoli.</span></div><button class="mini" type="button" id="user-cancel">Annulla</button></div>
+    host.innerHTML = `<div class="panel-title"><div><p>UTENTE GESTIONALE</p><h3>${editing ? 'Modifica utente' : 'Nuovo utente'}</h3><span>Accesso completo al gestionale. Gli operatori ricevono un invito via email e impostano personalmente la password.</span></div><button class="mini" type="button" id="user-cancel">Annulla</button></div>
       <form id="user-editor">
         <input type="hidden" id="user-id" value="${esc(item.id || '')}">
         <div class="form-row"><label>Nome<input id="user-first-name" required maxlength="80" value="${esc(item.first_name || '')}"></label><label>Cognome<input id="user-last-name" required maxlength="80" value="${esc(item.last_name || '')}"></label></div>
         <label>Email<input id="user-email" type="email" maxlength="160" ${emailRequired} value="${esc(item.email || '')}" placeholder="nome@dominio.it"></label>
-        <div class="form-card note"><strong>Accesso</strong><span>${item.username === 'admin' ? 'Account amministratore principale. L’accesso attuale resta con username “admin”.' : 'Il sistema usa l’email come identificativo di accesso. La password non viene richiesta in questo modulo.'}</span></div>
+        <div class="form-card note"><strong>Accesso</strong><span>${item.username === 'admin' ? 'Account amministratore principale. L’accesso resta con username “admin”.' : 'Username di accesso = email. Nessuna password viene mostrata o comunicata dal gestionale: l’operatore la imposta dal link ricevuto via email.'}</span></div>
         <div class="form-actions"><button class="primary" type="submit">${editing ? 'Salva modifiche' : 'Crea utente'}</button><span id="user-form-status"></span></div>
       </form>`;
     $('user-cancel').onclick = () => host.classList.add('hidden');
@@ -69,13 +71,30 @@
     status.textContent = 'Salvataggio…';
     try {
       const d = await api('/api/users', { method: id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
-      if (!id && d.item?.temporary_password) {
-        status.textContent = 'Utente creato. Password temporanea generata dal sistema.';
-        alert(`Utente creato.\n\nLogin: ${payload.email}\nPassword temporanea: ${d.item.temporary_password}\n\nSalvala ora: verrà mostrata una sola volta.`);
-      } else status.textContent = 'Utente salvato';
+      if (!id) {
+        status.textContent = 'Utente creato. Invito inviato.';
+        alert(`Utente creato.\n\nLogin: ${payload.email}\n\nÈ stato inviato un invito a questo indirizzo. L’operatore dovrà impostare personalmente la password.`);
+      } else {
+        status.textContent = d.invited ? 'Modifiche salvate e invito inviato.' : 'Utente salvato';
+      }
       await load();
       $('user-form').classList.add('hidden');
-    } catch (error) { status.textContent = error.message; }
+    } catch (error) {
+      status.textContent = error.message;
+    }
+  }
+
+  async function resendInvite(id) {
+    const item = state.items.find(x => x.id === id);
+    if (!item || !item.email) return;
+    if (!confirm(`Inviare un nuovo link di primo accesso a ${item.email}? Il link precedente verrà invalidato.`)) return;
+    try {
+      const d = await api('/api/users', { method: 'POST', body: JSON.stringify({ action: 'resend-invite', id }) });
+      alert(d.message || 'Invito inviato.');
+      await load();
+    } catch (error) {
+      alert(error.message);
+    }
   }
 
   async function toggle(id, active) {
@@ -97,8 +116,10 @@
   $('add-user')?.addEventListener('click', () => form());
   $('users-list')?.addEventListener('click', e => {
     const edit = e.target.closest('[data-user-edit]');
+    const invite = e.target.closest('[data-user-invite]');
     const toggleBtn = e.target.closest('[data-user-toggle]');
     if (edit) form(state.items.find(x => x.id === edit.dataset.userEdit));
+    if (invite) resendInvite(invite.dataset.userInvite);
     if (toggleBtn) toggle(toggleBtn.dataset.userToggle, toggleBtn.dataset.active === 'true');
   });
 
