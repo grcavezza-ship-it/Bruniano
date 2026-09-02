@@ -70,16 +70,17 @@ async function clearFailure(sql, keys) {
   for (const key of keys) await sql`DELETE FROM auth_rate_limits WHERE rate_key=${key}`;
 }
 
-async function sendPasswordResetEmail({ token }) {
+async function sendPasswordResetEmail({ token, to, firstName }) {
   const apiKey = String(process.env.RESEND_API_KEY || '').trim();
   const from = String(process.env.MAIL_FROM || '').trim();
-  const to = String(process.env.ADMIN_RESET_EMAIL || '').trim();
   const publicSiteUrl = String(process.env.PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
   if (!apiKey || !from || !to || !publicSiteUrl) return false;
   let baseUrl;
   try { baseUrl = new URL(publicSiteUrl); } catch { return false; }
   if (baseUrl.protocol !== 'https:') return false;
   const resetUrl = `${baseUrl.origin}/admin/login.html?token=${encodeURIComponent(token)}`;
+  const safeName = String(firstName || '').replace(/[&<>\"]/g, '');
+  const greeting = safeName ? `Ciao ${safeName},` : 'Buongiorno,';
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -87,7 +88,7 @@ async function sendPasswordResetEmail({ token }) {
       from,
       to: [to],
       subject: 'Reimpostazione password | Bruniano',
-      html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#10213b;max-width:600px;margin:auto"><h2>Reimpostazione password</h2><p>È stata richiesta una nuova password per l'area riservata Bruniano.</p><p>Il link è valido per 30 minuti e può essere utilizzato una sola volta.</p><p><a href="${resetUrl}" style="display:inline-block;padding:12px 18px;background:#145cff;color:#fff;text-decoration:none;border-radius:8px">Reimposta password</a></p><p>Se non hai richiesto questa operazione, puoi ignorare questa email.</p></div>`,
+      html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#10213b;max-width:600px;margin:auto"><h2>Reimpostazione password</h2><p>${greeting}</p><p>È stata richiesta una nuova password per il tuo account dell’area riservata Bruniano.</p><p>Il link è valido per 30 minuti e può essere utilizzato una sola volta.</p><p><a href="${resetUrl}" style="display:inline-block;padding:12px 18px;background:#145cff;color:#fff;text-decoration:none;border-radius:8px">Reimposta password</a></p><p>Se non hai richiesto questa operazione, puoi ignorare questa email.</p></div>`,
     }),
   });
   return response.ok;
@@ -104,15 +105,15 @@ async function requestPasswordReset(sql, req, res) {
   }
   await registerFailure(sql, [key], MAX_RESET_ATTEMPTS);
   const username = normalizeUsername(req.body?.username);
-  const users = username ? await sql`SELECT id,username FROM admin_users WHERE username=${username} LIMIT 1` : [];
-  if (users.length) {
+  const users = username ? await sql`SELECT id,username,email,first_name FROM admin_users WHERE (username=${username} OR lower(coalesce(email,''))=${username}) AND is_active=true LIMIT 1` : [];
+  if (users.length && users[0].email) {
     const user = users[0];
     const token = crypto.randomBytes(32).toString('base64url');
     const tokenHash = hashValue(token);
     const expires = new Date(Date.now() + RESET_TTL_MS);
     await sql`DELETE FROM password_reset_tokens WHERE user_id=${user.id} AND used_at IS NULL`;
     await sql`INSERT INTO password_reset_tokens(user_id,token_hash,expires_at) VALUES(${user.id},${tokenHash},${expires.toISOString()})`;
-    const sent = await sendPasswordResetEmail({ token });
+    const sent = await sendPasswordResetEmail({ token, to: user.email, firstName: user.first_name });
     if (!sent) await sql`DELETE FROM password_reset_tokens WHERE token_hash=${tokenHash}`;
   }
   return send(res, { ok: true, message: 'Se l’account è configurato per il recupero, riceverai un’email con le istruzioni.' });
@@ -130,11 +131,11 @@ async function resetPassword(sql, req, res) {
   if (newPassword !== confirmPassword) return send(res, { error: 'Le password non coincidono' }, 400);
   if (!validPassword(newPassword)) return send(res, { error: 'La password deve avere 8-64 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale' }, 400);
   const tokenHash = hashValue(token);
-  const claimed = await sql`UPDATE password_reset_tokens SET used_at=now() WHERE token_hash=${tokenHash} AND used_at IS NULL AND expires_at > now() RETURNING user_id`;
+  const claimed = await sql`UPDATE password_reset_tokens SET used_at=now() WHERE token_hash=${tokenHash} AND used_at IS NULL AND expires_at > now() AND EXISTS (SELECT 1 FROM admin_users u WHERE u.id=password_reset_tokens.user_id AND u.is_active=true) RETURNING user_id`;
   if (!claimed.length) return send(res, { error: 'Link di recupero non valido o scaduto' }, 400);
   const userId = claimed[0].user_id;
   const { salt, hash } = hashPassword(newPassword);
-  await sql`UPDATE admin_users SET password_hash=${hash},password_salt=${salt},password_scrypt_n=${SCRYPT_CURRENT_N},must_change_password=false,is_active=true,updated_at=now() WHERE id=${userId}`;
+  await sql`UPDATE admin_users SET password_hash=${hash},password_salt=${salt},password_scrypt_n=${SCRYPT_CURRENT_N},must_change_password=false,updated_at=now() WHERE id=${userId}`;
   await sql`DELETE FROM admin_sessions WHERE user_id=${userId}`;
   await sql`DELETE FROM password_reset_tokens WHERE user_id=${userId}`;
   await sql`DELETE FROM first_access_tokens WHERE user_id=${userId}`;
