@@ -2,6 +2,95 @@
    One header/footer source of truth for every public page. */
 (function () {
   const HEADER_ID = 'site-header';
+  const SITE_ORIGIN = 'https://bruniano.it';
+  const DEFAULT_IMAGE = `${SITE_ORIGIN}/assets/logo-symbol.svg`;
+  const PAGE_SEO = {
+    'index.html': { title: 'Bruniano | Fisioterapia & Riabilitazione', description: 'Bruniano — fisioterapia, riabilitazione e percorsi di benessere a San Vitaliano.' },
+    'trattamenti.html': { title: 'Trattamenti | Bruniano — Centro Medico Specialistico', description: 'Trattamenti Bruniano: terapie strumentali e manuali, riabilitazione, postura e movimento a San Vitaliano.' },
+    'studio.html': { title: 'Lo studio | Bruniano — Centro Medico Specialistico', description: 'Scopri il Centro Medico Specialistico Bruniano: ambienti, tecnologie, accoglienza e percorso di cura a San Vitaliano.' },
+    'team.html': { title: 'Team | Bruniano — Centro Medico Specialistico', description: 'Conosci i professionisti del Centro Medico Specialistico Bruniano, le loro specializzazioni e il loro percorso professionale.' },
+    'promozioni.html': { title: 'Promozioni | Bruniano — Centro Medico Specialistico', description: 'Promozioni e offerte del Centro Medico Specialistico Bruniano a San Vitaliano.' },
+    'blog.html': { title: 'Blog | Bruniano — Centro Medico Specialistico', description: 'Approfondimenti del Centro Medico Specialistico Bruniano su fisioterapia, riabilitazione, postura, movimento e tecnologie.' },
+    'recensioni.html': { title: 'Recensioni | Bruniano — Centro Medico Specialistico', description: 'Scopri le esperienze dei pazienti del Centro Medico Specialistico Bruniano a San Vitaliano.' },
+    'contatti.html': { title: 'Contatti | Bruniano — Centro Medico Specialistico', description: 'Contatti, sede operativa e indicazioni per raggiungere il Centro Medico Specialistico Bruniano a San Vitaliano.' },
+    'privacy.html': { title: 'Privacy | Bruniano — Centro Medico Specialistico', description: 'Informativa privacy del Centro Medico Specialistico Bruniano.' },
+    'cookie.html': { title: 'Cookie | Bruniano — Centro Medico Specialistico', description: 'Informativa cookie del sito del Centro Medico Specialistico Bruniano.' }
+  };
+
+  function upsertMeta(key, value, attr) {
+    if (!value) return;
+    let el = document.head.querySelector(`meta[${attr}="${CSS.escape(key)}"]`);
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute(attr, key);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', value);
+  }
+
+  function upsertLink(rel, href) {
+    let el = document.head.querySelector(`link[rel="${rel}"]`);
+    if (!el) {
+      el = document.createElement('link');
+      el.rel = rel;
+      document.head.appendChild(el);
+    }
+    el.href = href;
+  }
+
+  function ensureTechnicalSeo() {
+    const current = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    const preset = PAGE_SEO[current];
+    const isArticle = current === 'articolo.html';
+    const title = preset?.title || document.title || 'Bruniano | Centro Medico Specialistico';
+    const description = preset?.description || document.querySelector('meta[name="description"]')?.content || 'Centro Medico Specialistico Bruniano a San Vitaliano.';
+    const canonicalUrl = isArticle ? location.href.split('#')[0] : `${SITE_ORIGIN}${location.pathname === '/' ? '/' : location.pathname}`;
+
+    if (preset && document.title !== preset.title) document.title = preset.title;
+    let descriptionMeta = document.querySelector('meta[name="description"]');
+    if (!descriptionMeta) {
+      descriptionMeta = document.createElement('meta');
+      descriptionMeta.name = 'description';
+      document.head.appendChild(descriptionMeta);
+    }
+    if (!descriptionMeta.content) descriptionMeta.content = description;
+
+    upsertLink('canonical', canonicalUrl);
+    upsertMeta('og:title', document.title || title, 'property');
+    upsertMeta('og:description', descriptionMeta.content || description, 'property');
+    upsertMeta('og:type', isArticle ? 'article' : 'website', 'property');
+    upsertMeta('og:url', canonicalUrl, 'property');
+    upsertMeta('og:site_name', 'Bruniano', 'property');
+    upsertMeta('og:locale', 'it_IT', 'property');
+    upsertMeta('og:image', document.querySelector('meta[property="og:image"]')?.content || DEFAULT_IMAGE, 'property');
+    upsertMeta('twitter:card', 'summary_large_image', 'name');
+    upsertMeta('twitter:title', document.title || title, 'name');
+    upsertMeta('twitter:description', descriptionMeta.content || description, 'name');
+    upsertMeta('twitter:image', document.querySelector('meta[property="og:image"]')?.content || DEFAULT_IMAGE, 'name');
+
+    if (!document.head.querySelector('meta[name="robots"]')) {
+      upsertMeta('robots', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1', 'name');
+    }
+  }
+
+  function watchDynamicSeo() {
+    const titleNode = document.querySelector('title');
+    const descriptionNode = document.querySelector('meta[name="description"]');
+    if (!titleNode && !descriptionNode) return;
+    let scheduled = false;
+    const sync = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => { scheduled = false; ensureTechnicalSeo(); });
+    };
+    const observer = new MutationObserver(sync);
+    if (titleNode) observer.observe(titleNode, { childList: true, characterData: true, subtree: true });
+    if (descriptionNode) observer.observe(descriptionNode, { attributes: true, attributeFilter: ['content'] });
+  }
+
+  ensureTechnicalSeo();
+  watchDynamicSeo();
+
   const HEADER_HTML = `
 <header class="site-header" id="top">
   <div class="container nav-wrap">
