@@ -11,6 +11,16 @@
   };
   const date = (v) => v ? new Date(v).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
 
+  const ensureSharedHeader = () => new Promise((resolve) => {
+    if (window.__brunianoSharedLoaded) return resolve();
+    window.__brunianoSharedLoaded = true;
+    const script = document.createElement('script');
+    script.src = '/shared.js?v=20260902-1';
+    script.onload = () => resolve();
+    script.onerror = () => resolve();
+    document.head.appendChild(script);
+  });
+
   const render = (items) => {
     const promos = (items || []).filter((p) => p.is_published !== false && p.page_published !== false && activeNow(p));
     const featured = $('#promo-featured');
@@ -69,27 +79,10 @@
     }
   };
 
-  const menu = $('.mobile-nav');
-  const toggle = $('.menu-toggle');
-  if (toggle && menu) {
-    toggle.addEventListener('click', () => {
-      const open = menu.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', String(open));
-    });
-    menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
-      menu.classList.remove('open');
-      toggle.setAttribute('aria-expanded', 'false');
-    }));
-  }
+  const start = async () => {
+    await ensureSharedHeader();
+    load();
+  };
 
-  document.querySelectorAll('[data-whatsapp]').forEach((link) => {
-    const text = link.dataset.whatsappMessage || 'Buongiorno, vorrei ricevere informazioni e prenotare un appuntamento presso Bruniano.';
-    link.href = `https://wa.me/393343755885?text=${encodeURIComponent(text)}`;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-  });
-
-  const year = $('#year');
-  if (year) year.textContent = new Date().getFullYear();
-  load();
+  start();
 })();
