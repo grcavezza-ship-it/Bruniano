@@ -1,0 +1,3 @@
+Checkpoint before switching SEO host from bruniano.it to centromedicobruniano.it.
+
+All canonical, Open Graph, structured-data, sitemap and robots references should use the official domain after this change.
