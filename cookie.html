@@ -57,8 +57,14 @@
       <p>Il sito contiene collegamenti esterni verso servizi come WhatsApp. Il semplice collegamento, senza apertura del servizio, non equivale all'attivazione del relativo servizio sul dispositivo. Quando l'utente apre un servizio esterno, si applicano anche le relative informative privacy e cookie del fornitore.</p>
 
       <h2>7. Gestione del consenso e delle preferenze</h2>
-      <p>L'attivazione della mappa Google Maps avviene mediante un'azione positiva dell'utente. La scelta può essere ricordata sul dispositivo per evitare di chiedere nuovamente l'attivazione nella stessa navigazione.</p>
-      <p>Le impostazioni del browser consentono in ogni caso di cancellare i dati memorizzati localmente. Per revocare la preferenza relativa alla mappa è sufficiente cancellare i dati del sito dal browser oppure utilizzare gli strumenti di gestione delle preferenze che saranno resi disponibili sul sito.</p>
+      <p>L'attivazione della mappa Google Maps avviene mediante un'azione positiva dell'utente. La scelta può essere ricordata sul dispositivo per evitare di chiedere nuovamente l'attivazione.</p>
+      <p>Per revocare la preferenza relativa alla mappa è possibile usare il comando sottostante, che cancella la preferenza memorizzata dal sito nel local storage del browser. La revoca non cancella eventuali dati già trattati da Google dopo l'attivazione della mappa; per quelli l'utente deve fare riferimento alle impostazioni e alle procedure del relativo fornitore.</p>
+      <div style="margin:20px 0 28px;padding:18px 20px;border:1px solid #dfe7f1;border-radius:18px;background:#f8fbff">
+        <strong style="display:block;margin-bottom:7px">Preferenza Google Maps</strong>
+        <p style="margin:0 0 14px;color:#687588;font-size:13px;line-height:1.55">Cancella la scelta memorizzata per l'attivazione della mappa sul dispositivo.</p>
+        <button type="button" class="button" id="reset-map-consent">Cancella preferenza</button>
+        <span id="reset-map-result" style="display:inline-block;margin-left:10px;color:#48708c;font-size:12px"></span>
+      </div>
       <p>Alla data della presente informativa non sono attivi ulteriori strumenti non necessari che richiedano un consenso preventivo.</p>
 
       <h2>8. Disabilitazione e gestione dei cookie</h2>
@@ -73,5 +79,20 @@
 <div id="site-footer"></div>
 <script src="shared.js"></script>
 <script src="script.js"></script>
+<script>
+(function(){
+  const button=document.getElementById('reset-map-consent');
+  const result=document.getElementById('reset-map-result');
+  if(!button)return;
+  button.addEventListener('click',function(){
+    try{
+      localStorage.removeItem('bruniano_google_maps_consent_v1');
+      if(result)result.textContent='Preferenza cancellata.';
+    }catch(e){
+      if(result)result.textContent='Non è stato possibile modificare la preferenza dal browser.';
+    }
+  });
+})();
+</script>
 </body>
 </html>
