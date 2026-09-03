@@ -256,8 +256,57 @@
 
   function setupStudioGallery() {
     if (!document.body.classList.contains('studio-page')) return;
-    // Existing studio gallery behavior remains unchanged.
+    const grid = document.querySelector('.studio-grid');
+    const hero = document.querySelector('.studio-hero-media img');
+    if (!grid) return;
+    fetch('/api/gallery?admin=0', { cache: 'no-store' }).then((r) => r.ok ? r.json() : Promise.reject(new Error('gallery'))).then((data) => {
+      const items = (data.items || []).filter((x) => x.media_url).slice(0, 12);
+      if (!items.length) return;
+      const images = items.filter((x) => String(x.media_type).startsWith('image'));
+      if (hero && images[0]) {
+        hero.src = images[0].media_url;
+        hero.alt = images[0].alt_text || images[0].title || 'Ambiente Bruniano';
+      }
+      grid.innerHTML = items.slice(0, 4).map((m, i) => {
+        const media = String(m.media_type).startsWith('video') ? `<video src="${m.media_url}" autoplay muted loop playsinline preload="metadata" aria-label="${m.alt_text || m.title || 'Video Bruniano'}"></video>` : `<img src="${m.media_url}" alt="${m.alt_text || m.title || 'Ambiente Bruniano'}" loading="lazy">`;
+        const classes = i === 0 ? 'studio-tile large' : i === 3 ? 'studio-tile wide' : 'studio-tile';
+        return `<div class="${classes}">${media}<div class="tile-copy"><small>${String(m.title || 'BRUNIANO').toUpperCase()}</small><strong>${m.alt_text || 'Scopri gli ambienti del Centro Medico Specialistico Bruniano.'}</strong></div></div>`;
+      }).join('');
+      grid.querySelectorAll('img,video').forEach((el) => { el.style.width = '100%'; el.style.height = '100%'; el.style.objectFit = 'cover'; el.style.display = 'block'; });
+    }).catch(() => {});
   }
-
   setupStudioGallery();
+
+  function setupHomePromotions() {
+    if (!document.body.classList.contains('home-impact')) return;
+    const ribbon = document.querySelector('.offer-ribbon');
+    const band = document.querySelector('.promo-home');
+    if (!ribbon && !band) return;
+    fetch('/api/promotions', { cache: 'no-store' }).then((r) => r.ok ? r.json() : Promise.reject()).then((data) => {
+      const items = (data.items || []).filter((p) => p.is_published !== false && promoActive(p));
+      const top = items.filter((p) => p.show_home_top).sort((a, b) => (a.home_top_order || 0) - (b.home_top_order || 0))[0];
+      const center = items.filter((p) => p.show_home_center).sort((a, b) => (a.home_center_order || 0) - (b.home_center_order || 0))[0];
+      const apply = (el, p, type) => {
+        if (!el || !p) return;
+        if (type === 'top') {
+          const strong = el.querySelector('.offer-ribbon-inner strong');
+          const small = el.querySelector('.offer-ribbon-inner small');
+          const link = el.querySelector('.offer-link');
+          if (strong) strong.textContent = p.title;
+          if (small) small.textContent = promoText(p);
+          if (link) { link.href = p.id ? `promozioni.html#promo-${p.id}` : 'promozioni.html'; link.textContent = `${p.cta_label || 'Scopri l’offerta'} →`; }
+        } else {
+          const h = el.querySelector('h2');
+          const desc = el.querySelector('p');
+          const link = el.querySelector('a.button');
+          if (h) h.textContent = p.title;
+          if (desc) desc.textContent = p.description || p.subtitle || '';
+          if (link) { link.href = p.id ? `promozioni.html#promo-${p.id}` : 'promozioni.html'; link.textContent = p.cta_label || 'Scopri l’offerta'; }
+        }
+      };
+      if (top) apply(ribbon, top, 'top'); else if (ribbon) ribbon.style.display = 'none';
+      if (center) apply(band, center, 'center'); else if (band) band.style.display = 'none';
+    }).catch(() => {});
+  }
+  setupHomePromotions();
 })();
