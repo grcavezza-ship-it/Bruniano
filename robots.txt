@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 
-Sitemap: https://bruniano.it/sitemap.xml
+Sitemap: https://centromedicobruniano.it/sitemap.xml
