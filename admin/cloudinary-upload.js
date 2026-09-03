@@ -3,6 +3,7 @@
   const CLOUD_NAME = 'pomzhih4';
   const UPLOAD_PRESET = 'bruniano';
   const WIDGET_URL = 'https://upload-widget.cloudinary.com/global/all.js';
+  const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
   function loadWidget(){
     return new Promise((resolve,reject)=>{
@@ -42,8 +43,38 @@
     }));
   }
 
+  function isAllowedFile(file){
+    const allowed=['image/jpeg','image/png','image/webp','image/avif','video/mp4','video/quicktime'];
+    return allowed.includes(String(file?.type||'').toLowerCase());
+  }
+
+  async function uploadOneFile(file){
+    if(!file||!isAllowedFile(file)) throw new Error(`Formato non supportato: ${file?.name||'file'}`);
+    const body=new FormData();
+    body.append('file',file);
+    body.append('upload_preset',UPLOAD_PRESET);
+    body.append('folder','bruniano');
+    const response=await fetch(UPLOAD_URL,{method:'POST',body});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok||!data.secure_url) throw new Error(data?.error?.message||`Upload non riuscito per ${file.name}`);
+    return data;
+  }
+
+  async function uploadFiles(files,onUpload){
+    const list=Array.from(files||[]).slice(0,20);
+    if(!list.length) return [];
+    const uploaded=[];
+    for(const file of list){
+      const info=await uploadOneFile(file);
+      uploaded.push(info);
+      onUpload?.(info);
+    }
+    return uploaded;
+  }
+
   window.BrunianoCloudinary={
     uploadImage(onUpload){return createWidget({multiple:false,onUpload});},
-    uploadMedia(onUpload){return createWidget({multiple:true,onUpload});}
+    uploadMedia(onUpload){return createWidget({multiple:true,onUpload});},
+    uploadFiles(files,onUpload){return uploadFiles(files,onUpload);}
   };
 })();
