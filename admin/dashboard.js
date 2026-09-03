@@ -22,18 +22,7 @@
     document.body.appendChild(script);
   }
 
-  function loadAdminStyle(path, attribute) {
-    if (document.querySelector(`link[data-${attribute}]`)) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = `${path}?v=20260903`;
-    link.dataset[attribute] = '1';
-    document.head.appendChild(link);
-  }
-
   loadPromotionCount();
-  loadAdminStyle('mobile-shell.css', 'mobileAdminStyle');
   loadAdminScript('studio-manager.js', 'studioManager');
   loadAdminScript('interface-copy.js', 'interfaceCopy');
-  loadAdminScript('mobile-shell.js', 'mobileAdmin');
 })();
