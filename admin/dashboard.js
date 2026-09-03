@@ -9,9 +9,19 @@
       const items = Array.isArray(data.items) ? data.items : [];
       el.textContent = items.length;
     } catch {
-      // Leave the placeholder untouched if the public promotions endpoint is unavailable.
+      // Keep the placeholder when the endpoint is unavailable.
     }
   }
 
+  function loadStudioManager() {
+    if (!document.getElementById('panel-gallery') || document.querySelector('script[data-studio-manager]')) return;
+    const script = document.createElement('script');
+    script.src = 'studio-manager.js?v=20260903';
+    script.dataset.studioManager = '1';
+    script.async = true;
+    document.body.appendChild(script);
+  }
+
   loadPromotionCount();
+  loadStudioManager();
 })();
