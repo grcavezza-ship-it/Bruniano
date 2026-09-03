@@ -1,5 +1,0 @@
-Pre-launch checkpoint 2026-09-03
-Main audited before production release.
-Real photos are intentionally pending until the client's photo session next week.
-Google Maps must remain visible and loaded normally.
-Approved logo must not be altered.
