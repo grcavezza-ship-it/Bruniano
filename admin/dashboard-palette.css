@@ -1,0 +1,31 @@
+/* Bruniano dashboard visual alignment: reuse the public site's blue palette. */
+.dashboard-hero{
+  border-color:#e6ebf3;
+  background:linear-gradient(112deg,#fff 0%,#fbfcff 58%,#edf4ff 100%);
+  box-shadow:0 16px 42px rgba(19,58,120,.05)
+}
+.dashboard-hero:after{
+  background:radial-gradient(circle,rgba(20,92,255,.13),transparent 68%)
+}
+.dashboard-hero-copy .eyebrow{color:#145cff}
+.dashboard-online{border-color:#e1e8f3}
+.dashboard-stat-icon,
+.dashboard-module-icon{
+  background:#edf4ff;
+  color:#145cff
+}
+.dashboard-module:hover{
+  border-color:#c8d8f4;
+  box-shadow:0 10px 22px rgba(19,58,120,.06)
+}
+.attention-item:hover{background:#f4f8ff}
+.attention-icon.attention-info{background:#edf4ff;color:#145cff}
+.quick-actions button:hover,
+.quick-actions a:hover{color:#145cff}
+.dashboard-footer-strip{
+  border-color:#e1e8f3;
+  background:linear-gradient(90deg,#f5f8ff,#fff)
+}
+.dashboard-footer-symbol{
+  background:linear-gradient(145deg,#0c49cf,#145cff)
+}
