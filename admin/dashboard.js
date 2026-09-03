@@ -13,15 +13,16 @@
     }
   }
 
-  function loadStudioManager() {
-    if (!document.getElementById('panel-gallery') || document.querySelector('script[data-studio-manager]')) return;
+  function loadAdminScript(path, attribute) {
+    if (document.querySelector(`script[data-${attribute}]`)) return;
     const script = document.createElement('script');
-    script.src = 'studio-manager.js?v=20260903';
-    script.dataset.studioManager = '1';
+    script.src = `${path}?v=20260903`;
+    script.dataset[attribute] = '1';
     script.async = true;
     document.body.appendChild(script);
   }
 
   loadPromotionCount();
-  loadStudioManager();
+  loadAdminScript('studio-manager.js', 'studioManager');
+  loadAdminScript('interface-copy.js', 'interfaceCopy');
 })();
