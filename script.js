@@ -50,7 +50,7 @@ function setupHomeVideos() {
   if (!home) return;
   const videos = [
     {selector:".machine-card:nth-child(1) .machine-visual",label:"VIDEO BRUNIANO",src:"https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742244/Tecar.mp4",poster:"https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto:good,c_limit,w_1280/v1787742244/Tecar.jpg",alt:"Video reale del trattamento Tecar Bruniano"},
-    {selector:".machine-card:nth-child(2) .machine-visual",label:"VIDEO BRUNIANO",src:"https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742255/Laser.mp4",poster:"https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto:good,c_limit,w_1280/v1787742255/Laser.jpg",alt:"Video reale del trattamento Laser Bruniano"},
+    {selector:".machine-card:nth-child(2) .machine-visual",label:"VIDEO BRUNIANO",src:"https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742255/Laser.mp4",poster:"https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto:good,c_limit,w_1280/v1787742255/Laser.jpg",alt:"Video reale del trattamento Laser Ixyon Bruniano"},
     {selector:".machine-card:nth-child(3) .machine-visual",label:"VIDEO DI RIFERIMENTO",src:"https://res.cloudinary.com/pomzhih4/video/upload/q_auto,c_limit,w_1280/v1787742226/WhatsApp_Video_2026-08-17_at_11.50.58.mp4",poster:"https://res.cloudinary.com/pomzhih4/video/upload/so_0/q_auto:good,c_limit,w_1280/v1787742226/WhatsApp_Video_2026-08-17_at_11.50.58.jpg",alt:"Video provvisorio di riferimento per Onde d'urto"}
   ];
   videos.forEach(({selector,label,src,poster,alt})=>{
@@ -126,6 +126,49 @@ function setupFinishedTreatmentsPage(){
   if(shockBadge) shockBadge.textContent='VIDEO DI TRATTAMENTO';
 }
 setupFinishedTreatmentsPage();
+
+async function setupManagedSiteMedia(){
+  const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
+  if(path==='index.html' || location.pathname==='/' || document.body.classList.contains('home-impact')){
+    try{
+      const response=await fetch('/api/settings',{cache:'no-store'});
+      if(response.ok){
+        const data=await response.json();
+        const hero=data?.items?.home_hero_image;
+        if(hero){
+          const image=document.querySelector('.hero-media-home .hero-real-card img');
+          if(image){image.src=hero;image.removeAttribute('srcset');image.setAttribute('decoding','async');}
+          const preload=document.querySelector('link[rel="preload"][as="image"]');
+          if(preload) preload.href=hero;
+        }
+      }
+    }catch{}
+  }
+  if(document.body.classList.contains('studio-page')){
+    try{
+      const response=await fetch('/api/gallery',{cache:'no-store'});
+      if(!response.ok)return;
+      const data=await response.json();
+      const items=Array.isArray(data.items)?data.items:[];
+      [1,2,3,4].forEach(slot=>{
+        const item=items.find(media=>Number(media.studio_slot)===slot);
+        if(!item)return;
+        const tile=document.querySelector(`.studio-grid .studio-tile:nth-child(${slot})`);
+        if(!tile)return;
+        const old=tile.querySelector('img,video');
+        const isVideo=String(item.media_type||'').startsWith('video');
+        const media=document.createElement(isVideo?'video':'img');
+        media.src=item.media_url;
+        media.alt=item.alt_text||item.title||'Immagine dello studio Bruniano';
+        media.loading='lazy';
+        if(isVideo){media.muted=true;media.loop=true;media.playsInline=true;media.autoplay=true;media.preload='metadata';}
+        media.className=old?.className||'';
+        if(old)old.replaceWith(media); else tile.prepend(media);
+      });
+    }catch{}
+  }
+}
+setupManagedSiteMedia();
 
 const year=document.getElementById("year"); if(year)year.textContent=new Date().getFullYear();
 
