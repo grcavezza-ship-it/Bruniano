@@ -16,10 +16,22 @@
     if(document.getElementById('dashboard-user-name'))document.getElementById('dashboard-user-name').textContent=fullName;
     if(document.getElementById('user-role'))document.getElementById('user-role').textContent=auth.username==='admin'?'Accesso completo':'Operatore';
     if(document.getElementById('user-avatar'))document.getElementById('user-avatar').textContent=fullName.charAt(0).toUpperCase();
+    setDashboardGreeting();
     document.documentElement.style.visibility='visible';
   } catch {
     window.location.replace('login.html');
     return;
+  }
+
+  function setDashboardGreeting(){
+    const el=document.getElementById('dashboard-greeting');
+    if(!el)return;
+    const hour=new Date().getHours();
+    let greeting='Buonasera';
+    if(hour>=5 && hour<12)greeting='Buongiorno';
+    else if(hour>=12 && hour<18)greeting='Buon pomeriggio';
+    else if(hour<5)greeting='Buonanotte';
+    el.textContent=greeting;
   }
 
   const state={blog:[],gallery:[]};
