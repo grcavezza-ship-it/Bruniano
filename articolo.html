@@ -1,10 +1,25 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta id="meta-description" name="description" content="Approfondimento Bruniano.">
-  <title>Articolo | Bruniano</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta id="meta-description" name="description" content="Approfondimento del Centro Medico Specialistico Bruniano su fisioterapia, riabilitazione, postura e movimento a San Vitaliano.">
+  <meta name="robots" id="meta-robots" content="noindex,follow">
+  <meta property="og:title" id="og-title" content="Articolo | Bruniano">
+  <meta property="og:description" id="og-description" content="Approfondimento del Centro Medico Specialistico Bruniano.">
+  <meta property="og:type" id="og-type" content="article">
+  <meta property="og:url" id="og-url" content="https://bruniano.it/articolo.html">
+  <meta property="og:site_name" content="Bruniano">
+  <meta property="og:locale" content="it_IT">
+  <meta property="og:image" id="og-image" content="https://bruniano.it/assets/logo-symbol.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" id="twitter-title" content="Articolo | Bruniano">
+  <meta name="twitter:description" id="twitter-description" content="Approfondimento del Centro Medico Specialistico Bruniano.">
+  <meta name="twitter:image" id="twitter-image" content="https://bruniano.it/assets/logo-symbol.svg">
+  <title id="page-title">Articolo | Bruniano</title>
+  <link id="canonical" rel="canonical" href="https://bruniano.it/articolo.html">
   <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="site-v2.css">
+  <script type="application/ld+json" id="article-schema">{"@context":"https://schema.org","@type":"WebPage","name":"Articolo | Bruniano","url":"https://bruniano.it/articolo.html","isPartOf":{"@type":"WebSite","name":"Bruniano","url":"https://bruniano.it/"},"publisher":{"@type":"MedicalClinic","name":"Centro Medico Specialistico Bruniano","url":"https://bruniano.it/","telephone":"+39 081 2352977","address":{"@type":"PostalAddress","streetAddress":"Via Nazionale delle Puglie 283","postalCode":"80030","addressLocality":"San Vitaliano","addressRegion":"NA","addressCountry":"IT"}}}</script>
 </head>
 <body>
 <div id="site-header"></div>
@@ -17,21 +32,74 @@
 <script>
 (async () => {
   const slug = new URLSearchParams(location.search).get('slug');
+  const $ = (id) => document.getElementById(id);
+  const siteUrl = 'https://bruniano.it/';
+  const clinic = {
+    '@type': 'MedicalClinic',
+    'name': 'Centro Medico Specialistico Bruniano',
+    'url': siteUrl,
+    'telephone': '+39 081 2352977',
+    'address': {'@type':'PostalAddress','streetAddress':'Via Nazionale delle Puglie 283','postalCode':'80030','addressLocality':'San Vitaliano','addressRegion':'NA','addressCountry':'IT'}
+  };
+
+  function setMeta(id, value) { const el=$(id); if (el && value) el.setAttribute('content', value); }
+  function updateSeo(post) {
+    const title = `${post.title} | Bruniano`;
+    const description = post.meta_description || post.excerpt || 'Approfondimento del Centro Medico Specialistico Bruniano su fisioterapia, riabilitazione, postura e movimento a San Vitaliano.';
+    const canonical = `${siteUrl}articolo.html?slug=${encodeURIComponent(post.slug)}`;
+    const image = post.cover_image_url || `${siteUrl}assets/logo-symbol.svg`;
+    document.title = title;
+    $('canonical').href = canonical;
+    $('meta-robots').content = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+    setMeta('meta-description', description);
+    setMeta('og-title', title); setMeta('og-description', description); setMeta('og-url', canonical); setMeta('og-image', image);
+    setMeta('twitter-title', title); setMeta('twitter-description', description); setMeta('twitter-image', image);
+    const schema = {
+      '@context':'https://schema.org',
+      '@type':'BlogPosting',
+      'headline': post.title,
+      'description': description,
+      'url': canonical,
+      'mainEntityOfPage': {'@type':'WebPage','@id':canonical},
+      'datePublished': post.published_at || undefined,
+      'dateModified': post.updated_at || post.published_at || undefined,
+      'articleSection': post.category || undefined,
+      'author': post.author ? {'@type':'Person','name':post.author} : {'@type':'Organization','name':'Centro Medico Specialistico Bruniano'},
+      'publisher': clinic,
+      'image': image
+    };
+    Object.keys(schema).forEach((key) => schema[key] === undefined && delete schema[key]);
+    $('article-schema').textContent = JSON.stringify(schema);
+  }
+
+  function showError() {
+    document.title = 'Articolo non trovato | Bruniano';
+    $('canonical').href = `${siteUrl}articolo.html`;
+    $('meta-robots').content = 'noindex,follow';
+    setMeta('meta-description', 'L’articolo richiesto non è disponibile sul sito Bruniano.');
+    setMeta('og-title', 'Articolo non trovato | Bruniano');
+    setMeta('og-description', 'L’articolo richiesto non è disponibile sul sito Bruniano.');
+    setMeta('og-url', `${siteUrl}articolo.html`);
+    setMeta('twitter-title', 'Articolo non trovato | Bruniano');
+    setMeta('twitter-description', 'L’articolo richiesto non è disponibile sul sito Bruniano.');
+    $('post-title').textContent='Articolo non trovato';
+    $('post-excerpt').textContent='';
+    $('post-content').textContent='L’articolo richiesto non è disponibile.';
+  }
+
   if (!slug) return showError();
   try {
-    const response = await fetch('/api/blog?slug=' + encodeURIComponent(slug));
+    const response = await fetch('/api/blog?slug=' + encodeURIComponent(slug), {cache:'no-store'});
     const post = await response.json();
-    if (!response.ok) return showError();
-    document.title = `${post.title} | Bruniano`;
-    document.getElementById('meta-description').setAttribute('content', post.meta_description || post.excerpt || 'Approfondimento Bruniano.');
-    document.getElementById('post-category').textContent = post.category || 'APPROFONDIMENTO';
-    document.getElementById('post-title').textContent = post.title;
-    document.getElementById('post-excerpt').textContent = post.excerpt || '';
-    document.getElementById('post-content').textContent = post.content || '';
-    document.getElementById('post-author').textContent = post.author ? `A cura di ${post.author}` : '';
-    if (post.cover_image_url) { const wrap=document.getElementById('post-cover'); document.getElementById('post-cover-img').src=post.cover_image_url; wrap.style.display='block'; }
+    if (!response.ok || !post || !post.title) return showError();
+    updateSeo(post);
+    $('post-category').textContent = post.category || 'APPROFONDIMENTO';
+    $('post-title').textContent = post.title;
+    $('post-excerpt').textContent = post.excerpt || '';
+    $('post-content').textContent = post.content || '';
+    $('post-author').textContent = post.author ? `A cura di ${post.author}` : '';
+    if (post.cover_image_url) { const wrap=$('post-cover'); $('post-cover-img').src=post.cover_image_url; $('post-cover-img').alt=post.title; wrap.style.display='block'; }
   } catch { showError(); }
-  function showError(){ document.getElementById('post-title').textContent='Articolo non trovato'; document.getElementById('post-content').textContent='L’articolo richiesto non è disponibile.'; }
 })();
 </script>
 </body>
