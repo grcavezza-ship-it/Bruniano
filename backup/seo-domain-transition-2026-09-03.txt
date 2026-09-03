@@ -1,0 +1,3 @@
+Checkpoint before SEO domain transition work.
+
+The production domain is not yet connected to Vercel, so canonical, sitemap and robots URLs must continue using the current bruniano.it host until the official centromedicobruniano.it domain is live.
