@@ -137,3 +137,21 @@ const year=document.getElementById("year"); if(year)year.textContent=new Date().
   const host = document.getElementById('site-footer');
   if (host) host.innerHTML = `<footer class="footer"><div class="container footer-grid"><img src="assets/logo-bruniano.svg" alt="Bruniano" class="footer-logo"><div><strong>BRUNIANO</strong><p>Fisioterapia &amp; Riabilitazione</p></div><div class="footer-links"><a href="trattamenti.html">Trattamenti</a><a href="team.html">Team</a><a href="promozioni.html">Promozioni</a><a href="blog.html">Blog</a><a href="contatti.html">Contatti</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} Bruniano</span><span><a href="privacy.html">Privacy</a> · <a href="cookie.html">Cookie</a></span><span>Sito realizzato da <strong>Renderlab</strong></span><span><a href="admin/" class="operator-link">Operatori</a></span></div></footer>`;
 })();
+
+/* LOCAL SEO STRUCTURED DATA */
+(function(){
+  const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
+  if(['privacy.html','cookie.html','articolo.html'].includes(path)) return;
+  const origin='https://centromedicobruniano.it';
+  const canonical=`${origin}${location.pathname==='/'?'/':location.pathname}`;
+  const labels={'trattamenti.html':'Trattamenti','studio.html':'Lo studio','team.html':'Team','promozioni.html':'Promozioni','blog.html':'Blog','recensioni.html':'Recensioni','contatti.html':'Contatti'};
+  const clinicId=`${origin}/#clinic`;
+  const graph=[
+    {'@type':'MedicalClinic','@id':clinicId,'name':'Centro Medico Specialistico Bruniano','url':origin+'/','telephone':'+39 081 2352977','address':{'@type':'PostalAddress','streetAddress':'Via Nazionale delle Puglie 283','postalCode':'80030','addressLocality':'San Vitaliano','addressRegion':'NA','addressCountry':'IT'}},
+    {'@type':'WebSite','@id':`${origin}/#website`,'url':origin+'/','name':'Bruniano','publisher':{'@id':clinicId},'inLanguage':'it-IT'}
+  ];
+  if(labels[path]) graph.push({'@type':'BreadcrumbList','@id':`${canonical}#breadcrumb`,'itemListElement':[{'@type':'ListItem','position':1,'name':'Home','item':origin+'/'},{'@type':'ListItem','position':2,'name':labels[path],'item':canonical}]});
+  let node=document.getElementById('bruniano-script-structured-data');
+  if(!node){node=document.createElement('script');node.type='application/ld+json';node.id='bruniano-script-structured-data';document.head.appendChild(node);}
+  node.textContent=JSON.stringify({'@context':'https://schema.org','@graph':graph});
+})();
