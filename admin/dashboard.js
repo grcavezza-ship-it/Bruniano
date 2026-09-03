@@ -25,4 +25,5 @@
   loadPromotionCount();
   loadAdminScript('studio-manager.js', 'studioManager');
   loadAdminScript('interface-copy.js', 'interfaceCopy');
+  loadAdminScript('mobile.js', 'mobileAdmin');
 })();
