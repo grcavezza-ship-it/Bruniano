@@ -5,7 +5,7 @@ const ALLOWED_TYPES = new Set(['image','video']);
 const MAX_TITLE_LENGTH = 200;
 const MAX_ALT_LENGTH = 300;
 const MAX_URL_LENGTH = 2048;
-const MAX_STUDIO_SLOT = 4;
+const MAX_STUDIO_SLOT = 50;
 
 class ValidationError extends Error {}
 
@@ -33,6 +33,9 @@ async function saveStudioSlot(sql, id, slot) {
   }
 }
 
+const PUBLIC_TITLE = sql => sql`CASE WHEN title ~* '\\.(jpe?g|png|webp|avif|mp4|mov)$' OR title ~ '^[A-Z0-9_-]{12,}(\\.[A-Z0-9]+)?$' THEN '' ELSE title END`;
+const PUBLIC_ALT = sql => sql`CASE WHEN alt_text ~* '\\.(jpe?g|png|webp|avif|mp4|mov)$' OR alt_text ~ '^[A-Z0-9_-]{12,}(\\.[A-Z0-9]+)?$' THEN '' ELSE alt_text END`;
+
 export default async function handler(req, res) {
   try {
     const sql = db();
@@ -41,7 +44,7 @@ export default async function handler(req, res) {
       if (admin && !(await requireAdmin(req, res))) return;
       const rows = admin
         ? await sql`SELECT id,title,media_type,media_url,alt_text,sort_order,studio_slot,is_published,created_at FROM gallery_items ORDER BY COALESCE(studio_slot,99) ASC, sort_order ASC,created_at ASC`
-        : await sql`SELECT id,title,media_type,media_url,alt_text,sort_order,studio_slot,is_published,created_at FROM gallery_items WHERE is_published=true ORDER BY COALESCE(studio_slot,99) ASC, sort_order ASC,created_at ASC`;
+        : await sql`SELECT id,${PUBLIC_TITLE(sql)} AS title,media_type,media_url,${PUBLIC_ALT(sql)} AS alt_text,sort_order,studio_slot,is_published,created_at FROM gallery_items WHERE is_published=true ORDER BY COALESCE(studio_slot,99) ASC, sort_order ASC,created_at ASC`;
       return send(res, { items: rows });
     }
 
