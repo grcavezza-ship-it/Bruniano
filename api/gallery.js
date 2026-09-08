@@ -5,7 +5,7 @@ const ALLOWED_TYPES = new Set(['image','video']);
 const MAX_TITLE_LENGTH = 200;
 const MAX_ALT_LENGTH = 300;
 const MAX_URL_LENGTH = 2048;
-const MAX_STUDIO_SLOT = 4;
+const MAX_STUDIO_SLOT = 50;
 
 class ValidationError extends Error {}
 
