@@ -16,7 +16,7 @@
   function loadAdminScript(path, attribute) {
     if (document.querySelector(`script[data-${attribute}]`)) return;
     const script = document.createElement('script');
-    script.src = `${path}?v=20260909-slots`;
+    script.src = `${path}?v=20260910-description`;
     script.dataset[attribute] = '1';
     script.async = true;
     document.body.appendChild(script);
@@ -25,5 +25,6 @@
   loadPromotionCount();
   loadAdminScript('studio-manager.js', 'studioManager');
   loadAdminScript('studio-slots.js', 'studioSlots');
+  loadAdminScript('studio-description-fix.js', 'studioDescriptionFix');
   loadAdminScript('interface-copy.js', 'interfaceCopy');
 })();
