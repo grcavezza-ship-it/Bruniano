@@ -1,0 +1,29 @@
+name: Try Studio Mosaic
+on:
+  workflow_dispatch:
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch mosaic CSS
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('studio.html')
+          s = p.read_text()
+          start = s.index('.studio-grid{')
+          end = s.index('.studio-tile{position:relative', start)
+          new = '''.studio-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:110px;gap:16px}.studio-tile{grid-column:span 3;grid-row:span 2;min-height:0}.studio-grid[data-count="1"] .studio-tile{grid-column:span 12;grid-row:span 5}.studio-grid[data-count="2"] .studio-tile:nth-child(1){grid-column:span 8;grid-row:span 5}.studio-grid[data-count="2"] .studio-tile:nth-child(2){grid-column:span 4;grid-row:span 3}.studio-grid[data-count="2"] .studio-tile:nth-child(2){align-self:start}.studio-grid[data-count="3"] .studio-tile:nth-child(1){grid-column:span 7;grid-row:span 5}.studio-grid[data-count="3"] .studio-tile:nth-child(2){grid-column:span 5;grid-row:span 3}.studio-grid[data-count="3"] .studio-tile:nth-child(3){grid-column:span 5;grid-row:span 2}.studio-grid[data-count="4"] .studio-tile:nth-child(1){grid-column:span 7;grid-row:span 5}.studio-grid[data-count="4"] .studio-tile:nth-child(2){grid-column:span 5;grid-row:span 3}.studio-grid[data-count="4"] .studio-tile:nth-child(3){grid-column:span 3;grid-row:span 2}.studio-grid[data-count="4"] .studio-tile:nth-child(4){grid-column:span 5;grid-row:span 2}.studio-grid[data-count="5"] .studio-tile:nth-child(1){grid-column:span 7;grid-row:span 5}.studio-grid[data-count="5"] .studio-tile:nth-child(2){grid-column:span 5;grid-row:span 3}.studio-grid[data-count="5"] .studio-tile:nth-child(3),.studio-grid[data-count="5"] .studio-tile:nth-child(4){grid-column:span 3;grid-row:span 2}.studio-grid[data-count="5"] .studio-tile:nth-child(5){grid-column:span 6;grid-row:span 2}.studio-grid[data-count="6"] .studio-tile:nth-child(1){grid-column:span 7;grid-row:span 5}.studio-grid[data-count="6"] .studio-tile:nth-child(2){grid-column:span 5;grid-row:span 3}.studio-grid[data-count="6"] .studio-tile:nth-child(3),.studio-grid[data-count="6"] .studio-tile:nth-child(4),.studio-grid[data-count="6"] .studio-tile:nth-child(5){grid-column:span 3;grid-row:span 2}.studio-grid[data-count="6"] .studio-tile:nth-child(6){grid-column:span 3;grid-row:span 2}.studio-grid[data-count="7"] .studio-tile:nth-child(1){grid-column:span 7;grid-row:span 5}.studio-grid[data-count="7"] .studio-tile:nth-child(2){grid-column:span 5;grid-row:span 3}.studio-grid[data-count="7"] .studio-tile:nth-child(3),.studio-grid[data-count="7"] .studio-tile:nth-child(4),.studio-grid[data-count="7"] .studio-tile:nth-child(5),.studio-grid[data-count="7"] .studio-tile:nth-child(6){grid-column:span 3;grid-row:span 2}.studio-grid[data-count="7"] .studio-tile:nth-child(7){grid-column:span 6;grid-row:span 2}.studio-grid[data-count="8"] .studio-tile:nth-child(1){grid-column:span 7;grid-row:span 5}.studio-grid[data-count="8"] .studio-tile:nth-child(2){grid-column:span 5;grid-row:span 3}.studio-grid[data-count="8"] .studio-tile:nth-child(n+3):nth-child(-n+6){grid-column:span 3;grid-row:span 2}.studio-grid[data-count="8"] .studio-tile:nth-child(7),.studio-grid[data-count="8"] .studio-tile:nth-child(8){grid-column:span 3;grid-row:span 2}.studio-grid[data-count="9"] .studio-tile:nth-child(1){grid-column:span 7;grid-row:span 5}.studio-grid[data-count="9"] .studio-tile:nth-child(2){grid-column:span 5;grid-row:span 3}.studio-grid[data-count="9"] .studio-tile:nth-child(n+3){grid-column:span 3;grid-row:span 2}.studio-grid[data-count="10"] .studio-tile:nth-child(1){grid-column:span 7;grid-row:span 5}.studio-grid[data-count="10"] .studio-tile:nth-child(2){grid-column:span 5;grid-row:span 3}.studio-grid[data-count="10"] .studio-tile:nth-child(n+3){grid-column:span 3;grid-row:span 2}.studio-grid[data-count="11"] .studio-tile:nth-child(1){grid-column:span 7;grid-row:span 5}.studio-grid[data-count="11"] .studio-tile:nth-child(2){grid-column:span 5;grid-row:span 3}.studio-grid[data-count="11"] .studio-tile:nth-child(n+3){grid-column:span 3;grid-row:span 2}.studio-grid[data-count="12"] .studio-tile:nth-child(1){grid-column:span 7;grid-row:span 5}.studio-grid[data-count="12"] .studio-tile:nth-child(2){grid-column:span 5;grid-row:span 3}.studio-grid[data-count="12"] .studio-tile:nth-child(n+3){grid-column:span 3;grid-row:span 2}'''
+          s = s[:start] + new + s[end:]
+          p.write_text(s)
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add studio.html
+          git commit -m 'Vary Studio gallery tile sizes' || exit 0
+          git push
