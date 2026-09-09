@@ -1,0 +1,37 @@
+name: Fix Tecar source video
+on:
+  push:
+    paths:
+      - .github/workflows/fix-tecar-source.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace Tecar source with horizontally flipped Cloudinary variant
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          old = 'https://res.cloudinary.com/pomzhih4/video/upload/q_auto,f_auto,w_960/v1787742244/Tecar.mp4'
+          new = 'https://res.cloudinary.com/pomzhih4/video/upload/fl_hflip,q_auto,f_auto,w_960/v1787742244/Tecar.mp4'
+          if old not in s:
+              raise SystemExit('Expected Tecar source URL not found; aborting without changes.')
+          s = s.replace(old, new)
+          old_tag = '<video autoplay muted loop playsinline preload="metadata" poster="https://res.cloudinary.com/pomzhih4/image/upload/v1788910798/bruniano/txnfzftydmnffiandpn1.png">'
+          new_tag = '<video autoplay muted loop playsinline preload="metadata" style="transform:none!important" poster="https://res.cloudinary.com/pomzhih4/image/upload/v1788910798/bruniano/txnfzftydmnffiandpn1.png">'
+          if old_tag in s:
+              s = s.replace(old_tag, new_tag, 1)
+          p.write_text(s)
+          PY
+      - name: Commit and push
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'fix: correct Tecar source orientation'
+          git push
