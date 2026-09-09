@@ -1,0 +1,44 @@
+name: Fix Tecar scale
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fix-tecar-scale-trigger.txt'
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply Tecar crop without side bar
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          index = Path('index.html').read_text(encoding='utf-8')
+          css = Path('home-media.css').read_text(encoding='utf-8')
+          index = index.replace('<link rel="stylesheet" href="home-media.css?v=9">', '<link rel="stylesheet" href="home-media.css?v=10">', 1)
+          old = '<video autoplay muted loop playsinline preload="metadata" style="transform:none!important" poster="https://res.cloudinary.com/pomzhih4/image/upload/v1788910798/bruniano/txnfzftydmnffiandpn1.png"><source src="https://res.cloudinary.com/pomzhih4/video/upload/q_auto,f_auto,w_960/v1787742244/Tecar.mp4" type="video/mp4"></video>'
+          new = '<video autoplay muted loop playsinline preload="metadata" poster="https://res.cloudinary.com/pomzhih4/image/upload/v1788910798/bruniano/txnfzftydmnffiandpn1.png"><source src="https://res.cloudinary.com/pomzhih4/video/upload/q_auto,f_auto,w_960/v1787742244/Tecar.mp4" type="video/mp4"></video>'
+          if old in index:
+              index = index.replace(old, new, 1)
+          css = re.sub(r'\s*\.machine-card:nth-child\(1\) \.machine-video video\{[^}]*\}', '', css)
+          css += '\n\n/* Tecar: zoom the source in place to show only the intended left half, with no exposed side bar. */\n.machine-card:nth-child(1) .machine-video video{width:100%;max-width:none;height:100%;transform:scale(2)!important;transform-origin:left center!important}\n'
+          Path('index.html').write_text(index, encoding='utf-8')
+          Path('home-media.css').write_text(css, encoding='utf-8')
+      - name: Validate
+        run: |
+          git diff --check
+          grep -F 'home-media.css?v=10' index.html
+          grep -F 'Tecar.mp4' index.html
+          grep -F '.machine-card:nth-child(1) .machine-video video{width:100%;max-width:none;height:100%;transform:scale(2)!important;transform-origin:left center!important}' home-media.css
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html home-media.css
+          git commit -m 'fix: remove Tecar side bar from video crop'
+          git push
