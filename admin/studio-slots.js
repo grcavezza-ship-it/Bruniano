@@ -12,7 +12,30 @@
   function install(){if(!board)return;injectStyles();const head=board.closest('.studio-admin-card')?.querySelector('.studio-admin-card-head');if(head&&!document.getElementById('studio-add-slot')){const a=document.createElement('div');a.className='studio-extra-actions';a.innerHTML='<button class="mini" id="studio-add-slot" type="button">＋ Aggiungi riquadro</button><button class="primary" id="studio-upload-many" type="button">＋ Carica più foto</button>';head.appendChild(a);document.getElementById('studio-add-slot').onclick=addSlot;document.getElementById('studio-upload-many').onclick=uploadMany}render();}
   function render(){if(!board)return;const out=[];for(let s=1;s<=slotCount;s++){const m=itemFor(s),video=m&&String(m.media_type).startsWith('video'),desc=m&&!technical(m.title)?m.title:'';out.push(`<div class="studio-slot studio-slot-dynamic ${s===1?'large':''} ${s===4?'wide':''} ${m?'has-media':''}" data-dynamic-slot="${s}"><span class="studio-slot-label">RIQUADRO ${String(s).padStart(2,'0')}</span>${m?(video?`<video src="${esc(m.media_url)}" muted loop playsinline></video>`:`<img src="${esc(m.media_url)}" alt="${esc(m.alt_text||'')}">`):'<div class="studio-slot-empty">Trascina qui una foto dal catalogo<br>oppure usa “Carica foto”</div>'}${m?`<div class="studio-slot-overlay"><strong>${esc(desc||'Foto senza descrizione')}</strong><small>Posizione ${s}</small></div>`:''}<div class="studio-slot-actions-dynamic">${m?`<button type="button" data-save="${s}">Salva</button><button type="button" data-pub="${s}">${m.is_published?'Nascondi':'Pubblica'}</button><button type="button" data-clear="${s}">Togli</button>`:''}</div><div class="studio-slot-editor"><label>Descrizione<textarea data-desc="${s}" rows="2" placeholder="Es. Sala di fisioterapia">${esc(desc)}</textarea></label>${m?'':'<button class="mini" data-upload="'+s+'" type="button">Carica foto</button>'}</div></div>`)}board.innerHTML=out.join('');bind()}
   function bind(){board.querySelectorAll('.studio-slot-dynamic').forEach(z=>{const s=Number(z.dataset.dynamicSlot);z.ondragover=e=>{e.preventDefault();z.classList.add('is-dragover')};z.ondragleave=()=>z.classList.remove('is-dragover');z.ondrop=e=>{e.preventDefault();z.classList.remove('is-dragover');const id=e.dataTransfer?.getData('text/plain');if(id)move(id,s)}});board.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>save(Number(b.dataset.save)));board.querySelectorAll('[data-pub]').forEach(b=>b.onclick=()=>toggle(Number(b.dataset.pub)));board.querySelectorAll('[data-clear]').forEach(b=>b.onclick=()=>clear(Number(b.dataset.clear)));board.querySelectorAll('[data-upload]').forEach(b=>b.onclick=()=>uploadOne(Number(b.dataset.upload)))}
-  async function save(s){const m=itemFor(s);if(!m)return;const title=board.querySelector(`[data-desc="${s}"]`)?.value.trim()||'';try{const x=await api('PUT',{...m,id:m.id,title,alt_text:title||m.alt_text||'Bruniano',studio_slot:s});items=items.map(i=>i.id===x.id?x:i);render()}catch(e){alert(e.message)}}
+  async function save(s){
+    const m=itemFor(s); if(!m)return;
+    const field=board.querySelector(`[data-desc="${s}"]`);
+    const description=(field?.value||'').trim();
+    if(description.length>200){alert('Descrizione troppo lunga (massimo 200 caratteri).');return}
+    try{
+      await api('PUT',{
+        id:m.id,
+        title:description,
+        media_type:m.media_type,
+        media_url:m.media_url,
+        alt_text:description||'Bruniano',
+        sort_order:m.sort_order,
+        studio_slot:s,
+        is_published:m.is_published
+      });
+      const fresh=await api('GET');
+      items=fresh.items||[];
+      syncCount();
+      render();
+      const newField=board.querySelector(`[data-desc="${s}"]`);
+      if(newField)newField.dataset.saved='1';
+    }catch(e){alert(e.message)}
+  }
   async function toggle(s){const m=itemFor(s);if(!m)return;try{const x=await api('PUT',{...m,id:m.id,is_published:!m.is_published,studio_slot:s});items=items.map(i=>i.id===x.id?x:i);render()}catch(e){alert(e.message)}}
   async function clear(s){const m=itemFor(s);if(!m)return;if(!confirm(`Togliere la foto dal riquadro ${s}? La foto resterà nel catalogo.`))return;try{const x=await api('PUT',{...m,id:m.id,studio_slot:null});items=items.map(i=>i.id===x.id?x:i);render();syncCount()}catch(e){alert(e.message)}}
   async function move(id,s){const m=items.find(i=>String(i.id)===String(id));if(!m)return;try{const x=await api('PUT',{...m,id:m.id,studio_slot:s,is_published:true});items=items.filter(i=>Number(i.studio_slot)!==s&&i.id!==x.id);items.push(x);if(s>slotCount){slotCount=s;localStorage.setItem(KEY,String(s))}render()}catch(e){alert(e.message)}}
