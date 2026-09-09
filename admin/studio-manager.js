@@ -67,6 +67,12 @@
 
   function renderCatalog(){
     const host = $('studio-media-catalog'); if (!host) return;
+    const count = $('studio-total-count');
+    if (count) {
+      const total = state.items.length;
+      const published = state.items.filter(item => item.is_published === true).length;
+      count.textContent = `${total} media totali · ${published} pubblicati`;
+    }
     host.innerHTML = state.items.length ? state.items.map(item => {
       const video = String(item.media_type).startsWith('video');
       const slot = Number(item.studio_slot || 0);
@@ -87,7 +93,7 @@
     if (head) head.innerHTML = '<div class="studio-media-head"><p>Gestisci le immagini e la loro posizione sul sito.</p><button class="primary" id="studio-upload-media" type="button">+ Aggiungi foto o video</button></div>';
     const boardCard = document.createElement('section'); boardCard.className='studio-admin-card'; boardCard.innerHTML='<div class="studio-admin-card-head"><div><p class="studio-admin-kicker">POSIZIONAMENTO</p><h2>Galleria “Lo studio”</h2></div><span class="dashboard-card-note">4 riquadri</span></div><div class="studio-slot-board" id="studio-slot-board"></div>';
     panel.insertBefore(boardCard, panel.querySelector('.media-admin-grid') || null);
-    const catalog = document.createElement('section'); catalog.className='studio-admin-card'; catalog.style.marginTop='16px'; catalog.innerHTML='<div class="studio-admin-card-head"><div><p class="studio-admin-kicker">CATALOGO</p><h2>Media disponibili</h2></div><span class="dashboard-card-note">Trascina per posizionare</span></div><div id="studio-media-catalog" class="studio-media-grid" style="padding:14px"></div>';
+    const catalog = document.createElement('section'); catalog.className='studio-admin-card'; catalog.style.marginTop='16px'; catalog.innerHTML='<div class="studio-admin-card-head"><div><p class="studio-admin-kicker">CATALOGO</p><h2>Media disponibili</h2></div><span id="studio-total-count" class="dashboard-card-note">0 media totali</span></div><div id="studio-media-catalog" class="studio-media-grid" style="padding:14px"></div>';
     const oldList = panel.querySelector('.media-admin-grid'); if (oldList) oldList.replaceWith(catalog); else panel.appendChild(catalog);
     $('studio-upload-media')?.addEventListener('click', () => chooseLocalFile(null));
     renderHomeCard(); renderSlots(); renderCatalog();
