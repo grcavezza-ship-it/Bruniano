@@ -1,5 +1,7 @@
 name: Swap home studio photos
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: write
@@ -20,15 +22,20 @@ jobs:
               'https://mugisalud.com/wp-content/uploads/2025/01/FISIOTERAPIA-EN-BILBAO.png': 'https://res.cloudinary.com/pomzhih4/image/upload/v1788910829/bruniano/diwdl3xpg0zvj1lxwbax.png',
               'https://emedicitalia.it/cdn/shop/products/tecar_85b9e80b-c59a-4ac4-95d6-6edc9c03d0e8.png?v=1714041447&amp;width=1445': 'https://res.cloudinary.com/pomzhih4/image/upload/v1788910798/bruniano/txnfzftydmnffiandpn1.png',
           }
-          missing = [old for old in replacements if old not in s]
-          if missing:
-              raise SystemExit('Expected home gallery URLs not found; aborting without changes.')
-          for old, new in replacements.items():
-              s = s.replace(old, new)
+          found = [old for old in replacements if old in s]
+          if not found:
+              print('All target home gallery URLs are already replaced. Nothing to do.')
+              raise SystemExit(0)
+          for old in found:
+              s = s.replace(old, replacements[old])
           p.write_text(s)
           PY
-      - name: Commit and push
+      - name: Commit and push when changed
         run: |
+          if git diff --quiet -- index.html; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
