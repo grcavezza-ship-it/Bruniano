@@ -1,0 +1,44 @@
+name: Fix Studio catalog count
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fix-studio-catalog-count-trigger.txt'
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch Studio catalog count
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('admin/studio-manager.js')
+          s = p.read_text(encoding='utf-8')
+          old_header = '<div class="studio-admin-card-head"><div><p class="studio-admin-kicker">CATALOGO</p><h2>Media disponibili</h2></div><span class="dashboard-card-note">Trascina per posizionare</span></div><div id="studio-media-catalog" class="studio-media-grid" style="padding:14px"></div>'
+          new_header = '<div class="studio-admin-card-head"><div><p class="studio-admin-kicker">CATALOGO</p><h2>Media disponibili</h2></div><span id="studio-total-count" class="dashboard-card-note">0 media totali</span></div><div id="studio-media-catalog" class="studio-media-grid" style="padding:14px"></div>'
+          if old_header not in s:
+              raise SystemExit('Expected catalog header not found; aborting without changes.')
+          s = s.replace(old_header, new_header, 1)
+          old_render = "  function renderCatalog(){\n    const host = $('studio-media-catalog'); if (!host) return;"
+          new_render = "  function renderCatalog(){\n    const host = $('studio-media-catalog'); if (!host) return;\n    const count = $('studio-total-count');\n    if (count) {\n      const total = state.items.length;\n      const published = state.items.filter(item => item.is_published === true).length;\n      count.textContent = `${total} media totali · ${published} pubblicati`;\n    }"
+          if old_render not in s:
+              raise SystemExit('Expected renderCatalog function not found; aborting without changes.')
+          s = s.replace(old_render, new_render, 1)
+          p.write_text(s, encoding='utf-8')
+      - name: Validate
+        run: |
+          git diff --check
+          grep -F 'id="studio-total-count"' admin/studio-manager.js
+          grep -F 'const published = state.items.filter(item => item.is_published === true).length;' admin/studio-manager.js
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add admin/studio-manager.js
+          git commit -m 'fix: show total Studio media count'
+          git push
