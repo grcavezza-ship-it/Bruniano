@@ -267,7 +267,7 @@
         hero.src = images[0].media_url;
         hero.alt = images[0].alt_text || images[0].title || 'Ambiente Bruniano';
       }
-      grid.innerHTML = items.slice(0, 4).map((m, i) => {
+      grid.innerHTML = items.map((m, i) => {
         const media = String(m.media_type).startsWith('video') ? `<video src="${m.media_url}" autoplay muted loop playsinline preload="metadata" aria-label="${m.alt_text || m.title || 'Video Bruniano'}"></video>` : `<img src="${m.media_url}" alt="${m.alt_text || m.title || 'Ambiente Bruniano'}" loading="lazy">`;
         const classes = i === 0 ? 'studio-tile large' : i === 3 ? 'studio-tile wide' : 'studio-tile';
         return `<div class="${classes}">${media}<div class="tile-copy"><small>${m.title || m.alt_text || 'BRUNIANO'}</small></div></div>`;
