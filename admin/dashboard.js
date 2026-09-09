@@ -14,16 +14,18 @@
   }
 
   function loadAdminScript(path, attribute) {
-    if (document.querySelector(`script[data-${attribute}]`)) return;
-    const script = document.createElement('script');
-    script.src = `${path}?v=20260909-slots`;
-    script.dataset[attribute] = '1';
-    script.async = true;
-    document.body.appendChild(script);
+    return new Promise((resolve) => {
+      if (document.querySelector(`script[data-${attribute}]`)) return resolve();
+      const script = document.createElement('script');
+      script.src = `${path}?v=20260909-description-fix2`;
+      script.dataset[attribute] = '1';
+      script.onload = resolve;
+      script.onerror = resolve;
+      document.body.appendChild(script);
+    });
   }
 
   loadPromotionCount();
-  loadAdminScript('studio-manager.js', 'studioManager');
-  loadAdminScript('studio-slots.js', 'studioSlots');
+  loadAdminScript('studio-manager.js', 'studioManager').then(() => loadAdminScript('studio-slots.js', 'studioSlots'));
   loadAdminScript('interface-copy.js', 'interfaceCopy');
 })();
