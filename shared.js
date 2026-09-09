@@ -273,6 +273,7 @@
         return `<div class="${classes}">${media}<div class="tile-copy"><small>${m.title || m.alt_text || 'BRUNIANO'}</small></div></div>`;
       }).join('');
       grid.querySelectorAll('img,video').forEach((el) => { el.style.width = '100%'; el.style.height = '100%'; el.style.objectFit = 'cover'; el.style.display = 'block'; });
+      grid.classList.add('is-ready');
     }).catch(() => {});
   }
   setupStudioGallery();
