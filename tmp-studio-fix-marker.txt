@@ -1,1 +1,0 @@
-rollback checkpoint - studio description fix
