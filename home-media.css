@@ -7,11 +7,12 @@
 .hero-real-content>span{font-size:10px;letter-spacing:.16em;font-weight:900;color:#b9d1ff}
 .hero-real-content strong{font-size:clamp(28px,4vw,48px);line-height:1.02;letter-spacing:-.045em;margin:8px 0 12px}
 .hero-real-content small{font-size:11px;line-height:1.55;color:rgba(255,255,255,.78);max-width:360px}
-.machine-photo,.machine-video{position:relative;min-height:290px;overflow:hidden}
+.machine-photo,.machine-video{position:relative;overflow:hidden}
 .machine-photo{background-size:cover;background-position:center}
 .machine-photo:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,21,47,.05) 25%,rgba(7,21,47,.58) 100%)}
 .machine-video{background:#07152f}
-.machine-video video{display:block;width:100%;height:100%;min-height:290px;object-fit:cover}
+.machine-video{aspect-ratio:16/9}
+.machine-video video{display:block;width:100%;height:100%;min-height:0;object-fit:cover;object-position:center;transform:none!important}
 .machine-video:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,21,47,.02) 25%,rgba(7,21,47,.34) 100%);pointer-events:none}
 .machine-photo .machine-badge,.machine-photo .image-credit-note,.machine-photo .visual-play,.machine-video .machine-badge{z-index:2}
 .machine-badge{position:absolute;top:18px;left:18px;padding:7px 9px;border-radius:999px;background:rgba(7,21,47,.74);color:#fff;font-size:8px;font-weight:900;letter-spacing:.12em;backdrop-filter:blur(8px)}
