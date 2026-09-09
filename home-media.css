@@ -123,6 +123,6 @@ body:has(.hero-media-home) .offer-ribbon small{display:none!important}
   body:has(.hero-media-home) .offer-ribbon{position:relative;z-index:70}
 }
 
-/* Home technology videos: crop the split-screen source to the left/right half without changing the originals. */
-.machine-video video{width:200%;max-width:none;height:100%;object-fit:cover;transform:translateX(0)!important}
-.machine-card:nth-child(1) .machine-video video{transform:translateX(0)!important}
+/* Keep Laser as-is; crop only Tecar to its left source half without changing the file. */
+.machine-video video{transform:none!important}
+.machine-card:nth-child(1) .machine-video video{width:200%;max-width:none;height:100%;object-fit:fill;transform:translateX(0)!important}
