@@ -2,9 +2,7 @@ import { db, send, getQuery } from './_db.js';
 import { requireAdmin } from './_auth.js';
 
 const FIELD_LIMITS = { name: 200, role: 200, specialty: 300, bio: 5000, photoUrl: 2048 };
-const CURRICULUM_FIELDS = ['profile', 'training', 'experience', 'certifications'];
-const CURRICULUM_FIELD_LIMIT = 10000;
-
+const CURRICULUM_MAX = 200000;
 class ValidationError extends Error {}
 
 function validateHttpsUrl(value, field) {
@@ -18,15 +16,13 @@ function validateHttpsUrl(value, field) {
 }
 
 function normalizeCurriculum(value) {
-  if (value == null) return {};
-  if (typeof value !== 'object' || Array.isArray(value)) throw new ValidationError('Curriculum non valido');
-  const result = {};
-  for (const field of CURRICULUM_FIELDS) {
-    const text = String(value[field] || '').trim();
-    if (text.length > CURRICULUM_FIELD_LIMIT) throw new ValidationError(`Campo curriculum troppo lungo: ${field}`);
-    result[field] = text;
+  if (value == null || typeof value !== 'object' || Array.isArray(value)) {
+    if (value == null) return {};
+    throw new ValidationError('Curriculum non valido');
   }
-  return result;
+  const json = JSON.stringify(value);
+  if (json.length > CURRICULUM_MAX) throw new ValidationError('Curriculum troppo lungo');
+  return value;
 }
 
 async function ensureTeamSchema(sql) {
@@ -66,6 +62,15 @@ async function saveCurricula(sql, curricula) {
   `;
 }
 
+function publicCurriculum(value) {
+  const c = normalizeCurriculum(value);
+  if (!c || typeof c !== 'object') return {};
+  const out = { ...c };
+  delete out.personal;
+  delete out.consent;
+  return out;
+}
+
 export default async function handler(req, res) {
   try {
     const sql = db();
@@ -79,7 +84,8 @@ export default async function handler(req, res) {
         return send(res, { items: rows.map(item => ({ ...item, curriculum: curricula[item.id] || {} })) });
       }
       const rows = await sql`SELECT id,name,role,specialty,bio,photo_url,sort_order,is_published,created_at,updated_at FROM team_members WHERE is_published=true ORDER BY sort_order ASC,created_at ASC`;
-      return send(res, { items: rows.map(({ id, name, role, specialty, bio, photo_url, sort_order, is_published, created_at, updated_at }) => ({ id, name, role, specialty, bio, photo_url, sort_order, is_published, created_at, updated_at })) });
+      const curricula = await getCurricula(sql);
+      return send(res, { items: rows.map(item => ({ ...item, curriculum: publicCurriculum(curricula[item.id] || {}) })) });
     }
 
     if (!(await requireAdmin(req, res))) return;
