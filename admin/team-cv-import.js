@@ -2,217 +2,84 @@
   const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs';
   const WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
   let pdfjsPromise;
+  const $ = id => document.getElementById(id);
+  const norm = v => String(v ?? '').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').trim();
+  const low = v => norm(v).toLowerCase();
+  const set = (id,v) => { const el=$(id); if(el && v!=null) el.value=String(v); };
+  const esc = v => String(v??'').replace(/[&<>\"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[s]));
 
-  const $ = (id) => document.getElementById(id);
-  const norm = (v) => String(v ?? '').replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ').trim();
-  const set = (id, value) => { const el = $(id); if (el && value) el.value = value; };
+  const empty = () => ({ version:2, personal:{address:'',phone:'',email:'',nationality:'',birth_date:''}, profile:'', experiences:[], education:[], languages:[], skills:{relational:'',organizational:'',technical:'',artistic:'',other:''}, certifications:[], scientific:{publications:'',congresses:'',teaching:'',research:''}, driving:'', additional:'', consent:'' });
 
-  function loadPdfJs() {
-    if (!pdfjsPromise) {
-      pdfjsPromise = import(PDFJS).then(pdfjs => {
-        pdfjs.GlobalWorkerOptions.workerSrc = WORKER;
-        return pdfjs;
-      });
-    }
-    return pdfjsPromise;
-  }
-
-  async function extractPdfText(file, status) {
-    const pdfjs = await loadPdfJs();
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    const task = pdfjs.getDocument({ data: bytes, useWorkerFetch: true, isEvalSupported: true });
-    const pdf = await task.promise;
-    if (!pdf.numPages) throw new Error('Il PDF non contiene pagine.');
-
-    const pages = [];
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent({ normalizeWhitespace: true, disableCombineTextItems: false });
-      const items = (content.items || [])
-        .map(item => ({
-          str: norm(item.str),
-          x: Number(item.transform?.[4] || 0),
-          y: Number(item.transform?.[5] || 0)
-        }))
-        .filter(item => item.str);
-
-      items.sort((a, b) => {
-        if (Math.abs(a.y - b.y) > 3) return b.y - a.y;
-        return a.x - b.x;
-      });
-
-      const lines = [];
-      for (const item of items) {
-        const last = lines[lines.length - 1];
-        if (last && Math.abs(last.y - item.y) <= 3) last.parts.push(item.str);
-        else lines.push({ y: item.y, parts: [item.str] });
-      }
-      pages.push(lines.map(line => norm(line.parts.join(' '))).filter(Boolean).join('\n'));
-      if (status) status.textContent = `Lettura curriculum… pagina ${i}/${pdf.numPages}`;
+  function loadPdfJs(){ if(!pdfjsPromise) pdfjsPromise=import(PDFJS).then(pdfjs=>{pdfjs.GlobalWorkerOptions.workerSrc=WORKER;return pdfjs;}); return pdfjsPromise; }
+  async function extract(file,status){
+    const pdfjs=await loadPdfJs(); const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+    const pages=[];
+    for(let n=1;n<=pdf.numPages;n++){
+      const page=await pdf.getPage(n), c=await page.getTextContent({normalizeWhitespace:true,disableCombineTextItems:false});
+      const items=(c.items||[]).map(i=>({str:norm(i.str),x:Number(i.transform?.[4]||0),y:Number(i.transform?.[5]||0)})).filter(i=>i.str).sort((a,b)=>Math.abs(a.y-b.y)>3?b.y-a.y:a.x-b.x);
+      const lines=[]; for(const item of items){const last=lines[lines.length-1]; if(last&&Math.abs(last.y-item.y)<=3)last.parts.push(item.str); else lines.push({y:item.y,parts:[item.str]});}
+      pages.push(lines.map(x=>norm(x.parts.join(' '))).filter(Boolean).join('\n')); if(status)status.textContent=`Lettura curriculum… pagina ${n}/${pdf.numPages}`;
     }
     return pages.join('\n\n');
   }
 
-  function cleanLines(raw) { return raw.split(/\r?\n/).map(norm).filter(Boolean); }
-  function escapeRegExp(v) { return String(v).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-
-  const LABELS = {
-    name: ['nome e cognome','nominativo','nome'],
-    role: ['qualifica','professione','ruolo','professionalità','professionalita'],
-    specialty: ['specializzazione','specialità','specialita','area di competenza','settore']
+  const H={
+    experience:['esperienza lavorativa','esperienza professionale','esperienze professionali','esperienza','esperienze lavorative','attività professionale','attivita professionale'],
+    education:['istruzione e formazione','istruzione','formazione','formazione accademica','educazione','studi'],
+    personal:['informazioni personali','dati personali'],
+    profile:['profilo professionale','profilo','presentazione','chi sono','summary','about'],
+    relational:['capacità e competenze relazionali','competenze relazionali'],
+    organizational:['capacità e competenze organizzative','competenze organizzative'],
+    technical:['capacità e competenze tecniche','competenze tecniche'],
+    artistic:['capacità e competenze artistiche','competenze artistiche'],
+    certifications:['certificazioni e competenze','certificazioni','titoli e certificazioni','abilitazioni','master','corsi'],
+    scientific:['pubblicazioni','attività scientifica','attività scientifica e didattica','ricerca','docenze','congressi'],
+    driving:['patente o patenti','patenti'],
+    additional:['ulteriori informazioni','altre informazioni','informazioni aggiuntive']
   };
+  const allH=Object.values(H).flat().concat(['NOME','NOME E COGNOME','QUALIFICA','PROFESSIONE','SPECIALIZZAZIONE','ORDINE','MADRELINGUA','ALTRE LINGUA','DATA DI NASCITA','TELEFONO','E-MAIL','EMAIL']);
+  const heading = s => { const t=norm(s).replace(/[:\-–]+$/,''); const l=low(t); return allH.some(h=>l===low(h)) || (t.length<=70&&/^[A-ZÀ-ÖØ-Ý0-9][A-ZÀ-ÖØ-Ý0-9 .&/’'_-]+$/.test(t)&&!/[.!?]/.test(t)); };
+  const findH=(lines,a)=>lines.findIndex(x=>a.some(h=>low(x).replace(/[:\-–]+$/,'')===low(h)));
+  function section(lines,a){const start=findH(lines,a); if(start<0)return[]; const out=[]; for(let i=start+1;i<lines.length;i++){if(heading(lines[i])&&allH.some(h=>low(lines[i]).replace(/[:\-–]+$/,'')===low(h)))break;out.push(lines[i]);}return out;}
+  function label(lines,aliases){for(let i=0;i<lines.length;i++){for(const a of aliases){const re=new RegExp(`^${a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\s*[:\\-–]?\\s*(.*)$`,'i');const m=lines[i].match(re);if(m)return norm(m[1])||norm(lines[i+1]||'');}}return '';}
+  const dateRx=/^(?:(?:\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4})|(?:\d{2}\/\d{4})|(?:\d{4}))[ \t]*(?:[-–]|a|al)[ \t]*(?:(?:\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4})|(?:\d{2}\/\d{4})|(?:\d{4})|oggi|tuttora|in corso)$/i;
+  function blocks(lines){const out=[];let cur=[];for(const x of lines){if(dateRx.test(x)&&cur.length){out.push(cur);cur=[x];}else cur.push(x);}if(cur.length)out.push(cur);return out.filter(Boolean);}
+  function splitDate(s){const p=s.split(/\s*(?:[-–]|\s+al\s+)\s*/i);return {from:norm(p[0]),to:norm(p.slice(1).join(' - '))};}
 
-  function looksLikeHeading(line) {
-    const all = Object.values(SECTION_ALIASES).flat().concat(['NOME E COGNOME','QUALIFICA','PROFESSIONE','SPECIALIZZAZIONE','AREA DI COMPETENZA','CONTATTI','EMAIL','TELEFONO','LINGUE','PUBBLICAZIONI','PRIVACY']);
-    const clean = norm(line).replace(/[:\-–]+$/, '');
-    if (all.some(h => clean.localeCompare(h, 'it', { sensitivity: 'base' }) === 0)) return true;
-    return clean.length <= 60 && /^[A-ZÀ-ÖØ-Ý0-9][A-ZÀ-ÖØ-Ý0-9 .&/’'_-]+$/.test(clean) && !/[.!?]/.test(clean);
+  function parse(raw){
+    const lines=raw.split(/\r?\n/).map(norm).filter(Boolean), c=empty();
+    c.personal.address=label(lines,['indirizzo']); c.personal.phone=label(lines,['telefono','tel.'])||((raw.match(/(?:\+39[ .-]?)?(?:\d[ .-]?){8,12}\d/g)||[])[0]||''); c.personal.email=label(lines,['e-mail','email','mail'])||((raw.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)||[])[0]||''); c.personal.nationality=label(lines,['nazionalità','nazionalita']); c.personal.birth_date=label(lines,['data di nascita','nato il','nata il']);
+    c.profile=section(lines,H.profile).join(' ');
+    c.experiences=blocks(section(lines,H.experience)).map(b=>{const d={from:'',to:'',organization:'',address:'',sector:'',role:'',responsibilities:''};let i=0;if(dateRx.test(b[0])){Object.assign(d,splitDate(b[0]));i=1;}const take=(aliases,k)=>{for(let j=i;j<b.length;j++){const re=new RegExp(`^(?:${aliases.map(a=>a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')})\\s*[:\\-–]?\\s*(.*)$`,'i'),m=b[j].match(re);if(m){d[k]=norm(m[1])||norm(b[j+1]||'');return true;}}return false;};take(['nome e indirizzo del datore di lavoro','datore di lavoro','azienda','struttura','ente'],'organization');take(['sede','indirizzo'],'address');take(['tipo di azienda o settore','azienda o settore','settore'],'sector');take(['tipo di impiego','ruolo','incarico','posizione'],'role');take(['principali mansioni e responsabilità','principali mansioni','mansioni','responsabilità','responsabilita'],'responsibilities');if(!d.organization&&b[i])d.organization=b[i++];if(!d.sector&&b[i]&&b[i].length<120)d.sector=b[i++];if(!d.role&&b[i]&&b[i].length<120)d.role=b[i++];if(!d.responsibilities&&i<b.length)d.responsibilities=b.slice(i).join(' ');return d;}).filter(x=>Object.values(x).some(Boolean));
+    c.education=blocks(section(lines,H.education)).map(b=>{const d={from:'',to:'',institution:'',title:'',level:'',result:'',notes:''};let i=0;if(dateRx.test(b[0])){Object.assign(d,splitDate(b[0]));i=1;}const take=(aliases,k)=>{for(let j=i;j<b.length;j++){const re=new RegExp(`^(?:${aliases.map(a=>a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')})\\s*[:\\-–]?\\s*(.*)$`,'i'),m=b[j].match(re);if(m){d[k]=norm(m[1])||norm(b[j+1]||'');return true;}}return false;};take(['nome e tipo di istituto di istruzione o formazione','istituto','università','universita','ente'],'institution');take(['titolo','qualifica','corso','laurea','specializzazione'],'title');take(['livello nella classifica nazionale','livello','classificazione'],'level');take(['voto','risultato','valutazione'],'result');if(!d.institution&&b[i])d.institution=b[i++];if(!d.title&&b[i])d.title=b[i++];if(!d.result){const r=b.find(x=>/\b\d{1,3}(?:[\/,]\d{1,3})?\b/.test(x));if(r)d.result=r;}if(i<b.length)d.notes=b.slice(i).join(' ');return d;}).filter(x=>Object.values(x).some(Boolean));
+    const langSection=section(lines,['capacità e competenze personali','competenze personali','lingue']);
+    c.languages=[]; for(let i=0;i<langSection.length;i++){const x=langSection[i];if(/madrelingua/i.test(x)){c.languages.push({language:norm(x.replace(/madrelingua[:\-]?/i,''))||'Madrelingua',reading:'Nativo',writing:'Nativo',speaking:'Nativo'});continue;}if(/inglese|francese|spagnolo|tedesco|italiano|portoghese|rumeno|arabo/i.test(x)){const n={language:x,reading:'',writing:'',speaking:''};let j=i+1;for(;j<Math.min(i+6,langSection.length);j++){const y=langSection[j];const m=y.match(/(?:capacità di )?(lettura|scrittura|espressione orale)\s*:?\s*(.*)/i);if(m)n[m[1].toLowerCase()==='espressione orale'?'speaking':m[1].toLowerCase()==='scrittura'?'writing':'reading']=norm(m[2]);}c.languages.push(n);}}
+    c.skills={relational:section(lines,H.relational).join(' '),organizational:section(lines,H.organizational).join(' '),technical:section(lines,H.technical).join(' '),artistic:section(lines,H.artistic).join(' '),other:''};
+    c.certifications=blocks(section(lines,H.certifications)).map(b=>({title:b[0]||'',issuer:'',period:'',notes:b.slice(1).join(' ')})).filter(x=>x.title||x.notes);
+    c.scientific={publications:section(lines,['pubblicazioni']).join(' '),congresses:section(lines,['congressi','relazioni','comunicazioni']).join(' '),teaching:section(lines,['docenze','attività didattica','attivita didattica']).join(' '),research:section(lines,['ricerca']).join(' ')};
+    c.driving=section(lines,H.driving).join(' '); c.additional=section(lines,H.additional).join(' ');
+    const name=label(lines,['nome e cognome','nominativo','nome'])||lines.slice(0,15).find(x=>/^(?:[A-ZÀ-ÖØ-Ý][A-Za-zÀ-ÖØ-öø-ÿ'’-]+\s+){1,3}[A-ZÀ-ÖØ-Ý][A-Za-zÀ-ÖØ-öø-ÿ'’-]+$/.test(x))||'';
+    const role=label(lines,['qualifica','professione','ruolo','professionalità','professionalita'])||'';
+    const specialty=label(lines,['specializzazione','specialità','specialita','area di competenza'])||'';
+    return {name,role,specialty,bio:c.profile||lines.find(x=>x.length>100&&x!==name&&x!==role)||'',curriculum:c};
   }
 
-  function findLabeled(lines, labels) {
-    const labelRe = new RegExp(`^(?:${labels.map(escapeRegExp).join('|')})\\s*[:\\-–]?\\s*(.*)$`, 'i');
-    for (let i = 0; i < lines.length; i++) {
-      const match = lines[i].match(labelRe);
-      if (!match) continue;
-      const sameLine = norm(match[1]);
-      if (sameLine) return sameLine;
-      const next = lines[i + 1] || '';
-      if (next && !looksLikeHeading(next)) return next;
-    }
-    return '';
+  function up(id,v){const el=$(id);if(el&&v!=null)el.value=v;}
+  function clearRows(id){$(id)?.querySelectorAll('.team-repeat').forEach(r=>r.remove());}
+  function clickAdd(id){$(id)?.querySelector('.team-add')?.click();}
+  function putRow(id,vals,index){const box=$(id);if(!box)return;const add=box.querySelector('.team-add'); if(add){add.click();} const rows=box.querySelectorAll('.team-repeat'); const r=rows[rows.length-1]; if(!r)return; Object.entries(vals).forEach(([k,v])=>{const input=r.querySelector(`[id$="-${k}"]`);if(input)input.value=v||'';});}
+  function importData(d,status){
+    up('team-name',d.name);up('team-role',d.role);up('team-specialty',d.specialty);up('team-bio',d.bio);
+    const c=d.curriculum||empty(); ['address','phone','email','nationality','birth_date'].forEach(k=>up('cv-'+k,c.personal?.[k]||'')); up('cv-profile',c.profile||'');
+    ['relational','organizational','technical','artistic','other'].forEach(k=>up('cv-skill-'+k,c.skills?.[k]||'')); ['publications','congresses','teaching','research'].forEach(k=>up('cv-'+k,c.scientific?.[k]||''));up('cv-driving',c.driving||'');up('cv-additional',c.additional||'');up('cv-consent',c.consent||'');
+    clearRows('experience-list'); (c.experiences||[]).forEach(x=>putRow('experience-list',{'from':x.from,'to':x.to,'organization':x.organization,'address':x.address,'sector':x.sector,'role':x.role,'responsibilities':x.responsibilities}));
+    clearRows('education-list'); (c.education||[]).forEach(x=>putRow('education-list',{'from':x.from,'to':x.to,'institution':x.institution,'title':x.title,'level':x.level,'result':x.result,'notes':x.notes}));
+    clearRows('languages-list'); (c.languages||[]).forEach(x=>putRow('languages-list',{language:x.language,reading:x.reading,writing:x.writing,speaking:x.speaking}));
+    clearRows('certifications-list'); (c.certifications||[]).forEach(x=>putRow('certifications-list',{title:x.title,issuer:x.issuer,period:x.period,notes:x.notes}));
+    const summary=[`${c.experiences?.length||0} esperienze`,`${c.education?.length||0} formazioni`,`${c.languages?.length||0} lingue`,`${c.certifications?.length||0} certificazioni`].join(' · '); if(status){status.textContent=`CV importato: ${summary}. Controlla e completa prima di salvare.`;status.style.color='#145cff';}
   }
-
-  const SECTION_ALIASES = {
-    profile: ['PROFILO PROFESSIONALE','PROFILO','PRESENTAZIONE','CHI SONO','SUMMARY','ABOUT','PROFILO PERSONALE'],
-    training: ['FORMAZIONE','ISTRUZIONE','EDUCAZIONE','FORMAZIONE ACCADEMICA','STUDI','ISTRUZIONE E FORMAZIONE'],
-    experience: ['ESPERIENZA PROFESSIONALE','ESPERIENZE PROFESSIONALI','ESPERIENZA','ATTIVITÀ PROFESSIONALE','ATTIVITA PROFESSIONALE','ESPERIENZA LAVORATIVA','ESPERIENZE LAVORATIVE'],
-    certifications: ['CERTIFICAZIONI E COMPETENZE','CERTIFICAZIONI','COMPETENZE','TITOLI E CERTIFICAZIONI','ABILITAZIONI','MASTER','CORSI','COMPETENZE PROFESSIONALI']
-  };
-
-  function section(lines, heads) {
-    const normalizedHeads = heads.map(h => norm(h).toLowerCase());
-    const start = lines.findIndex(line => {
-      const clean = norm(line).replace(/[:\-–]+$/, '').toLowerCase();
-      return normalizedHeads.some(h => clean === h || clean.startsWith(h + ' '));
-    });
-    if (start < 0) return '';
-    const out = [];
-    for (let i = start + 1; i < lines.length; i++) {
-      const line = norm(lines[i]);
-      if (!line) continue;
-      if (looksLikeHeading(line)) {
-        const clean = line.replace(/[:\-–]+$/, '').toLowerCase();
-        const allHeadings = Object.values(SECTION_ALIASES).flat();
-        if (allHeadings.some(h => clean === h.toLowerCase())) break;
-      }
-      out.push(line);
-    }
-    return norm(out.join(' '));
-  }
-
-  function parseCv(raw) {
-    const lines = cleanLines(raw);
-    let name = findLabeled(lines, LABELS.name);
-    if (!name) name = lines.slice(0, 12).find(x => /^(?:[A-ZÀ-ÖØ-Ý][A-Za-zÀ-ÖØ-öø-ÿ'’-]+\s+){1,3}[A-ZÀ-ÖØ-Ý][A-Za-zÀ-ÖØ-öø-ÿ'’-]+$/.test(x)) || '';
-
-    let role = findLabeled(lines, LABELS.role);
-    if (!role) role = lines.find(x => /\b(medico|medica|fisioterapista|nutrizionista|dietista|osteopata|logopedista|psicologo|psicologa|psicoterapeuta|cardiologo|cardiologa|ortopedico|ortopedica|neurologo|neurologa|ginecologo|ginecologa|dermatologo|dermatologa|radiologo|radiologa|odontoiatra|infermiere|infermiera|podologo|podologa|biologo|biologa)\b/i.test(x) && x.length < 140) || '';
-
-    let specialty = findLabeled(lines, LABELS.specialty);
-    if (!specialty && role) specialty = norm(role.replace(/^(medico\s*(chirurgo)?|medica|dott\.?|dottoressa|dottore)\s*[-–:]?\s*/i, ''));
-
-    const profile = section(lines, SECTION_ALIASES.profile);
-    const training = section(lines, SECTION_ALIASES.training);
-    const experience = section(lines, SECTION_ALIASES.experience);
-    const certifications = section(lines, SECTION_ALIASES.certifications);
-
-    const email = (raw.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [])[0] || '';
-    const phone = (raw.match(/(?:\+39[ .-]?)?(?:\d[ .-]?){8,12}\d/) || [])[0] || '';
-
-    let bio = profile;
-    if (!bio) {
-      const candidates = lines.filter(x => x !== name && x !== role && x !== specialty && !/@/.test(x) && !/^(tel|telefono|email|mail|curriculum|curriculum vitae|cv)$/i.test(x));
-      bio = candidates.find(x => x.length >= 90) || '';
-    }
-    bio = norm(bio).slice(0, 900);
-
-    const confidence = { name: !!name, role: !!role, specialty: !!specialty, profile: !!profile, training: !!training, experience: !!experience, certifications: !!certifications };
-    return { name, role, specialty, profile, training, experience, certifications, bio, email, phone, confidence };
-  }
-
-  function bindButton() {
-    const btn = $('team-cv-import-btn');
-    const input = $('team-cv-import-file');
-    if (!btn || !input || btn.dataset.cvBound === '1') return;
-    btn.dataset.cvBound = '1';
-    btn.addEventListener('click', () => input.click());
-    input.addEventListener('change', async () => {
-      const file = input.files?.[0];
-      if (file) await runImport(file);
-      input.value = '';
-    });
-  }
-
-  function addFallbackUi(form) {
-    if (form.querySelector('#team-cv-import-btn')) { bindButton(); return; }
-    const box = document.createElement('div');
-    box.className = 'form-card note';
-    box.style.margin = '12px 0 16px';
-    box.innerHTML = '<strong>Importa dati dal CV</strong><span>Carica il curriculum PDF per compilare automaticamente la scheda.</span><div style="margin-top:10px"><button type="button" class="primary" id="team-cv-import-btn">Carica CV e compila</button><input id="team-cv-import-file" type="file" accept="application/pdf,.pdf" hidden><div id="team-cv-import-status" style="margin-top:8px;color:#657083;font-size:10px"></div></div>';
-    form.insertBefore(box, form.firstChild);
-    bindButton();
-  }
-
-  async function runImport(file) {
-    const status = $('team-cv-import-status');
-    const btn = $('team-cv-import-btn');
-    try {
-      if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) throw new Error('Seleziona un file PDF.');
-      if (file.size > 15 * 1024 * 1024) throw new Error('Il PDF supera il limite di 15 MB.');
-      if (btn) btn.disabled = true;
-      if (status) { status.style.color = '#657083'; status.textContent = 'Apertura curriculum…'; }
-
-      const raw = await extractPdfText(file, status);
-      if (raw.replace(/\s/g, '').length < 80) throw new Error('Questo PDF non contiene testo selezionabile. Probabilmente è una scansione o un PDF composto da immagini.');
-
-      const data = parseCv(raw);
-      const found = Object.values(data.confidence).filter(Boolean).length;
-      if (!found) throw new Error('Ho letto il PDF ma non riconosco una struttura di curriculum. Prova con il CV originale in PDF.');
-
-      set('team-name', data.name);
-      set('team-role', data.role);
-      set('team-specialty', data.specialty);
-      set('team-bio', data.bio);
-      set('cv-profile', data.profile);
-      set('cv-training', data.training);
-      set('cv-experience', data.experience);
-      set('cv-certifications', data.certifications);
-
-      if (status) { status.textContent = `Importazione completata: ${found}/7 campi rilevati. Controlla i dati prima di salvare.`; status.style.color = '#145cff'; }
-      $('team-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } catch (e) {
-      if (status) { status.textContent = e?.message || 'Impossibile importare il curriculum.'; status.style.color = '#b42318'; }
-      console.error('Team CV import', e);
-    } finally {
-      if (btn) btn.disabled = false;
-    }
-  }
-
-  window.BrunianoTeamCvReady = bindButton;
-  window.BrunianoTeamCvImport = { run: runImport };
-
-  function observe() {
-    const scan = () => {
-      const form = $('team-editor');
-      if (form) {
-        if ($('team-cv-import-btn')) bindButton();
-        else addFallbackUi(form);
-      }
-    };
-    scan();
-    new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', observe, { once: true });
-  else observe();
+  async function run(file){const status=$('team-cv-import-status'),btn=$('team-cv-import-btn');try{if(file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name))throw new Error('Seleziona un file PDF.');if(file.size>15*1024*1024)throw new Error('Il PDF supera il limite di 15 MB.');if(btn)btn.disabled=true;const raw=await extract(file,status);if(raw.replace(/\s/g,'').length<80)throw new Error('Il PDF non contiene testo selezionabile: sembra una scansione. Serve OCR o inserimento manuale.');importData(parse(raw),status);document.querySelector('#team-editor')?.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){if(status){status.textContent=e.message||'Impossibile importare il curriculum.';status.style.color='#b42318';}console.error('Team CV import',e);}finally{if(btn)btn.disabled=false;}}
+  function bind(){const btn=$('team-cv-import-btn'),input=$('team-cv-import-file');if(!btn||!input||btn.dataset.bound==='1')return;btn.dataset.bound='1';btn.addEventListener('click',()=>input.click());input.addEventListener('change',()=>{const f=input.files?.[0];if(f)run(f);input.value='';});}
+  window.BrunianoTeamCvReady=bind;
+  const mo=new MutationObserver(bind); mo.observe(document.body,{childList:true,subtree:true}); bind();
 })();
