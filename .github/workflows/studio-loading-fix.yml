@@ -1,0 +1,51 @@
+name: Fix Studio demo image flash
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hide demo gallery until API content is ready
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('studio.html')
+          s = p.read_text()
+          needle = '.studio-grid{display:grid;'
+          replacement = '.studio-grid{visibility:hidden;display:grid;'
+          if needle not in s:
+              raise SystemExit('Studio grid CSS target not found')
+          if replacement not in s:
+              s = s.replace(needle, replacement, 1)
+          marker = '.studio-grid .tile-copy strong{display:none !important}'
+          if marker not in s:
+              raise SystemExit('Studio copy CSS marker not found')
+          visible = marker + '.studio-grid.is-ready{visibility:visible}'
+          if visible not in s:
+              s = s.replace(marker, visible, 1)
+          p.write_text(s)
+
+          p = Path('shared.js')
+          s = p.read_text()
+          needle = "      grid.querySelectorAll('img,video').forEach((el) => { el.style.width = '100%'; el.style.height = '100%'; el.style.objectFit = 'cover'; el.style.display = 'block'; });"
+          replacement = needle + "\n      grid.classList.add('is-ready');"
+          if needle not in s:
+              raise SystemExit('Studio gallery JS target not found')
+          if replacement not in s:
+              s = s.replace(needle, replacement, 1)
+          p.write_text(s)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add studio.html shared.js
+          git diff --cached --quiet && exit 0
+          git commit -m "Prevent Studio demo image flash"
+          git push
