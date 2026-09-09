@@ -12,7 +12,6 @@
       // Keep the placeholder when the endpoint is unavailable.
     }
   }
-
   function loadAdminScript(path, attribute) {
     if (document.querySelector(`script[data-${attribute}]`)) return;
     const script = document.createElement('script');
@@ -21,7 +20,6 @@
     script.async = true;
     document.body.appendChild(script);
   }
-
   loadPromotionCount();
   loadAdminScript('studio-manager.js', 'studioManager');
   loadAdminScript('studio-slots.js', 'studioSlots');
