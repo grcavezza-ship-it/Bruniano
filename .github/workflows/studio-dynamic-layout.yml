@@ -1,0 +1,54 @@
+name: Fix Studio dynamic layout
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make Studio layout react to photo count
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('shared.js')
+          s = p.read_text()
+          old = "      grid.innerHTML = items.map((m, i) => {\n        const media = String(m.media_type).startsWith('video') ? `<video src=\"${m.media_url}\" autoplay muted loop playsinline preload=\"metadata\" aria-label=\"${m.alt_text || m.title || 'Video Bruniano'}\"></video>` : `<img src=\"${m.media_url}\" alt=\"${m.alt_text || m.title || 'Ambiente Bruniano'}\" loading=\"lazy\">`;\n        const classes = i === 0 ? 'studio-tile large' : i === 3 ? 'studio-tile wide' : 'studio-tile';"
+          new = "      grid.dataset.count = String(Math.min(items.length, 12));\n      grid.innerHTML = items.map((m) => {\n        const media = String(m.media_type).startsWith('video') ? `<video src=\"${m.media_url}\" autoplay muted loop playsinline preload=\"metadata\" aria-label=\"${m.alt_text || m.title || 'Video Bruniano'}\"></video>` : `<img src=\"${m.media_url}\" alt=\"${m.alt_text || m.title || 'Ambiente Bruniano'}\" loading=\"lazy\">`;\n        const classes = 'studio-tile';"
+          if old not in s:
+              raise SystemExit('Studio renderer target not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          p = Path('studio.html')
+          s = p.read_text()
+          old = '.studio-grid{display:grid;grid-template-columns:1.35fr .8fr .8fr;grid-template-rows:230px 230px;grid-auto-rows:230px;gap:16px}'
+          new = '.studio-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:110px;gap:16px}.studio-tile{grid-column:span 3;grid-row:span 2;min-height:0}.studio-grid[data-count=\"1\"] .studio-tile{grid-column:span 12;grid-row:span 4}.studio-grid[data-count=\"2\"] .studio-tile{grid-column:span 6;grid-row:span 4}.studio-grid[data-count=\"3\"] .studio-tile:nth-child(1){grid-column:span 6;grid-row:span 4}.studio-grid[data-count=\"3\"] .studio-tile:nth-child(n+2){grid-column:span 6;grid-row:span 2}.studio-grid[data-count=\"4\"] .studio-tile:nth-child(1){grid-column:span 6;grid-row:span 4}.studio-grid[data-count=\"4\"] .studio-tile:nth-child(2),.studio-grid[data-count=\"4\"] .studio-tile:nth-child(3){grid-column:span 3;grid-row:span 2}.studio-grid[data-count=\"4\"] .studio-tile:nth-child(4){grid-column:span 6;grid-row:span 2}.studio-grid[data-count=\"5\"] .studio-tile:nth-child(1){grid-column:span 6;grid-row:span 4}.studio-grid[data-count=\"5\"] .studio-tile:nth-child(n+2){grid-column:span 3;grid-row:span 2}.studio-grid[data-count=\"6\"] .studio-tile:nth-child(1){grid-column:span 6;grid-row:span 4}.studio-grid[data-count=\"6\"] .studio-tile:nth-child(n+2){grid-column:span 3;grid-row:span 2}.studio-grid[data-count=\"7\"] .studio-tile:nth-child(1){grid-column:span 6;grid-row:span 4}.studio-grid[data-count=\"7\"] .studio-tile:nth-child(n+2){grid-column:span 3;grid-row:span 2}.studio-grid[data-count=\"8\"] .studio-tile:nth-child(1){grid-column:span 6;grid-row:span 4}.studio-grid[data-count=\"8\"] .studio-tile:nth-child(2),.studio-grid[data-count=\"8\"] .studio-tile:nth-child(3),.studio-grid[data-count=\"8\"] .studio-tile:nth-child(4),.studio-grid[data-count=\"8\"] .studio-tile:nth-child(5),.studio-grid[data-count=\"8\"] .studio-tile:nth-child(6),.studio-grid[data-count=\"8\"] .studio-tile:nth-child(7){grid-column:span 3;grid-row:span 2}.studio-grid[data-count=\"8\"] .studio-tile:nth-child(8){grid-column:span 6;grid-row:span 2}.studio-grid[data-count=\"9\"] .studio-tile:nth-child(1){grid-column:span 6;grid-row:span 4}.studio-grid[data-count=\"9\"] .studio-tile:nth-child(n+2){grid-column:span 3;grid-row:span 2}.studio-grid[data-count=\"10\"] .studio-tile:nth-child(1){grid-column:span 6;grid-row:span 4}.studio-grid[data-count=\"10\"] .studio-tile:nth-child(n+2){grid-column:span 3;grid-row:span 2}.studio-grid[data-count=\"11\"] .studio-tile:nth-child(1){grid-column:span 6;grid-row:span 4}.studio-grid[data-count=\"11\"] .studio-tile:nth-child(n+2){grid-column:span 3;grid-row:span 2}.studio-grid[data-count=\"12\"] .studio-tile:nth-child(1){grid-column:span 6;grid-row:span 4}.studio-grid[data-count=\"12\"] .studio-tile:nth-child(n+2){grid-column:span 3;grid-row:span 2}'
+          if old not in s:
+              raise SystemExit('Studio desktop grid target not found')
+          s = s.replace(old, new, 1)
+          old = '@media(max-width:950px){.studio-hero-grid,.studio-story-grid,.experience-grid{grid-template-columns:1fr}.studio-grid{grid-template-columns:1fr 1fr;grid-template-rows:240px 240px 240px;grid-auto-rows:240px}.studio-tile.large{grid-row:auto}.studio-tile.wide{grid-column:1/3}.tech-strip{grid-template-columns:1fr 1fr}.story-media,.story-media img{min-height:360px}}'
+          new = '@media(max-width:950px){.studio-hero-grid,.studio-story-grid,.experience-grid{grid-template-columns:1fr}.studio-grid{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:150px}.studio-tile{grid-column:span 3;grid-row:span 2}.studio-grid .studio-tile:nth-child(1){grid-column:span 3;grid-row:span 3}.tech-strip{grid-template-columns:1fr 1fr}.story-media,.story-media img{min-height:360px}}'
+          if old not in s:
+              raise SystemExit('Studio tablet grid target not found')
+          s = s.replace(old, new, 1)
+          old = '@media(max-width:650px){.studio-hero{padding:76px 0 58px}.studio-hero h1{font-size:52px}.studio-lead{font-size:17px}.studio-hero-media,.studio-hero-media img{min-height:315px}.studio-gallery,.studio-story,.studio-tech,.studio-experience{padding:72px 0}.studio-grid{grid-template-columns:1fr;grid-template-rows:250px 220px 220px 220px;grid-auto-rows:220px}.studio-tile.large,.studio-tile.wide{grid-column:auto;grid-row:auto}.tech-strip,.story-points,.experience-list{grid-template-columns:1fr}.studio-cta{padding:72px 0}.studio-cta-inner{padding:34px 25px;display:block}.studio-cta .button{margin-top:24px;width:100%}}'
+          new = '@media(max-width:650px){.studio-hero{padding:76px 0 58px}.studio-hero h1{font-size:52px}.studio-lead{font-size:17px}.studio-hero-media,.studio-hero-media img{min-height:315px}.studio-gallery,.studio-story,.studio-tech,.studio-experience{padding:72px 0}.studio-grid{grid-template-columns:1fr;grid-template-rows:none;grid-auto-rows:220px}.studio-grid .studio-tile,.studio-grid[data-count] .studio-tile{grid-column:auto !important;grid-row:auto !important}.tech-strip,.story-points,.experience-list{grid-template-columns:1fr}.studio-cta{padding:72px 0}.studio-cta-inner{padding:34px 25px;display:block}.studio-cta .button{margin-top:24px;width:100%}}'
+          if old not in s:
+              raise SystemExit('Studio mobile grid target not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shared.js studio.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Make Studio layout dynamic by photo count"
+          git push
