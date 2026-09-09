@@ -1,0 +1,23 @@
+name: Restore Studio CSS
+on:
+  push:
+    paths:
+      - .github/workflows/restore-studio-css.yml
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore known-good CSS
+        run: |
+          git checkout 9e4eb963715ac6935816ffb4b3a5e9ba904e6cde -- site-v2.css
+          git add site-v2.css
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Restore Studio gallery CSS after test change'
+          git push
