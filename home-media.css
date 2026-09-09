@@ -121,5 +121,5 @@ body:has(.hero-media-home) .offer-ribbon small{display:none!important}
   body:has(.hero-media-home) .hero-media-home .hero-copy{transform:none}
   body:has(.hero-media-home) .offer-ribbon{position:relative;z-index:70}
 }
-/* Fix Tecar video horizontal orientation. */
-.machine-video video{transform:scaleX(-1);}
+/* Keep the Tecar video in its original, non-mirrored orientation. */
+.machine-video video{transform:none!important;}
