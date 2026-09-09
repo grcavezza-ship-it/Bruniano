@@ -1,0 +1,20 @@
+name: Restore home media known-good state
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore Home media files only
+        run: |
+          git checkout 96248e80edd9f85daeea3e15457244a98a8b602d -- index.html home-media.css
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html home-media.css
+          git commit -m 'restore: home media to known-good state'
+          git push
