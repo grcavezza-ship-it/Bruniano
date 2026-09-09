@@ -123,3 +123,5 @@ body:has(.hero-media-home) .offer-ribbon small{display:none!important}
 }
 /* Correct the Tecar video orientation only. */
 .machine-card-dark .machine-video video{transform:scaleX(-1)!important;}
+/* Keep the Tecar video in its original, non-mirrored orientation. */
+.machine-video video{transform:none!important;}
