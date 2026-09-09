@@ -27,6 +27,18 @@
     }
   }
 
+  function loadAdminScript(path, attribute) {
+    return new Promise((resolve) => {
+      if (document.querySelector(`script[data-${attribute}]`)) return resolve();
+      const script = document.createElement('script');
+      script.src = `${path}?v=20260909-description-fix2`;
+      script.dataset[attribute] = '1';
+      script.onload = resolve;
+      script.onerror = resolve;
+      document.body.appendChild(script);
+    });
+  }
+
   loadPromotionCount();
   loadGalleryCount();
   loadAdminScript('studio-manager.js', 'studioManager').then(() => loadAdminScript('studio-slots.js', 'studioSlots'));
