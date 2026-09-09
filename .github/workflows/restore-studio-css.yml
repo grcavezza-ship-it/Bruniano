@@ -1,14 +1,1 @@
-name: Restore Studio CSS
-on:
-  push:
-    paths:
-      - .github/workflows/restore-studio-css.yml
-jobs:
-  restore:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - run: git checkout 9e4eb963715ac6935816ffb4b3a5e9ba904e6cde -- site-v2.css
-      - run: git add site-v2.css && git diff --cached --quiet || true
+# temporary disabled
