@@ -1,0 +1,54 @@
+name: Fix Tecar video view
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-tecar-half-view.yml'
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply minimal Tecar-only fix
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          index = Path('index.html').read_text(encoding='utf-8')
+          css = Path('home-media.css').read_text(encoding='utf-8')
+
+          old_index = '<video autoplay muted loop playsinline preload="metadata" style="transform:none!important" poster="https://res.cloudinary.com/pomzhih4/image/upload/v1788910798/bruniano/txnfzftydmnffiandpn1.png"><source src="https://res.cloudinary.com/pomzhih4/video/upload/q_auto,f_auto,w_960/v1787742244/Tecar.mp4" type="video/mp4"></video>'
+          new_index = '<video autoplay muted loop playsinline preload="metadata" poster="https://res.cloudinary.com/pomzhih4/image/upload/v1788910798/bruniano/txnfzftydmnffiandpn1.png"><source src="https://res.cloudinary.com/pomzhih4/video/upload/q_auto,f_auto,w_960/v1787742244/Tecar.mp4" type="video/mp4"></video>'
+          if index.count(old_index) != 1:
+              raise SystemExit(f'ABORT: expected exactly 1 Tecar video tag, found {index.count(old_index)}')
+          if 'https://res.cloudinary.com/pomzhih4/video/upload/q_auto,f_auto,w_960/v1787742255/Laser.mp4' not in index:
+              raise SystemExit('ABORT: Laser source not found')
+          index = index.replace(old_index, new_index, 1)
+          index = index.replace('<link rel="stylesheet" href="home-media.css?v=8">', '<link rel="stylesheet" href="home-media.css?v=9">', 1)
+          
+          tecar_rule = '.machine-card:nth-child(1) .machine-video video{width:200%;max-width:none;transform:translateX(-50%)!important}'
+          # Remove any previous Tecar-specific crop rule, then append exactly one.
+          css = re.sub(r'\s*\.machine-card:nth-child\(1\) \.machine-video video\{[^}]*\}', '', css)
+          css += '\n\n/* Tecar source is a split-frame recording: show the intended half without touching the original asset. */\n' + tecar_rule + '\n'
+
+          Path('index.html').write_text(index, encoding='utf-8')
+          Path('home-media.css').write_text(css, encoding='utf-8')
+      - name: Validate
+        run: |
+          git diff --check
+          grep -F 'home-media.css?v=9' index.html
+          grep -F 'Tecar.mp4' index.html
+          grep -F '.machine-card:nth-child(1) .machine-video video{width:200%;max-width:none;transform:translateX(-50%)!important}' home-media.css
+          ! grep -F 'Tecar.mp4' index.html | grep -F 'style="transform:none!important"' || true
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html home-media.css
+          git commit -m 'fix: show correct Tecar video half' 
+          git push
