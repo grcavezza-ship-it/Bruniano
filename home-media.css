@@ -125,4 +125,7 @@ body:has(.hero-media-home) .offer-ribbon small{display:none!important}
 
 /* Keep Laser as-is; crop only Tecar to its left source half without changing the file. */
 .machine-video video{transform:none!important}
-.machine-card:nth-child(1) .machine-video video{width:200%;max-width:none;height:100%;object-fit:fill;transform:translateX(0)!important}
+
+
+/* Tecar source is a split-frame recording: show the intended half without touching the original asset. */
+.machine-card:nth-child(1) .machine-video video{width:200%;max-width:none;transform:translateX(-50%)!important}
