@@ -1,0 +1,50 @@
+name: Fix final Tecar view
+on:
+  push:
+    paths:
+      - .github/workflows/fix-tecar-final-view.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply Tecar view and bust CSS cache
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          
+          p = Path('home-media.css')
+          s = p.read_text()
+          old = '.machine-card:nth-child(1) .machine-video video{transform:translateX(-50%)!important}'
+          new = '.machine-card:nth-child(1) .machine-video video{transform:translateX(0)!important}'
+          if old not in s:
+              raise SystemExit('Expected Tecar crop rule not found; aborting.')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          
+          p = Path('index.html')
+          s = p.read_text()
+          old = 'home-media.css?v=6'
+          new = 'home-media.css?v=8'
+          if old not in s:
+              raise SystemExit('Expected CSS version v6 not found; aborting.')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+      - name: Validate
+        run: |
+          grep -n 'home-media.css?v=8' index.html
+          grep -n 'machine-card:nth-child(1) .machine-video video{transform:translateX(0)!important}' home-media.css
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html home-media.css
+          git diff --cached --check
+          git commit -m 'fix: show Tecar left source half'
+          git push
