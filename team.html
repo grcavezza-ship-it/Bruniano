@@ -9,152 +9,52 @@
   <link rel="stylesheet" href="site-v2.css">
   <style>
     .team-page{background:#fff}
-    .team-hero{padding-bottom:72px}
-    .team-hero .page-hero-inner{display:grid;grid-template-columns:1.05fr .95fr;gap:70px;align-items:end}
-    .team-hero-copy{max-width:760px}
-    .team-hero-copy p:last-child{max-width:650px}
-    .team-hero-note{padding:26px 28px;border:1px solid var(--line2);border-radius:24px;background:#fff;box-shadow:var(--shadow2)}
-    .team-hero-note span{display:block;font-size:10px;font-weight:900;letter-spacing:.16em;color:var(--b2);margin-bottom:9px}
-    .team-hero-note strong{display:block;font-size:18px;line-height:1.35;letter-spacing:-.02em;color:var(--ink2)}
-    .team-hero-note small{display:block;margin-top:10px;color:var(--muted2);line-height:1.6}
-    .team-section{padding:88px 0 120px;background:#fff}
-    .team-heading{grid-template-columns:1fr 420px;margin-bottom:44px}
-    .team-heading h2{font-size:clamp(42px,4.8vw,62px)}
-    .team-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
-    .team-card{border-radius:28px;box-shadow:0 12px 42px rgba(19,58,120,.08)}
-    .team-photo{height:380px;background:#edf3fb}
-    .team-photo img{width:100%;height:100%;object-fit:cover;object-position:center top}
-    .team-card-body{padding:25px 26px 27px}
-    .team-role{font-size:10px;letter-spacing:.15em;margin-bottom:9px}
-    .team-card h3{font-size:28px}
-    .team-short{margin-bottom:20px}
-    .team-actions{gap:8px}
-    .team-actions .button{padding:10px 15px;font-size:12px}
-    .team-empty{grid-column:1/-1;padding:56px 30px;border:1px dashed var(--line2);border-radius:26px;text-align:center;color:var(--muted2);background:#fbfcfe}
-    .team-empty strong{display:block;color:var(--ink2);font-size:18px;margin-bottom:6px}
-    .team-empty span{font-size:13px}
-    .curriculum-modal{display:none;position:fixed;inset:0;z-index:200}
-    .curriculum-modal.open{display:block}
-    .curriculum-backdrop{position:absolute;inset:0;background:rgba(5,15,34,.62);backdrop-filter:blur(8px)}
-    .curriculum-dialog{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(760px,calc(100% - 32px));max-height:min(780px,calc(100vh - 40px));overflow:auto;background:#fff;border-radius:30px;padding:40px;box-shadow:0 30px 100px rgba(0,0,0,.25)}
-    .curriculum-close{position:absolute;right:18px;top:16px;width:38px;height:38px;border:0;border-radius:50%;background:#f2f5f9;color:var(--ink2);font-size:24px;cursor:pointer}
-    .curriculum-dialog h2{font-size:40px;line-height:1;letter-spacing:-.045em;margin:0 0 7px}
-    .curriculum-meta{color:var(--muted2);margin-bottom:24px}
-    .cv-section{padding:19px 0;border-top:1px solid var(--line2)}
-    .cv-section:first-child{border-top:0;padding-top:0}
-    .cv-section h3{font-size:11px;letter-spacing:.14em;color:var(--b2);margin:0 0 9px;text-transform:uppercase}
-    .cv-section p{margin:0;color:#4f5e73;line-height:1.75;white-space:pre-line}
-    @media(max-width:900px){
-      .team-hero .page-hero-inner{grid-template-columns:1fr;gap:30px}
-      .team-heading{grid-template-columns:1fr;gap:22px}
-      .team-grid{grid-template-columns:1fr 1fr}
-    }
-    @media(max-width:600px){
-      .team-hero{padding-bottom:56px}
-      .team-section{padding:70px 0 90px}
-      .team-grid{grid-template-columns:1fr}
-      .team-photo{height:370px}
-      .curriculum-dialog{padding:32px 24px}
-      .curriculum-dialog h2{font-size:34px}
-    }
+    .team-hero{padding-bottom:72px}.team-hero .page-hero-inner{display:grid;grid-template-columns:1.05fr .95fr;gap:70px;align-items:end}.team-hero-copy{max-width:760px}.team-hero-copy p:last-child{max-width:650px}
+    .team-hero-note{padding:26px 28px;border:1px solid var(--line2);border-radius:24px;background:#fff;box-shadow:var(--shadow2)}.team-hero-note span{display:block;font-size:10px;font-weight:900;letter-spacing:.16em;color:var(--b2);margin-bottom:9px}.team-hero-note strong{display:block;font-size:18px;line-height:1.35;letter-spacing:-.02em;color:var(--ink2)}.team-hero-note small{display:block;margin-top:10px;color:var(--muted2);line-height:1.6}
+    .team-section{padding:88px 0 120px;background:#fff}.team-heading{grid-template-columns:1fr 420px;margin-bottom:44px}.team-heading h2{font-size:clamp(42px,4.8vw,62px)}.team-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.team-card{border-radius:28px;box-shadow:0 12px 42px rgba(19,58,120,.08)}.team-photo{height:380px;background:#edf3fb}.team-photo img{width:100%;height:100%;object-fit:cover;object-position:center top}.team-card-body{padding:25px 26px 27px}.team-role{font-size:10px;letter-spacing:.15em;margin-bottom:9px}.team-card h3{font-size:28px}.team-short{margin-bottom:20px}.team-actions{gap:8px}.team-actions .button{padding:10px 15px;font-size:12px}.team-empty{grid-column:1/-1;padding:56px 30px;border:1px dashed var(--line2);border-radius:26px;text-align:center;color:var(--muted2);background:#fbfcfe}.team-empty strong{display:block;color:var(--ink2);font-size:18px;margin-bottom:6px}.team-empty span{font-size:13px}
+    .team-photo-placeholder{height:100%;display:grid;place-items:center;color:var(--muted2);font-size:10px;letter-spacing:.14em;text-align:center}
+    .curriculum-modal{display:none;position:fixed;inset:0;z-index:200}.curriculum-modal.open{display:block}.curriculum-backdrop{position:absolute;inset:0;background:rgba(5,15,34,.62);backdrop-filter:blur(8px)}.curriculum-dialog{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(880px,calc(100% - 32px));max-height:min(840px,calc(100vh - 40px));overflow:auto;background:#fff;border-radius:30px;padding:40px;box-shadow:0 30px 100px rgba(0,0,0,.25)}.curriculum-close{position:absolute;right:18px;top:16px;width:38px;height:38px;border:0;border-radius:50%;background:#f2f5f9;color:var(--ink2);font-size:24px;cursor:pointer}.curriculum-dialog h2{font-size:40px;line-height:1;letter-spacing:-.045em;margin:0 0 7px}.curriculum-meta{color:var(--muted2);margin-bottom:24px}.cv-section{padding:19px 0;border-top:1px solid var(--line2)}.cv-section:first-child{border-top:0;padding-top:0}.cv-section h3{font-size:11px;letter-spacing:.14em;color:var(--b2);margin:0 0 11px;text-transform:uppercase}.cv-section p{margin:0;color:#4f5e73;line-height:1.75;white-space:pre-line}.cv-record{padding:14px 16px;border:1px solid var(--line2);border-radius:16px;background:#fbfcfe;margin-top:10px}.cv-record strong{display:block;color:var(--ink2);font-size:14px;line-height:1.35}.cv-record small{display:block;color:var(--muted2);margin-top:4px;line-height:1.55}.cv-record p{margin-top:8px}.cv-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:900px){.team-hero .page-hero-inner{grid-template-columns:1fr;gap:30px}.team-heading{grid-template-columns:1fr;gap:22px}.team-grid{grid-template-columns:1fr 1fr}.cv-two{grid-template-columns:1fr}}
+    @media(max-width:600px){.team-hero{padding-bottom:56px}.team-section{padding:70px 0 90px}.team-grid{grid-template-columns:1fr}.team-photo{height:370px}.curriculum-dialog{padding:32px 24px}.curriculum-dialog h2{font-size:34px}}
   </style>
 </head>
 <body class="team-page">
   <div id="site-header"></div>
-
   <main>
-    <section class="page-hero team-hero">
-      <div class="container page-hero-inner">
-        <div class="team-hero-copy">
-          <p class="eyebrow">IL TEAM</p>
-          <h1>Professionisti<br><em>al tuo fianco.</em></h1>
-          <p>Conosci le persone che compongono Bruniano, le loro competenze e il percorso professionale che accompagna ogni presa in carico.</p>
-        </div>
-        <aside class="team-hero-note">
-          <span>CENTRO MEDICO SPECIALISTICO</span>
-          <strong>Esperienza, competenza e attenzione alla persona.</strong>
-          <small>Ogni professionista contribuisce a costruire un percorso chiaro, personalizzato e orientato agli obiettivi del paziente.</small>
-        </aside>
-      </div>
-    </section>
-
-    <section class="team-section">
-      <div class="container">
-        <div class="team-heading">
-          <div>
-            <p class="eyebrow">LE PERSONE DI BRUNIANO</p>
-            <h2>Conosci chi ti seguirà<br><span>nel tuo percorso.</span></h2>
-          </div>
-          <p>Consulta il profilo di ciascun professionista, approfondisci il curriculum e contatta direttamente il centro per richiedere un appuntamento.</p>
-        </div>
-
-        <div id="team-live" class="team-grid">
-          <div class="team-empty"><strong>Stiamo caricando il Team.</strong><span>Un momento.</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="cta section-pad">
-      <div class="container cta-inner">
-        <p class="eyebrow">PRENOTA</p>
-        <h2>Il percorso giusto<br><em>parte da una valutazione.</em></h2>
-        <p>Parlaci delle tue esigenze e individuiamo insieme il professionista più adatto al tuo percorso.</p>
-        <div class="cta-actions">
-          <a class="button button-primary button-large" data-whatsapp href="#">Prenota su WhatsApp</a>
-          <a class="button button-ghost button-large" href="contatti.html">Contatti</a>
-        </div>
-      </div>
-    </section>
+    <section class="page-hero team-hero"><div class="container page-hero-inner"><div class="team-hero-copy"><p class="eyebrow">IL TEAM</p><h1>Professionisti<br><em>al tuo fianco.</em></h1><p>Conosci le persone che compongono Bruniano, le loro competenze e il percorso professionale che accompagna ogni presa in carico.</p></div><aside class="team-hero-note"><span>CENTRO MEDICO SPECIALISTICO</span><strong>Esperienza, competenza e attenzione alla persona.</strong><small>Ogni professionista contribuisce a costruire un percorso chiaro, personalizzato e orientato agli obiettivi del paziente.</small></aside></div></section>
+    <section class="team-section"><div class="container"><div class="team-heading"><div><p class="eyebrow">LE PERSONE DI BRUNIANO</p><h2>Conosci chi ti seguirà<br><span>nel tuo percorso.</span></h2></div><p>Consulta il profilo di ciascun professionista, approfondisci il curriculum e contatta direttamente il centro per richiedere un appuntamento.</p></div><div id="team-live" class="team-grid"><div class="team-empty"><strong>Stiamo caricando il Team.</strong><span>Un momento.</span></div></div></div></section>
+    <section class="cta section-pad"><div class="container cta-inner"><p class="eyebrow">PRENOTA</p><h2>Il percorso giusto<br><em>parte da una valutazione.</em></h2><p>Parlaci delle tue esigenze e individuiamo insieme il professionista più adatto al tuo percorso.</p><div class="cta-actions"><a class="button button-primary button-large" data-whatsapp href="#">Prenota su WhatsApp</a><a class="button button-ghost button-large" href="contatti.html">Contatti</a></div></div></section>
   </main>
-
-  <div id="cv-overlay" class="curriculum-modal" aria-hidden="true">
-    <div class="curriculum-backdrop"></div>
-    <article class="curriculum-dialog" role="dialog" aria-modal="true" aria-labelledby="cv-name">
-      <button class="curriculum-close" aria-label="Chiudi">×</button>
-      <p class="eyebrow">PROFILO PROFESSIONALE</p>
-      <h2 id="cv-name"></h2>
-      <p id="cv-meta" class="curriculum-meta"></p>
-      <div class="cv-section"><h3>Profilo</h3><p id="cv-bio"></p></div>
-      <div class="cv-section"><h3>Formazione e specializzazioni</h3><p id="cv-specialty"></p></div>
-    </article>
-  </div>
-
+  <div id="cv-overlay" class="curriculum-modal" aria-hidden="true"><div class="curriculum-backdrop"></div><article class="curriculum-dialog" role="dialog" aria-modal="true" aria-labelledby="cv-name"><button class="curriculum-close" aria-label="Chiudi">×</button><p class="eyebrow">CURRICULUM PROFESSIONALE</p><h2 id="cv-name"></h2><p id="cv-meta" class="curriculum-meta"></p><div id="cv-content"></div></article></div>
   <div id="site-footer"></div>
-  <script src="shared.js"></script>
-  <script src="script.js"></script>
+  <script src="shared.js"></script><script src="script.js"></script>
   <script>
     (async()=>{
-      const root=document.getElementById('team-live');
-      const overlay=document.getElementById('cv-overlay');
+      const root=document.getElementById('team-live'),overlay=document.getElementById('cv-overlay');
       const close=()=>{overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');document.body.style.overflow=''};
-      document.querySelector('.curriculum-close').onclick=close;
-      document.querySelector('.curriculum-backdrop').onclick=close;
-      try{
-        const r=await fetch('/api/team',{cache:'no-store'});
-        if(!r.ok) throw new Error('Team API '+r.status);
-        const d=await r.json();
-        const items=d.items||[];
-        if(!items.length){root.innerHTML='<div class="team-empty"><strong>Nessun professionista pubblicato al momento.</strong><span>Il Team sarà visibile qui non appena verrà pubblicato dal pannello Operatori.</span></div>';return}
-        root.innerHTML=items.map(m=>{
-          const message=`Buongiorno, vorrei fissare un appuntamento presso il Centro Medico Specialistico Bruniano con ${m.name}. Potrei avere informazioni sulla disponibilità?`;
-          const wa=`https://wa.me/393343755885?text=${encodeURIComponent(message)}`;
-          return `<article class="team-card"><div class="team-photo">${m.photo_url?`<img src="${m.photo_url}" alt="${m.name}" loading="lazy">`:'<div class="team-photo-placeholder"><span>FOTO PROFESSIONISTA<br>NON DISPONIBILE</span></div>'}</div><div class="team-card-body"><p class="team-role">${m.role||'Professionista'}</p><h3>${m.name}</h3><p class="team-short">${m.specialty||m.bio||''}</p><div class="team-actions"><button class="button button-ghost" data-cv="${m.id}">Curriculum ↗</button><a class="button button-primary" href="${wa}" target="_blank" rel="noopener noreferrer">Prenota</a></div></div></article>`;
-        }).join('');
-        items.forEach(m=>{
-          const b=document.querySelector(`[data-cv="${m.id}"]`);
-          if(!b)return;
-          b.onclick=()=>{
-            const c=m.curriculum||{};
-            document.getElementById('cv-name').textContent=m.name||'';
-            document.getElementById('cv-meta').textContent=[m.role,m.specialty].filter(Boolean).join(' · ');
-            document.getElementById('cv-bio').textContent=c.profile||m.bio||'Profilo professionale in aggiornamento.';
-            document.getElementById('cv-specialty').textContent=[c.training,c.experience,c.certifications].filter(Boolean).join('\n\n')||m.specialty||'Informazioni in aggiornamento.';
-            overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
-          };
-        });
-      }catch(e){
-        root.innerHTML='<div class="team-empty"><strong>Il servizio Team non è momentaneamente disponibile.</strong><span>Riprova tra poco.</span></div>';
+      document.querySelector('.curriculum-close').onclick=close;document.querySelector('.curriculum-backdrop').onclick=close;document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+      const esc=v=>String(v??'').replace(/[&<>\"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[s]));
+      const lines=v=>String(v??'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+      const rec=(title,meta,body)=>`<div class="cv-record"><strong>${esc(title||'')}</strong>${meta?`<small>${esc(meta)}</small>`:''}${body?`<p>${esc(body)}</p>`:''}</div>`;
+      function renderCv(m){
+        const c=m.curriculum||{}, chunks=[];
+        if(c.profile||m.bio)chunks.push(`<section class="cv-section"><h3>Profilo professionale</h3><p>${esc(c.profile||m.bio||'')}</p></section>`);
+        if((c.experiences||[]).length){chunks.push(`<section class="cv-section"><h3>Esperienza professionale</h3>${c.experiences.map(x=>rec(x.organization||x.role||'Esperienza',[x.from,x.to].filter(Boolean).join(' – ') + (x.address?' · '+x.address:''),[x.sector&&('Settore: '+x.sector),x.role&&('Ruolo: '+x.role),x.responsibilities].filter(Boolean).join('\n'))).join('')}</section>`)}
+        if((c.education||[]).length){chunks.push(`<section class="cv-section"><h3>Istruzione e formazione</h3>${c.education.map(x=>rec(x.title||x.institution||'Formazione',[x.from,x.to].filter(Boolean).join(' – ')+(x.institution?' · '+x.institution:''),[x.result&&('Risultato: '+x.result),x.level&&('Livello: '+x.level),x.notes].filter(Boolean).join('\n'))).join('')}</section>`)}
+        if((c.languages||[]).length){chunks.push(`<section class="cv-section"><h3>Lingue</h3>${c.languages.map(x=>rec(x.language,[x.reading&&('Lettura: '+x.reading),x.writing&&('Scrittura: '+x.writing),x.speaking&&('Orale: '+x.speaking)].filter(Boolean).join(' · '))).join('')}</section>`)}
+        const skills=Object.entries(c.skills||{}).filter(([,v])=>String(v||'').trim()); if(skills.length)chunks.push(`<section class="cv-section"><h3>Competenze</h3><div class="cv-two">${skills.map(([k,v])=>rec({relational:'Relazionali',organizational:'Organizzative',technical:'Tecniche',artistic:'Artistiche',other:'Altre'}[k]||k,'',v)).join('')}</div></section>`);
+        if((c.certifications||[]).length)chunks.push(`<section class="cv-section"><h3>Certificazioni, master e corsi</h3>${c.certifications.map(x=>rec(x.title||'Certificazione',[x.issuer,x.period].filter(Boolean).join(' · '),x.notes)).join('')}</section>`);
+        const sci=Object.entries(c.scientific||{}).filter(([,v])=>String(v||'').trim()); if(sci.length)chunks.push(`<section class="cv-section"><h3>Attività scientifica e didattica</h3>${sci.map(([k,v])=>rec({publications:'Pubblicazioni',congresses:'Congressi / relazioni',teaching:'Docenze',research:'Ricerca'}[k]||k,'',v)).join('')}</section>`);
+        if(c.driving)chunks.push(`<section class="cv-section"><h3>Patenti</h3><p>${esc(c.driving)}</p></section>`);
+        if(c.additional)chunks.push(`<section class="cv-section"><h3>Ulteriori informazioni</h3><p>${esc(c.additional)}</p></section>`);
+        return chunks.join('')||`<section class="cv-section"><p>Curriculum professionale in aggiornamento.</p></section>`;
       }
+      try{
+        const r=await fetch('/api/team',{cache:'no-store'});if(!r.ok)throw new Error('Team API '+r.status);const d=await r.json(),items=d.items||[];
+        if(!items.length){root.innerHTML='<div class="team-empty"><strong>Nessun professionista pubblicato al momento.</strong><span>Il Team sarà visibile qui non appena verrà pubblicato dal pannello Operatori.</span></div>';return;}
+        root.innerHTML=items.map(m=>{const message=`Buongiorno, vorrei fissare un appuntamento presso il Centro Medico Specialistico Bruniano con ${m.name}. Potrei avere informazioni sulla disponibilità?`;const wa=`https://wa.me/393343755885?text=${encodeURIComponent(message)}`;return `<article class="team-card"><div class="team-photo">${m.photo_url?`<img src="${esc(m.photo_url)}" alt="${esc(m.name)}" loading="lazy">`:'<div class="team-photo-placeholder"><span>FOTO PROFESSIONISTA<br>NON DISPONIBILE</span></div>'}</div><div class="team-card-body"><p class="team-role">${esc(m.role||'Professionista')}</p><h3>${esc(m.name)}</h3><p class="team-short">${esc(m.specialty||m.bio||'')}</p><div class="team-actions"><button class="button button-ghost" data-cv="${esc(m.id)}">Curriculum ↗</button><a class="button button-primary" href="${wa}" target="_blank" rel="noopener noreferrer">Prenota</a></div></div></article>`}).join('');
+        items.forEach(m=>{const b=document.querySelector(`[data-cv="${m.id}"]`);if(!b)return;b.onclick=()=>{document.getElementById('cv-name').textContent=m.name||'';document.getElementById('cv-meta').textContent=[m.role,m.specialty].filter(Boolean).join(' · ');document.getElementById('cv-content').innerHTML=renderCv(m);overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';};});
+      }catch(e){root.innerHTML='<div class="team-empty"><strong>Il servizio Team non è momentaneamente disponibile.</strong><span>Riprova tra poco.</span></div>';console.error(e)}
     })();
   </script>
 </body>
