@@ -4,7 +4,7 @@
   let pdfjsPromise;
 
   const $ = (id) => document.getElementById(id);
-  const text = (v) => String(v || '').replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ').trim();
+  const norm = (v) => String(v ?? '').replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ').trim();
   const set = (id, value) => { const el = $(id); if (el && value) el.value = value; };
 
   function loadPdfJs() {
@@ -20,90 +20,151 @@
   async function extractPdfText(file, status) {
     const pdfjs = await loadPdfJs();
     const bytes = new Uint8Array(await file.arrayBuffer());
-    const pdf = await pdfjs.getDocument({ data: bytes }).promise;
+    const task = pdfjs.getDocument({ data: bytes, useWorkerFetch: true, isEvalSupported: true });
+    const pdf = await task.promise;
     if (!pdf.numPages) throw new Error('Il PDF non contiene pagine.');
+
     const pages = [];
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
+      const content = await page.getTextContent({ normalizeWhitespace: true, disableCombineTextItems: false });
+      const items = (content.items || [])
+        .map(item => ({
+          str: norm(item.str),
+          x: Number(item.transform?.[4] || 0),
+          y: Number(item.transform?.[5] || 0),
+          width: Number(item.width || 0)
+        }))
+        .filter(item => item.str);
+
+      items.sort((a, b) => {
+        if (Math.abs(a.y - b.y) > 3) return b.y - a.y;
+        return a.x - b.x;
+      });
+
       const lines = [];
-      let current = '';
-      let lastY = null;
-      for (const item of content.items) {
-        const str = text(item.str);
-        if (!str) continue;
-        const y = item.transform?.[5];
-        if (lastY !== null && Math.abs(y - lastY) > 4) {
-          if (current) lines.push(text(current));
-          current = str;
-        } else current += (current ? ' ' : '') + str;
-        lastY = y;
+      for (const item of items) {
+        const last = lines[lines.length - 1];
+        if (last && Math.abs(last.y - item.y) <= 3) {
+          last.parts.push(item.str);
+        } else {
+          lines.push({ y: item.y, parts: [item.str] });
+        }
       }
-      if (current) lines.push(text(current));
-      pages.push(lines.join('\n'));
+      pages.push(lines.map(line => norm(line.parts.join(' '))).filter(Boolean).join('\n'));
       if (status) status.textContent = `Lettura curriculum… pagina ${i}/${pdf.numPages}`;
     }
     return pages.join('\n\n');
   }
 
   function cleanLines(raw) {
-    return raw.split(/\r?\n/).map(text).filter(Boolean).filter(x => x.length < 180);
+    return raw.split(/\r?\n/).map(norm).filter(Boolean);
   }
 
-  function findLabeled(raw, labels) {
-    const re = new RegExp('(?:^|\\n)\\s*(?:' + labels.join('|') + ')\\s*[:\\-–]?\\s*(.+)', 'im');
-    const m = raw.match(re);
-    return m ? text(m[1]) : '';
-  }
+  const LABELS = {
+    name: ['nome e cognome','nominativo','nome'],
+    role: ['qualifica','professione','ruolo','professionalità','professionalita'],
+    specialty: ['specializzazione','specialità','specialita','area di competenza','settore'],
+  };
 
-  function section(raw, heads) {
-    const lines = raw.split(/\r?\n/);
-    const start = lines.findIndex(l => heads.some(h => new RegExp('^\\s*' + h + '\\s*[:\\-–]?\\s*$', 'i').test(l)) || heads.some(h => new RegExp('^\\s*' + h + '\\b', 'i').test(l)));
-    if (start < 0) return '';
-    const stopWords = /^(profilo professionale|profilo|formazione|istruzione|educazione|esperienza professionale|esperienze|esperienza|attività professionale|certificazioni|competenze|titoli|master|corsi|abilitazioni|ordine professionale|contatti|lingue|pubblicazioni|privacy)$/i;
-    const out=[];
-    for (let i=start+1; i<lines.length; i++) {
-      const l=text(lines[i]);
-      if (l && stopWords.test(l)) break;
-      if (l) out.push(l);
+  function findLabeled(lines, labels) {
+    const labelRe = new RegExp(`^(?:${labels.map(escapeRegExp).join('|')})\\s*[:\\-–]?\\s*(.*)$`, 'i');
+    for (let i = 0; i < lines.length; i++) {
+      const match = lines[i].match(labelRe);
+      if (!match) continue;
+      const sameLine = norm(match[1]);
+      if (sameLine) return sameLine;
+      const next = lines[i + 1] || '';
+      if (next && !looksLikeHeading(next)) return next;
     }
-    return text(out.join(' '));
+    return '';
+  }
+
+  function escapeRegExp(v) {
+    return String(v).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  const SECTION_ALIASES = {
+    profile: ['PROFILO PROFESSIONALE','PROFILO','PRESENTAZIONE','CHI SONO','SUMMARY','ABOUT','PROFILO PERSONALE'],
+    training: ['FORMAZIONE','ISTRUZIONE','EDUCAZIONE','FORMAZIONE ACCADEMICA','STUDI','ISTRUZIONE E FORMAZIONE'],
+    experience: ['ESPERIENZA PROFESSIONALE','ESPERIENZE PROFESSIONALI','ESPERIENZA','ATTIVITÀ PROFESSIONALE','ATTIVITA PROFESSIONALE','ESPERIENZA LAVORATIVA','ESPERIENZE LAVORATIVE'],
+    certifications: ['CERTIFICAZIONI E COMPETENZE','CERTIFICAZIONI','COMPETENZE','TITOLI E CERTIFICAZIONI','ABILITAZIONI','MASTER','CORSI','COMPETENZE PROFESSIONALI']
+  };
+
+  const ALL_HEADINGS = Object.values(SECTION_ALIASES).flat().concat([
+    'NOME E COGNOME','QUALIFICA','PROFESSIONE','SPECIALIZZAZIONE','AREA DI COMPETENZA',
+    'CONTATTI','EMAIL','TELEFONO','LINGUE','PUBBLICAZIONI','PRIVACY'
+  ]);
+
+  function looksLikeHeading(line) {
+    const clean = norm(line).replace(/[:\-–]+$/, '');
+    if (ALL_HEADINGS.some(h => clean.localeCompare(h, 'it', { sensitivity: 'base' }) === 0)) return true;
+    return clean.length <= 60 && /^[A-ZÀ-ÖØ-Ý0-9][A-ZÀ-ÖØ-Ý0-9 .&/’'_-]+$/.test(clean) && !/[.!?]/.test(clean);
+  }
+
+  function section(lines, heads) {
+    const normalizedHeads = heads.map(h => norm(h).toLowerCase());
+    const start = lines.findIndex(line => {
+      const clean = norm(line).replace(/[:\-–]+$/, '').toLowerCase();
+      return normalizedHeads.some(h => clean === h || clean.startsWith(h + ' '));
+    });
+    if (start < 0) return '';
+
+    const out = [];
+    for (let i = start + 1; i < lines.length; i++) {
+      const line = norm(lines[i]);
+      if (!line) continue;
+      if (looksLikeHeading(line) && ALL_HEADINGS.some(h => line.replace(/[:\-–]+$/, '').toLowerCase() === h.toLowerCase())) break;
+      out.push(line);
+    }
+    return norm(out.join(' '));
   }
 
   function parseCv(raw) {
     const lines = cleanLines(raw);
-    const low = raw.toLowerCase();
-    let name = findLabeled(raw, ['nome e cognome','nome','cognome']);
+    const lower = raw.toLowerCase();
+
+    let name = findLabeled(lines, LABELS.name);
     if (!name) {
-      name = lines.slice(0, 8).find(x => /^(?:[A-ZÀ-ÖØ-Ý][a-zà-öø-ÿ'’-]+\s+){1,3}[A-ZÀ-ÖØ-Ý][a-zà-öø-ÿ'’-]+$/.test(x)) || '';
+      name = lines.slice(0, 12).find(x => /^(?:[A-ZÀ-ÖØ-Ý][A-Za-zÀ-ÖØ-öø-ÿ'’-]+\s+){1,3}[A-ZÀ-ÖØ-Ý][A-Za-zÀ-ÖØ-öø-ÿ'’-]+$/.test(x)) || '';
     }
 
-    let role = findLabeled(raw, ['qualifica','professione','ruolo','professionalità']);
-    if (!role) role = lines.find(x => /\b(medico|fisioterapista|nutrizionista|dietista|osteopata|logopedista|psicologo|psicoterapeuta|cardiologo|ortopedico|neurologo|ginecologo|dermatologo|radiologo|odontoiatra|infermiere|podologo|biologo)\b/i.test(x) && x.length < 120) || '';
+    let role = findLabeled(lines, LABELS.role);
+    if (!role) {
+      role = lines.find(x => /\b(medico|medica|fisioterapista|nutrizionista|dietista|osteopata|logopedista|psicologo|psicologa|psicoterapeuta|cardiologo|cardiologa|ortopedico|ortopedica|neurologo|neurologa|ginecologo|ginecologa|dermatologo|dermatologa|radiologo|radiologa|odontoiatra|infermiere|infermiera|podologo|podologa|biologo|biologa)\b/i.test(x) && x.length < 140) || '';
+    }
 
-    let specialty = findLabeled(raw, ['specializzazione','specialità','area di competenza','settore']);
-    if (!specialty && role) specialty = text(role.replace(/^(medico\s*(chirurgo)?|dott\.|dottore)\s*[-–:]?\s*/i, ''));
+    let specialty = findLabeled(lines, LABELS.specialty);
+    if (!specialty && role) {
+      specialty = norm(role.replace(/^(medico\s*(chirurgo)?|medica|dott\.?|dottoressa|dottore)\s*[-–:]?\s*/i, ''));
+    }
 
-    const profile = section(raw, ['PROFILO PROFESSIONALE','PROFILO','PRESENTAZIONE','CHI SONO','SUMMARY','ABOUT']);
-    const training = section(raw, ['FORMAZIONE','ISTRUZIONE','EDUCAZIONE','FORMAZIONE ACCADEMICA','STUDI']);
-    const experience = section(raw, ['ESPERIENZA PROFESSIONALE','ESPERIENZE PROFESSIONALI','ESPERIENZA','ATTIVITÀ PROFESSIONALE','ATTIVITA PROFESSIONALE']);
-    const certifications = section(raw, ['CERTIFICAZIONI E COMPETENZE','CERTIFICAZIONI','COMPETENZE','TITOLI E CERTIFICAZIONI','MASTER','CORSI']);
+    const profile = section(lines, SECTION_ALIASES.profile);
+    const training = section(lines, SECTION_ALIASES.training);
+    const experience = section(lines, SECTION_ALIASES.experience);
+    const certifications = section(lines, SECTION_ALIASES.certifications);
 
     const email = (raw.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [])[0] || '';
-    const phone = (raw.match(/(?:\+39\s*)?(?:\d[\s.-]?){8,12}\d/) || [])[0] || '';
+    const phone = (raw.match(/(?:\+39[ .-]?)?(?:\d[ .-]?){8,12}\d/) || [])[0] || '';
 
     let bio = profile;
     if (!bio) {
       const candidates = lines.filter(x => x !== name && x !== role && x !== specialty && !/@/.test(x) && !/^(tel|telefono|email|mail|curriculum|curriculum vitae|cv)$/i.test(x));
-      bio = candidates.find(x => x.length >= 80) || '';
+      bio = candidates.find(x => x.length >= 90) || '';
     }
-    bio = text(bio).slice(0, 900);
+    bio = norm(bio).slice(0, 900);
 
     const confidence = {
-      name: !!name, role: !!role, specialty: !!specialty,
-      profile: !!profile, training: !!training, experience: !!experience, certifications: !!certifications
+      name: !!name,
+      role: !!role,
+      specialty: !!specialty,
+      profile: !!profile,
+      training: !!training,
+      experience: !!experience,
+      certifications: !!certifications
     };
-    return { name, role, specialty, profile, training, experience, certifications, bio, email, phone, confidence };
+
+    return { name, role, specialty, profile, training, experience, certifications, bio, email, phone, confidence, rawLength: raw.length, lineCount: lines.length, lower };
   }
 
   function addUi(form) {
@@ -113,12 +174,16 @@
     box.className = 'form-card note';
     box.style.margin = '12px 0 16px';
     box.innerHTML = '<div style="display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap"><div><strong>Importa curriculum</strong><div style="font-size:11px;color:#657083;margin-top:4px">Carica il PDF e compilo automaticamente la scheda. La foto del professionista resta separata.</div></div><button type="button" class="mini" id="team-cv-import-btn">Carica CV in PDF</button></div><input id="team-cv-import-file" type="file" accept="application/pdf,.pdf" hidden><div id="team-cv-import-status" style="display:block;margin-top:8px;color:#657083;font-size:10px"></div>';
-    const firstRow = form.querySelector('.form-row');
-    form.insertBefore(box, firstRow || form.firstChild);
+    form.insertBefore(box, form.firstChild);
+
     const btn = $('#team-cv-import-btn');
     const input = $('#team-cv-import-file');
     btn.addEventListener('click', () => input.click());
-    input.addEventListener('change', () => input.files[0] && runImport(input.files[0]));
+    input.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      if (file) await runImport(file);
+      input.value = '';
+    });
   }
 
   async function runImport(file) {
@@ -128,11 +193,18 @@
       if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) throw new Error('Seleziona un file PDF.');
       if (file.size > 15 * 1024 * 1024) throw new Error('Il PDF supera il limite di 15 MB.');
       btn.disabled = true;
-      status.textContent = 'Preparazione…';
+      status.style.color = '#657083';
+      status.textContent = 'Apertura curriculum…';
+
       const raw = await extractPdfText(file, status);
-      if (raw.replace(/\s/g,'').length < 80) throw new Error('Non riesco a estrarre testo da questo PDF. Potrebbe essere una scansione: in quel caso compila i campi manualmente.');
+      const compact = raw.replace(/\s/g, '');
+      if (compact.length < 80) {
+        throw new Error('Questo PDF non contiene testo selezionabile. Probabilmente è una scansione o un PDF composto da immagini. In questo caso serve OCR oppure inserimento manuale.');
+      }
+
       const data = parseCv(raw);
-      if (!Object.values(data.confidence).some(Boolean)) throw new Error('Non ho trovato informazioni strutturate nel curriculum.');
+      const found = Object.values(data.confidence).filter(Boolean).length;
+      if (!found) throw new Error('Ho letto il PDF ma non riconosco una struttura di curriculum. Prova con il CV originale in PDF, non con una scansione/foto.');
 
       set('team-name', data.name);
       set('team-role', data.role);
@@ -143,14 +215,13 @@
       set('cv-experience', data.experience);
       set('cv-certifications', data.certifications);
 
-      const found = Object.values(data.confidence).filter(Boolean).length;
       status.textContent = `Importazione completata: ${found}/7 campi rilevati. Controlla i dati prima di salvare.`;
       status.style.color = '#145cff';
-      const form = $('team-editor');
-      form?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('team-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (e) {
-      status.textContent = e.message || 'Impossibile importare il curriculum.';
+      status.textContent = e?.message || 'Impossibile importare il curriculum.';
       status.style.color = '#b42318';
+      console.error('Team CV import', e);
     } finally {
       btn.disabled = false;
     }
