@@ -1,0 +1,35 @@
+name: Fix Studio double text
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hide duplicate Studio headline
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('studio.html')
+          s = p.read_text()
+          needle = '.tile-copy small{display:block;font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;opacity:.75}'
+          replacement = needle + '.studio-grid .tile-copy strong{display:none !important}'
+          if replacement not in s:
+              if needle not in s:
+                  raise SystemExit('Target CSS not found')
+              s = s.replace(needle, replacement, 1)
+              p.write_text(s)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add studio.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix duplicate text in Studio gallery"
+          git push
