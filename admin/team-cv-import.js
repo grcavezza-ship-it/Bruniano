@@ -32,8 +32,7 @@
         .map(item => ({
           str: norm(item.str),
           x: Number(item.transform?.[4] || 0),
-          y: Number(item.transform?.[5] || 0),
-          width: Number(item.width || 0)
+          y: Number(item.transform?.[5] || 0)
         }))
         .filter(item => item.str);
 
@@ -45,11 +44,8 @@
       const lines = [];
       for (const item of items) {
         const last = lines[lines.length - 1];
-        if (last && Math.abs(last.y - item.y) <= 3) {
-          last.parts.push(item.str);
-        } else {
-          lines.push({ y: item.y, parts: [item.str] });
-        }
+        if (last && Math.abs(last.y - item.y) <= 3) last.parts.push(item.str);
+        else lines.push({ y: item.y, parts: [item.str] });
       }
       pages.push(lines.map(line => norm(line.parts.join(' '))).filter(Boolean).join('\n'));
       if (status) status.textContent = `Lettura curriculum… pagina ${i}/${pdf.numPages}`;
@@ -57,15 +53,21 @@
     return pages.join('\n\n');
   }
 
-  function cleanLines(raw) {
-    return raw.split(/\r?\n/).map(norm).filter(Boolean);
-  }
+  function cleanLines(raw) { return raw.split(/\r?\n/).map(norm).filter(Boolean); }
+  function escapeRegExp(v) { return String(v).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
   const LABELS = {
     name: ['nome e cognome','nominativo','nome'],
     role: ['qualifica','professione','ruolo','professionalità','professionalita'],
-    specialty: ['specializzazione','specialità','specialita','area di competenza','settore'],
+    specialty: ['specializzazione','specialità','specialita','area di competenza','settore']
   };
+
+  function looksLikeHeading(line) {
+    const all = Object.values(SECTION_ALIASES).flat().concat(['NOME E COGNOME','QUALIFICA','PROFESSIONE','SPECIALIZZAZIONE','AREA DI COMPETENZA','CONTATTI','EMAIL','TELEFONO','LINGUE','PUBBLICAZIONI','PRIVACY']);
+    const clean = norm(line).replace(/[:\-–]+$/, '');
+    if (all.some(h => clean.localeCompare(h, 'it', { sensitivity: 'base' }) === 0)) return true;
+    return clean.length <= 60 && /^[A-ZÀ-ÖØ-Ý0-9][A-ZÀ-ÖØ-Ý0-9 .&/’'_-]+$/.test(clean) && !/[.!?]/.test(clean);
+  }
 
   function findLabeled(lines, labels) {
     const labelRe = new RegExp(`^(?:${labels.map(escapeRegExp).join('|')})\\s*[:\\-–]?\\s*(.*)$`, 'i');
@@ -80,27 +82,12 @@
     return '';
   }
 
-  function escapeRegExp(v) {
-    return String(v).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }
-
   const SECTION_ALIASES = {
     profile: ['PROFILO PROFESSIONALE','PROFILO','PRESENTAZIONE','CHI SONO','SUMMARY','ABOUT','PROFILO PERSONALE'],
     training: ['FORMAZIONE','ISTRUZIONE','EDUCAZIONE','FORMAZIONE ACCADEMICA','STUDI','ISTRUZIONE E FORMAZIONE'],
     experience: ['ESPERIENZA PROFESSIONALE','ESPERIENZE PROFESSIONALI','ESPERIENZA','ATTIVITÀ PROFESSIONALE','ATTIVITA PROFESSIONALE','ESPERIENZA LAVORATIVA','ESPERIENZE LAVORATIVE'],
     certifications: ['CERTIFICAZIONI E COMPETENZE','CERTIFICAZIONI','COMPETENZE','TITOLI E CERTIFICAZIONI','ABILITAZIONI','MASTER','CORSI','COMPETENZE PROFESSIONALI']
   };
-
-  const ALL_HEADINGS = Object.values(SECTION_ALIASES).flat().concat([
-    'NOME E COGNOME','QUALIFICA','PROFESSIONE','SPECIALIZZAZIONE','AREA DI COMPETENZA',
-    'CONTATTI','EMAIL','TELEFONO','LINGUE','PUBBLICAZIONI','PRIVACY'
-  ]);
-
-  function looksLikeHeading(line) {
-    const clean = norm(line).replace(/[:\-–]+$/, '');
-    if (ALL_HEADINGS.some(h => clean.localeCompare(h, 'it', { sensitivity: 'base' }) === 0)) return true;
-    return clean.length <= 60 && /^[A-ZÀ-ÖØ-Ý0-9][A-ZÀ-ÖØ-Ý0-9 .&/’'_-]+$/.test(clean) && !/[.!?]/.test(clean);
-  }
 
   function section(lines, heads) {
     const normalizedHeads = heads.map(h => norm(h).toLowerCase());
@@ -109,12 +96,15 @@
       return normalizedHeads.some(h => clean === h || clean.startsWith(h + ' '));
     });
     if (start < 0) return '';
-
     const out = [];
     for (let i = start + 1; i < lines.length; i++) {
       const line = norm(lines[i]);
       if (!line) continue;
-      if (looksLikeHeading(line) && ALL_HEADINGS.some(h => line.replace(/[:\-–]+$/, '').toLowerCase() === h.toLowerCase())) break;
+      if (looksLikeHeading(line)) {
+        const clean = line.replace(/[:\-–]+$/, '').toLowerCase();
+        const allHeadings = Object.values(SECTION_ALIASES).flat();
+        if (allHeadings.some(h => clean === h.toLowerCase())) break;
+      }
       out.push(line);
     }
     return norm(out.join(' '));
@@ -122,22 +112,14 @@
 
   function parseCv(raw) {
     const lines = cleanLines(raw);
-    const lower = raw.toLowerCase();
-
     let name = findLabeled(lines, LABELS.name);
-    if (!name) {
-      name = lines.slice(0, 12).find(x => /^(?:[A-ZÀ-ÖØ-Ý][A-Za-zÀ-ÖØ-öø-ÿ'’-]+\s+){1,3}[A-ZÀ-ÖØ-Ý][A-Za-zÀ-ÖØ-öø-ÿ'’-]+$/.test(x)) || '';
-    }
+    if (!name) name = lines.slice(0, 12).find(x => /^(?:[A-ZÀ-ÖØ-Ý][A-Za-zÀ-ÖØ-öø-ÿ'’-]+\s+){1,3}[A-ZÀ-ÖØ-Ý][A-Za-zÀ-ÖØ-öø-ÿ'’-]+$/.test(x)) || '';
 
     let role = findLabeled(lines, LABELS.role);
-    if (!role) {
-      role = lines.find(x => /\b(medico|medica|fisioterapista|nutrizionista|dietista|osteopata|logopedista|psicologo|psicologa|psicoterapeuta|cardiologo|cardiologa|ortopedico|ortopedica|neurologo|neurologa|ginecologo|ginecologa|dermatologo|dermatologa|radiologo|radiologa|odontoiatra|infermiere|infermiera|podologo|podologa|biologo|biologa)\b/i.test(x) && x.length < 140) || '';
-    }
+    if (!role) role = lines.find(x => /\b(medico|medica|fisioterapista|nutrizionista|dietista|osteopata|logopedista|psicologo|psicologa|psicoterapeuta|cardiologo|cardiologa|ortopedico|ortopedica|neurologo|neurologa|ginecologo|ginecologa|dermatologo|dermatologa|radiologo|radiologa|odontoiatra|infermiere|infermiera|podologo|podologa|biologo|biologa)\b/i.test(x) && x.length < 140) || '';
 
     let specialty = findLabeled(lines, LABELS.specialty);
-    if (!specialty && role) {
-      specialty = norm(role.replace(/^(medico\s*(chirurgo)?|medica|dott\.?|dottoressa|dottore)\s*[-–:]?\s*/i, ''));
-    }
+    if (!specialty && role) specialty = norm(role.replace(/^(medico\s*(chirurgo)?|medica|dott\.?|dottoressa|dottore)\s*[-–:]?\s*/i, ''));
 
     const profile = section(lines, SECTION_ALIASES.profile);
     const training = section(lines, SECTION_ALIASES.training);
@@ -154,30 +136,15 @@
     }
     bio = norm(bio).slice(0, 900);
 
-    const confidence = {
-      name: !!name,
-      role: !!role,
-      specialty: !!specialty,
-      profile: !!profile,
-      training: !!training,
-      experience: !!experience,
-      certifications: !!certifications
-    };
-
-    return { name, role, specialty, profile, training, experience, certifications, bio, email, phone, confidence, rawLength: raw.length, lineCount: lines.length, lower };
+    const confidence = { name: !!name, role: !!role, specialty: !!specialty, profile: !!profile, training: !!training, experience: !!experience, certifications: !!certifications };
+    return { name, role, specialty, profile, training, experience, certifications, bio, email, phone, confidence };
   }
 
-  function addUi(form) {
-    if (form.querySelector('#team-cv-import-box')) return;
-    const box = document.createElement('div');
-    box.id = 'team-cv-import-box';
-    box.className = 'form-card note';
-    box.style.margin = '12px 0 16px';
-    box.innerHTML = '<div style="display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap"><div><strong>Importa curriculum</strong><div style="font-size:11px;color:#657083;margin-top:4px">Carica il PDF e compilo automaticamente la scheda. La foto del professionista resta separata.</div></div><button type="button" class="mini" id="team-cv-import-btn">Carica CV in PDF</button></div><input id="team-cv-import-file" type="file" accept="application/pdf,.pdf" hidden><div id="team-cv-import-status" style="display:block;margin-top:8px;color:#657083;font-size:10px"></div>';
-    form.insertBefore(box, form.firstChild);
-
-    const btn = $('#team-cv-import-btn');
-    const input = $('#team-cv-import-file');
+  function bindButton() {
+    const btn = $('team-cv-import-btn');
+    const input = $('team-cv-import-file');
+    if (!btn || !input || btn.dataset.cvBound === '1') return;
+    btn.dataset.cvBound = '1';
     btn.addEventListener('click', () => input.click());
     input.addEventListener('change', async () => {
       const file = input.files?.[0];
@@ -186,25 +153,31 @@
     });
   }
 
+  function addFallbackUi(form) {
+    if (form.querySelector('#team-cv-import-btn')) { bindButton(); return; }
+    const box = document.createElement('div');
+    box.className = 'form-card note';
+    box.style.margin = '12px 0 16px';
+    box.innerHTML = '<strong>Importa dati dal CV</strong><span>Carica il curriculum PDF per compilare automaticamente la scheda.</span><div style="margin-top:10px"><button type="button" class="primary" id="team-cv-import-btn">Carica CV e compila</button><input id="team-cv-import-file" type="file" accept="application/pdf,.pdf" hidden><div id="team-cv-import-status" style="margin-top:8px;color:#657083;font-size:10px"></div></div>';
+    form.insertBefore(box, form.firstChild);
+    bindButton();
+  }
+
   async function runImport(file) {
     const status = $('team-cv-import-status');
     const btn = $('team-cv-import-btn');
     try {
       if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) throw new Error('Seleziona un file PDF.');
       if (file.size > 15 * 1024 * 1024) throw new Error('Il PDF supera il limite di 15 MB.');
-      btn.disabled = true;
-      status.style.color = '#657083';
-      status.textContent = 'Apertura curriculum…';
+      if (btn) btn.disabled = true;
+      if (status) { status.style.color = '#657083'; status.textContent = 'Apertura curriculum…'; }
 
       const raw = await extractPdfText(file, status);
-      const compact = raw.replace(/\s/g, '');
-      if (compact.length < 80) {
-        throw new Error('Questo PDF non contiene testo selezionabile. Probabilmente è una scansione o un PDF composto da immagini. In questo caso serve OCR oppure inserimento manuale.');
-      }
+      if (raw.replace(/\s/g, '').length < 80) throw new Error('Questo PDF non contiene testo selezionabile. Probabilmente è una scansione o un PDF composto da immagini.');
 
       const data = parseCv(raw);
       const found = Object.values(data.confidence).filter(Boolean).length;
-      if (!found) throw new Error('Ho letto il PDF ma non riconosco una struttura di curriculum. Prova con il CV originale in PDF, non con una scansione/foto.');
+      if (!found) throw new Error('Ho letto il PDF ma non riconosco una struttura di curriculum. Prova con il CV originale in PDF.');
 
       set('team-name', data.name);
       set('team-role', data.role);
@@ -215,26 +188,29 @@
       set('cv-experience', data.experience);
       set('cv-certifications', data.certifications);
 
-      status.textContent = `Importazione completata: ${found}/7 campi rilevati. Controlla i dati prima di salvare.`;
-      status.style.color = '#145cff';
+      if (status) { status.textContent = `Importazione completata: ${found}/7 campi rilevati. Controlla i dati prima di salvare.`; status.style.color = '#145cff'; }
       $('team-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (e) {
-      status.textContent = e?.message || 'Impossibile importare il curriculum.';
-      status.style.color = '#b42318';
+      if (status) { status.textContent = e?.message || 'Impossibile importare il curriculum.'; status.style.color = '#b42318'; }
       console.error('Team CV import', e);
     } finally {
-      btn.disabled = false;
+      if (btn) btn.disabled = false;
     }
   }
 
+  window.BrunianoTeamCvReady = bindButton;
+  window.BrunianoTeamCvImport = { run: runImport };
+
   function observe() {
-    const root = document.body;
     const scan = () => {
       const form = $('team-editor');
-      if (form) addUi(form);
+      if (form) {
+        if ($('team-cv-import-btn')) bindButton();
+        else addFallbackUi(form);
+      }
     };
     scan();
-    new MutationObserver(scan).observe(root, { childList: true, subtree: true });
+    new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', observe, { once: true });
