@@ -16,7 +16,7 @@
   function loadAdminScript(path, attribute) {
     if (document.querySelector(`script[data-${attribute}]`)) return;
     const script = document.createElement('script');
-    script.src = `${path}?v=20260910-description-2`;
+    script.src = `${path}?v=20260910-description-3`;
     script.dataset[attribute] = '1';
     script.async = true;
     document.body.appendChild(script);
