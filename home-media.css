@@ -128,4 +128,7 @@ body:has(.hero-media-home) .offer-ribbon small{display:none!important}
 
 
 /* Tecar source is a split-frame recording: show the intended half without touching the original asset. */
-.machine-card:nth-child(1) .machine-video video{width:200%;max-width:none;transform:translateX(-50%)!important}
+
+
+/* Tecar: zoom the source in place to show only the intended left half, with no exposed side bar. */
+.machine-card:nth-child(1) .machine-video video{width:100%;max-width:none;height:100%;transform:scale(2)!important;transform-origin:left center!important}
