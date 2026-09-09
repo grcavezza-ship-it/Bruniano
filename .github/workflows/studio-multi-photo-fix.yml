@@ -1,0 +1,53 @@
+name: Fix Studio multiple photos
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable multiple Studio photos
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('shared.js')
+          s = p.read_text()
+          old = "      grid.innerHTML = items.slice(0, 4).map((m, i) => {"
+          new = "      grid.innerHTML = items.map((m, i) => {"
+          if old not in s:
+              raise SystemExit('Studio 4-photo limit not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          p = Path('studio.html')
+          s = p.read_text()
+          old = '.studio-grid{display:grid;grid-template-columns:1.35fr .8fr .8fr;grid-template-rows:230px 230px;gap:16px}'
+          new = '.studio-grid{display:grid;grid-template-columns:1.35fr .8fr .8fr;grid-template-rows:230px 230px;grid-auto-rows:230px;gap:16px}'
+          if old not in s:
+              raise SystemExit('Studio desktop grid target not found')
+          s = s.replace(old, new, 1)
+          old = '.studio-grid{grid-template-columns:1fr 1fr;grid-template-rows:240px 240px 240px}'
+          new = '.studio-grid{grid-template-columns:1fr 1fr;grid-template-rows:240px 240px 240px;grid-auto-rows:240px}'
+          if old not in s:
+              raise SystemExit('Studio tablet grid target not found')
+          s = s.replace(old, new, 1)
+          old = '.studio-grid{grid-template-columns:1fr;grid-template-rows:250px 220px 220px 220px}'
+          new = '.studio-grid{grid-template-columns:1fr;grid-template-rows:250px 220px 220px 220px;grid-auto-rows:220px}'
+          if old not in s:
+              raise SystemExit('Studio mobile grid target not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shared.js studio.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Enable multiple Studio photos"
+          git push
