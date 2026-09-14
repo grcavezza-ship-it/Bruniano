@@ -1,12 +1,33 @@
 const WHATSAPP_NUMBER = "393343755885";
-const WHATSAPP_MESSAGE = "Buongiorno, vorrei ricevere informazioni e prenotare un appuntamento presso Bruniano.";
+const WHATSAPP_MESSAGE = "Buongiorno, vorrei ricevere informazioni e prenotare un appuntamento presso il Centro Medico Specialistico Bruniano.";
+
+const WHATSAPP_MESSAGES_BY_PAGE = {
+  "index.html": WHATSAPP_MESSAGE,
+  "trattamenti.html": "Buongiorno, vorrei ricevere informazioni sui trattamenti disponibili presso il Centro Medico Specialistico Bruniano e prenotare un appuntamento.",
+  "studio.html": "Buongiorno, vorrei ricevere informazioni sul Centro Medico Specialistico Bruniano e conoscere meglio lo studio e i percorsi disponibili.",
+  "team.html": "Buongiorno, vorrei ricevere informazioni sui professionisti del Centro Medico Specialistico Bruniano e prenotare un appuntamento.",
+  "promozioni.html": "Buongiorno, vorrei ricevere informazioni sulle promozioni attive del Centro Medico Specialistico Bruniano e sapere come prenotare.",
+  "blog.html": "Buongiorno, vorrei ricevere maggiori informazioni sui servizi e sui percorsi del Centro Medico Specialistico Bruniano.",
+  "recensioni.html": WHATSAPP_MESSAGE,
+  "contatti.html": "Buongiorno, vorrei ricevere informazioni sul Centro Medico Specialistico Bruniano e prenotare un appuntamento.",
+  "articolo.html": WHATSAPP_MESSAGE,
+  "privacy.html": WHATSAPP_MESSAGE,
+  "cookie.html": WHATSAPP_MESSAGE
+};
+
+function whatsappMessageFor(link) {
+  const explicit = String(link?.dataset?.whatsappMessage || "").trim();
+  if (explicit) return explicit;
+  const path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  return WHATSAPP_MESSAGES_BY_PAGE[path] || WHATSAPP_MESSAGE;
+}
 
 function whatsappUrl(message = WHATSAPP_MESSAGE) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
 document.querySelectorAll("[data-whatsapp]").forEach((link) => {
-  link.href = whatsappUrl();
+  link.href = whatsappUrl(whatsappMessageFor(link));
   link.target = "_blank";
   link.rel = "noopener noreferrer";
 });
