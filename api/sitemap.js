@@ -1,6 +1,6 @@
 import { db } from './_db.js';
 
-const SITE_URL = 'https://centromedicobruniano.it';
+const SITE_URL = 'https://www.centromedicobruniano.it';
 const STATIC_PATHS = [
   '/',
   '/trattamenti.html',
