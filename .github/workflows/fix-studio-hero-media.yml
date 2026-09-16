@@ -7,6 +7,7 @@ on:
       - '.github/workflows/fix-studio-hero-media.yml'
       - 'studio.html'
       - 'shared.js'
+      - '.studio-hero-trigger'
   workflow_dispatch:
 
 permissions:
