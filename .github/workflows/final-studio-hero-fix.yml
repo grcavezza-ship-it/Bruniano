@@ -19,19 +19,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Remove legacy image and connect hero to Control Center
+      - name: Remove broken placeholder image and connect hero to Control Center
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path('studio.html')
           s = p.read_text(encoding='utf-8')
-          old = 'src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=85" alt="Ambiente moderno di un centro sanitario" loading="eager"'
-          new = 'alt="Ambiente moderno del Centro Medico Specialistico Bruniano" loading="eager" data-managed-studio-hero'
-          if old in s:
-              s = s.replace(old, new, 1)
+
+          old_legacy = 'src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=85" alt="Ambiente moderno di un centro sanitario" loading="eager"'
+          new_marker = 'alt="Ambiente moderno del Centro Medico Specialistico Bruniano" loading="eager" data-managed-studio-hero'
+          if old_legacy in s:
+              s = s.replace(old_legacy, new_marker, 1)
+
+          broken_placeholder = '<img alt="Ambiente moderno del Centro Medico Specialistico Bruniano" loading="eager" data-managed-studio-hero>'
+          clean_placeholder = '<div data-managed-studio-hero aria-hidden="true"></div>'
+          if broken_placeholder in s:
+              s = s.replace(broken_placeholder, clean_placeholder, 1)
           elif 'data-managed-studio-hero' not in s:
-              raise SystemExit('Legacy Studio hero source not found; aborting safely')
+              raise SystemExit('Studio hero marker not found; aborting safely')
+
           script = '''<script>
 (function(){
   async function loadStudioHero(){
@@ -48,7 +55,6 @@ jobs:
       const media=document.createElement(isVideo?'video':'img');
       media.src=item.media_url;
       media.alt=item.alt_text||item.title||'Ambiente del Centro Medico Specialistico Bruniano';
-      media.className=placeholder.className||'';
       media.decoding='async';
       media.loading='eager';
       if(isVideo){media.muted=true;media.loop=true;media.playsInline=true;media.autoplay=true;media.preload='auto';}
@@ -62,6 +68,7 @@ jobs:
 </script>'''
           if 'function loadStudioHero' not in s:
               s = s.replace('</body>', script + '\n</body>', 1)
+
           p.write_text(s, encoding='utf-8')
           PY
 
@@ -72,5 +79,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add studio.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Connect Studio hero to Control Center image"
+          git commit -m "Fix Studio hero placeholder"
           git push
