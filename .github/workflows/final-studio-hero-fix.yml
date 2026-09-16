@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/final-studio-hero-fix.yml
       - studio.html
+      - shared.js
   workflow_dispatch:
 
 permissions:
@@ -19,57 +20,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Remove broken placeholder image and connect hero to Control Center
+      - name: Fix Studio hero placeholder
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path('studio.html')
           s = p.read_text(encoding='utf-8')
-
-          old_legacy = 'src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=85" alt="Ambiente moderno di un centro sanitario" loading="eager"'
-          new_marker = 'alt="Ambiente moderno del Centro Medico Specialistico Bruniano" loading="eager" data-managed-studio-hero'
-          if old_legacy in s:
-              s = s.replace(old_legacy, new_marker, 1)
-
-          broken_placeholder = '<img alt="Ambiente moderno del Centro Medico Specialistico Bruniano" loading="eager" data-managed-studio-hero>'
-          clean_placeholder = '<div data-managed-studio-hero aria-hidden="true"></div>'
-          if broken_placeholder in s:
-              s = s.replace(broken_placeholder, clean_placeholder, 1)
+          old = '<img alt="Ambiente moderno del Centro Medico Specialistico Bruniano" loading="eager" data-managed-studio-hero>'
+          new = '<div data-managed-studio-hero aria-hidden="true"></div>'
+          if old in s:
+              s = s.replace(old, new, 1)
+              p.write_text(s, encoding='utf-8')
+          elif '<div data-managed-studio-hero aria-hidden="true"></div>' in s:
+              pass
           elif 'data-managed-studio-hero' not in s:
-              raise SystemExit('Studio hero marker not found; aborting safely')
-
-          script = '''<script>
-(function(){
-  async function loadStudioHero(){
-    const hero=document.querySelector('.studio-hero-media');
-    const placeholder=hero?.querySelector('[data-managed-studio-hero]');
-    if(!hero||!placeholder)return;
-    try{
-      const r=await fetch('/api/gallery',{cache:'no-store'});
-      if(!r.ok)return;
-      const d=await r.json();
-      const item=(Array.isArray(d.items)?d.items:[]).find(x=>Number(x.studio_slot)===1);
-      if(!item)return;
-      const isVideo=String(item.media_type||'').startsWith('video');
-      const media=document.createElement(isVideo?'video':'img');
-      media.src=item.media_url;
-      media.alt=item.alt_text||item.title||'Ambiente del Centro Medico Specialistico Bruniano';
-      media.decoding='async';
-      media.loading='eager';
-      if(isVideo){media.muted=true;media.loop=true;media.playsInline=true;media.autoplay=true;media.preload='auto';}
-      media.addEventListener('load',()=>hero.classList.add('managed-ready'),{once:true});
-      if(isVideo)media.addEventListener('loadeddata',()=>hero.classList.add('managed-ready'),{once:true});
-      placeholder.replaceWith(media);
-    }catch(e){}
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadStudioHero,{once:true});else loadStudioHero();
-})();
-</script>'''
-          if 'function loadStudioHero' not in s:
-              s = s.replace('</body>', script + '\n</body>', 1)
-
-          p.write_text(s, encoding='utf-8')
+              raise SystemExit('Studio hero marker not found; aborting to avoid damaging studio.html')
           PY
 
       - name: Commit change
