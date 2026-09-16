@@ -1,0 +1,38 @@
+name: Improve Studio image quality
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  improve-image:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update Studio image delivery
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('studio.html')
+          s = p.read_text()
+          old = 'https://res.cloudinary.com/pomzhih4/image/upload/v1789593082/bruniano/studio/studio-medico-paziente.webp'
+          new = 'https://res.cloudinary.com/pomzhih4/image/upload/e_gen_restore/c_scale,w_1200/f_auto/q_auto/v1789593082/bruniano/studio/studio-medico-paziente.webp'
+          if old not in s:
+              raise SystemExit('Old Studio image URL not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add studio.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Improve Studio image quality'
+          git push
