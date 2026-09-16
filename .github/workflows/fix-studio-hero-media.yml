@@ -1,6 +1,12 @@
 name: Fix Studio hero media
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-studio-hero-media.yml'
+      - 'studio.html'
+      - 'shared.js'
   workflow_dispatch:
 
 permissions:
@@ -16,45 +22,76 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
 
           p = Path('studio.html')
           s = p.read_text(encoding='utf-8')
           old = 'src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=85" alt="Ambiente moderno di un centro sanitario" loading="eager"'
           new = 'alt="Ambiente moderno del Centro Medico Specialistico Bruniano" loading="eager" data-managed-studio-hero'
-          if old not in s:
-              raise SystemExit('Old studio hero source not found')
-          s = s.replace(old, new, 1)
-          p.write_text(s, encoding='utf-8')
+          if old in s:
+              s = s.replace(old, new, 1)
+              p.write_text(s, encoding='utf-8')
 
           p = Path('shared.js')
           s = p.read_text(encoding='utf-8')
           needle = "if(document.body.classList.contains('studio-page')){"
-          if needle not in s:
-              raise SystemExit('Studio media block not found')
-          replacement = """if(document.body.classList.contains('studio-page')){\n    try{\n      const response=await fetch('/api/gallery',{cache:'no-store'});\n      if(!response.ok)return;\n      const data=await response.json();\n      const items=Array.isArray(data.items)?data.items:[];\n      const heroItem=items.find(media=>Number(media.studio_slot)===1);\n      const heroBox=document.querySelector('.studio-hero-media');\n      const heroImage=heroBox?.querySelector('img[data-managed-studio-hero]');\n      if(heroItem && heroBox){\n        const isVideo=String(heroItem.media_type||'').startsWith('video');\n        const media=document.createElement(isVideo?'video':'img');\n        media.src=heroItem.media_url;\n        media.alt=heroItem.alt_text||heroItem.title||'Ambiente del Centro Medico Specialistico Bruniano';\n        media.loading='eager';\n        media.decoding='async';\n        if(isVideo){media.muted=true;media.loop=true;media.playsInline=true;media.autoplay=true;media.preload='metadata';}\n        media.className=heroImage?.className||'studio-hero-managed-media';\n        if(heroImage)heroImage.replaceWith(media); else heroBox.prepend(media);\n      }else if(heroImage){\n        heroImage.remove();\n      }\n      [2,3,4].forEach(slot=>{\n        const item=items.find(media=>Number(media.studio_slot)===slot);\n        if(!item)return;\n        const tile=document.querySelector(`.studio-grid .studio-tile:nth-child(${slot})`);\n        if(!tile)return;\n        const old=tile.querySelector('img,video');\n        const isVideo=String(item.media_type||'').startsWith('video');\n        const media=document.createElement(isVideo?'video':'img');\n        media.src=item.media_url;\n        media.alt=item.alt_text||item.title||'Immagine dello studio Bruniano';\n        media.loading='lazy';\n        if(isVideo){media.muted=true;media.loop=true;media.playsInline=true;media.autoplay=true;media.preload='metadata';}\n        media.className=old?.className||'';\n        if(old)old.replaceWith(media); else tile.prepend(media);\n      });\n    }catch{}\n  }"""
-          start=s.index(needle)
-          # Replace only the existing studio-page block up to its matching closing brace before setupManagedSiteMedia ends.
-          pos=start
-          depth=0
-          in_str=None
-          esc=False
-          # find first { after needle, then scan braces while ignoring quoted strings
-          brace=s.index('{', start)
-          depth=1
-          i=brace+1
+          start = s.index(needle)
+          brace = s.index('{', start)
+          depth = 1
+          i = brace + 1
+          in_str = None
+          esc = False
           while i < len(s) and depth:
-              c=s[i]
+              c = s[i]
               if in_str:
-                  if esc: esc=False
-                  elif c=='\\\\': esc=True
-                  elif c==in_str: in_str=None
+                  if esc: esc = False
+                  elif c == '\\\\': esc = True
+                  elif c == in_str: in_str = None
               else:
-                  if c in "'\\\"`": in_str=c
-                  elif c=='{': depth+=1
-                  elif c=='}': depth-=1
-              i+=1
-          s=s[:start]+replacement+s[i:]
+                  if c in "'\\\"`": in_str = c
+                  elif c == '{': depth += 1
+                  elif c == '}': depth -= 1
+              i += 1
+
+          replacement = """if(document.body.classList.contains('studio-page')){
+    try{
+      const response=await fetch('/api/gallery',{cache:'no-store'});
+      if(!response.ok)return;
+      const data=await response.json();
+      const items=Array.isArray(data.items)?data.items:[];
+      const heroItem=items.find(media=>Number(media.studio_slot)===1);
+      const heroBox=document.querySelector('.studio-hero-media');
+      const heroImage=heroBox?.querySelector('img[data-managed-studio-hero]');
+      if(heroItem && heroBox){
+        const isVideo=String(heroItem.media_type||'').startsWith('video');
+        const media=document.createElement(isVideo?'video':'img');
+        media.src=heroItem.media_url;
+        media.alt=heroItem.alt_text||heroItem.title||'Ambiente del Centro Medico Specialistico Bruniano';
+        media.loading='eager';
+        media.decoding='async';
+        if(isVideo){media.muted=true;media.loop=true;media.playsInline=true;media.autoplay=true;media.preload='metadata';}
+        media.className=heroImage?.className||'';
+        if(heroImage)heroImage.replaceWith(media); else heroBox.prepend(media);
+      }else if(heroImage){
+        heroImage.remove();
+      }
+      [2,3,4].forEach(slot=>{
+        const item=items.find(media=>Number(media.studio_slot)===slot);
+        if(!item)return;
+        const tile=document.querySelector(`.studio-grid .studio-tile:nth-child(${slot})`);
+        if(!tile)return;
+        const old=tile.querySelector('img,video');
+        const isVideo=String(item.media_type||'').startsWith('video');
+        const media=document.createElement(isVideo?'video':'img');
+        media.src=item.media_url;
+        media.alt=item.alt_text||item.title||'Immagine dello studio Bruniano';
+        media.loading='lazy';
+        if(isVideo){media.muted=true;media.loop=true;media.playsInline=true;media.autoplay=true;media.preload='metadata';}
+        media.className=old?.className||'';
+        if(old)old.replaceWith(media); else tile.prepend(media);
+      });
+    }catch{}
+  }"""
+          s = s[:start] + replacement + s[i:]
           p.write_text(s, encoding='utf-8')
           PY
 
