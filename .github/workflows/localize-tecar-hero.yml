@@ -1,0 +1,46 @@
+name: Localize Tecar hero image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/localize-tecar-hero.yml'
+      - 'trattamenti.html'
+
+permissions:
+  contents: write
+
+jobs:
+  localize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download hero image and replace external source
+        run: |
+          set -e
+          mkdir -p assets/images/trattamenti
+          curl -L --fail --retry 3 -o assets/images/trattamenti/tecar-hero.jpg "https://res.cloudinary.com/pomzhih4/image/upload/v1789589580/bruniano/trattamenti/tecar-hero-source.jpg"
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('trattamenti.html')
+          s = p.read_text(encoding='utf-8')
+          old = 'https://www.fisioterapiaitalia.com/upload/tecarterapia-piede-napoli-1536x838.jpg'
+          new = '/assets/images/trattamenti/tecar-hero.jpg'
+          if old in s:
+              p.write_text(s.replace(old, new), encoding='utf-8')
+          PY
+
+      - name: Commit localized asset
+        run: |
+          if git diff --quiet -- assets/images/trattamenti/tecar-hero.jpg trattamenti.html; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/images/trattamenti/tecar-hero.jpg trattamenti.html
+          git commit -m "Fix hero image for Trattamenti"
+          git push
