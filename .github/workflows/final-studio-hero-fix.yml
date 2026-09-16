@@ -7,7 +7,6 @@ on:
     paths:
       - .github/workflows/final-studio-hero-fix.yml
       - studio.html
-      - shared.js
   workflow_dispatch:
 
 permissions:
@@ -20,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Remove legacy hero image
+      - name: Remove legacy image and connect hero to Control Center
         shell: bash
         run: |
           python3 - <<'PY'
@@ -31,9 +30,39 @@ jobs:
           new = 'alt="Ambiente moderno del Centro Medico Specialistico Bruniano" loading="eager" data-managed-studio-hero'
           if old in s:
               s = s.replace(old, new, 1)
-              p.write_text(s, encoding='utf-8')
           elif 'data-managed-studio-hero' not in s:
-              raise SystemExit('Legacy Studio hero source not found; aborting to avoid damaging studio.html')
+              raise SystemExit('Legacy Studio hero source not found; aborting safely')
+          script = '''<script>
+(function(){
+  async function loadStudioHero(){
+    const hero=document.querySelector('.studio-hero-media');
+    const placeholder=hero?.querySelector('[data-managed-studio-hero]');
+    if(!hero||!placeholder)return;
+    try{
+      const r=await fetch('/api/gallery',{cache:'no-store'});
+      if(!r.ok)return;
+      const d=await r.json();
+      const item=(Array.isArray(d.items)?d.items:[]).find(x=>Number(x.studio_slot)===1);
+      if(!item)return;
+      const isVideo=String(item.media_type||'').startsWith('video');
+      const media=document.createElement(isVideo?'video':'img');
+      media.src=item.media_url;
+      media.alt=item.alt_text||item.title||'Ambiente del Centro Medico Specialistico Bruniano';
+      media.className=placeholder.className||'';
+      media.decoding='async';
+      media.loading='eager';
+      if(isVideo){media.muted=true;media.loop=true;media.playsInline=true;media.autoplay=true;media.preload='auto';}
+      media.addEventListener('load',()=>hero.classList.add('managed-ready'),{once:true});
+      if(isVideo)media.addEventListener('loadeddata',()=>hero.classList.add('managed-ready'),{once:true});
+      placeholder.replaceWith(media);
+    }catch(e){}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadStudioHero,{once:true});else loadStudioHero();
+})();
+</script>'''
+          if 'function loadStudioHero' not in s:
+              s = s.replace('</body>', script + '\n</body>', 1)
+          p.write_text(s, encoding='utf-8')
           PY
 
       - name: Commit change
@@ -43,5 +72,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add studio.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Remove legacy Studio hero image"
+          git commit -m "Connect Studio hero to Control Center image"
           git push
