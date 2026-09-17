@@ -99,9 +99,24 @@
     const pageH1 = pageHead?.querySelector('h1');
     const pageLead = pageHead?.querySelector('.lead');
     const newButton = document.getElementById('new-post');
-    const backButton = document.getElementById('blog-back');
     const topPageTitle = document.getElementById('page-title');
     const topBreadcrumb = document.getElementById('breadcrumb');
+
+    let backButton = document.getElementById('blog-back');
+    if (!backButton && pageHead) {
+      backButton = document.createElement('button');
+      backButton.id = 'blog-back';
+      backButton.type = 'button';
+      backButton.className = 'mini blog-back-button';
+      backButton.textContent = '← Articoli';
+      backButton.hidden = true;
+      if (newButton) {
+        const actions = document.createElement('div');
+        actions.className = 'blog-page-head-actions';
+        newButton.replaceWith(actions);
+        actions.append(backButton, newButton);
+      } else pageHead.appendChild(backButton);
+    }
 
     const style = document.createElement('style');
     style.id = 'bruniano-blog-cms-shell-style';
@@ -109,14 +124,12 @@
       #panel-blog .blog-page-head-actions{display:flex;align-items:center;gap:10px}
       #panel-blog .blog-back-button{white-space:nowrap}
       #panel-blog .blog-layout{margin-top:10px}
-
       #panel-blog[data-blog-mode="archive"] .blog-layout{display:block}
       #panel-blog[data-blog-mode="archive"] .blog-layout>div:first-child{display:none}
       #panel-blog[data-blog-mode="archive"] .blog-layout>div:nth-child(2){display:block;position:static}
       #panel-blog[data-blog-mode="archive"] .archive-head{display:flex;margin:0 0 14px}
       #panel-blog[data-blog-mode="archive"] .blog-publish-card,
       #panel-blog[data-blog-mode="archive"] .blog-live-preview{display:none}
-
       #panel-blog[data-blog-mode="editor"] .blog-layout>div:first-child{display:block}
       #panel-blog[data-blog-mode="editor"] .blog-layout>div:nth-child(2){display:flex;flex-direction:column;gap:18px;position:sticky;top:84px}
       #panel-blog[data-blog-mode="editor"] .archive-head,
@@ -124,13 +137,11 @@
       #panel-blog[data-blog-mode="editor"] .blog-archive-tools{display:none}
       #panel-blog[data-blog-mode="editor"] .blog-publish-card,
       #panel-blog[data-blog-mode="editor"] .blog-live-preview{display:block}
-
       #panel-blog .blog-archive-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:14px 16px;background:#fff;border:1px solid #e3e8ef;border-radius:14px;box-shadow:0 8px 24px rgba(15,23,42,.04)}
       #panel-blog .blog-archive-summary{display:flex;align-items:center;gap:8px;margin-right:auto;font-size:12px;color:#667085}
       #panel-blog .blog-archive-summary strong{color:#0a1528;font-size:16px}
       #panel-blog .blog-archive-search{min-width:240px;max-width:340px;margin:0!important}
       #panel-blog .blog-archive-filter{min-width:150px;padding:10px 12px;border:1px solid #dfe5ed;border-radius:10px;background:#fff;color:#223047;font:inherit}
-
       #panel-blog[data-blog-mode="archive"] #blog-list .managed-item{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:17px 18px;border:1px solid #e3e8ef;border-radius:14px;background:#fff;box-shadow:0 7px 22px rgba(15,23,42,.035);margin-bottom:10px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
       #panel-blog[data-blog-mode="archive"] #blog-list .managed-item:hover{transform:translateY(-1px);border-color:#cbd6e5;box-shadow:0 12px 28px rgba(15,23,42,.06)}
       #panel-blog[data-blog-mode="archive"] #blog-list .managed-item>div:first-child{min-width:0}
@@ -138,12 +149,10 @@
       #panel-blog[data-blog-mode="archive"] #blog-list .managed-item small{display:block;margin-top:6px;color:#7b8799;font-size:11px}
       #panel-blog[data-blog-mode="archive"] #blog-list .managed-actions{flex:0 0 auto}
       #panel-blog[data-blog-mode="archive"] #blog-list .managed-item[hidden]{display:none!important}
-
       #panel-blog[data-blog-mode="editor"] .form-card{box-shadow:0 12px 34px rgba(15,23,42,.055)}
       #panel-blog[data-blog-mode="editor"] #blog-title{font-size:22px}
       #panel-blog[data-blog-mode="editor"] .editor-content{min-height:520px;background:#fff}
       #panel-blog[data-blog-mode="editor"] .blog-publish-card{border-left:3px solid #145cff}
-
       @media(max-width:1000px){#panel-blog[data-blog-mode="editor"] .blog-layout>div:nth-child(2){position:static}}
       @media(max-width:700px){
         #panel-blog .blog-page-head-actions{width:100%;justify-content:flex-start}
@@ -194,7 +203,6 @@
 
     search?.addEventListener('input', refreshArchive);
     filter?.addEventListener('change', refreshArchive);
-
     const listObserver = new MutationObserver(refreshArchive);
     listObserver.observe(list, { childList:true, subtree:true });
 
