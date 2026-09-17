@@ -2,7 +2,7 @@
    One header/footer source of truth for every public page. */
 (function () {
   const HEADER_ID = 'site-header';
-  const SITE_ORIGIN = 'https://centromedicobruniano.it';
+  const SITE_ORIGIN = 'https://www.centromedicobruniano.it';
   const DEFAULT_IMAGE = `${SITE_ORIGIN}/assets/logo-symbol.svg`;
   const PAGE_SEO = {
     'index.html': { title: 'Bruniano | Fisioterapia & Riabilitazione', description: 'Bruniano — fisioterapia, riabilitazione e percorsi di benessere a San Vitaliano.' },
