@@ -8,18 +8,28 @@
   <meta property="og:title" id="og-title" content="Articolo | Bruniano">
   <meta property="og:description" id="og-description" content="Approfondimento del Centro Medico Specialistico Bruniano.">
   <meta property="og:type" id="og-type" content="article">
-  <meta property="og:url" id="og-url" content="https://centromedicobruniano.it/articolo.html">
+  <meta property="og:url" id="og-url" content="https://www.centromedicobruniano.it/articolo.html">
   <meta property="og:site_name" content="Bruniano">
   <meta property="og:locale" content="it_IT">
-  <meta property="og:image" id="og-image" content="https://centromedicobruniano.it/assets/logo-symbol.svg">
+  <meta property="og:image" id="og-image" content="https://www.centromedicobruniano.it/assets/logo-symbol.svg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" id="twitter-title" content="Articolo | Bruniano">
   <meta name="twitter:description" id="twitter-description" content="Approfondimento del Centro Medico Specialistico Bruniano.">
-  <meta name="twitter:image" id="twitter-image" content="https://centromedicobruniano.it/assets/logo-symbol.svg">
+  <meta name="twitter:image" id="twitter-image" content="https://www.centromedicobruniano.it/assets/logo-symbol.svg">
   <title id="page-title">Articolo | Bruniano</title>
-  <link id="canonical" rel="canonical" href="https://centromedicobruniano.it/articolo.html">
+  <script>
+    (() => {
+      const slug = new URLSearchParams(location.search).get('slug');
+      if (!slug) return;
+      const link = document.createElement('link');
+      link.id = 'canonical';
+      link.rel = 'canonical';
+      link.href = `https://www.centromedicobruniano.it/articolo.html?slug=${encodeURIComponent(slug)}`;
+      document.head.appendChild(link);
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="site-v2.css">
-  <script type="application/ld+json" id="article-schema">{"@context":"https://schema.org","@type":"WebPage","name":"Articolo | Bruniano","url":"https://centromedicobruniano.it/articolo.html","isPartOf":{"@type":"WebSite","name":"Bruniano","url":"https://centromedicobruniano.it/"},"publisher":{"@type":"MedicalClinic","name":"Centro Medico Specialistico Bruniano","url":"https://centromedicobruniano.it/","telephone":"+39 081 2352977","address":{"@type":"PostalAddress","streetAddress":"Via Nazionale delle Puglie 283","postalCode":"80030","addressLocality":"San Vitaliano","addressRegion":"NA","addressCountry":"IT"}}}</script>
+  <script type="application/ld+json" id="article-schema">{"@context":"https://schema.org","@type":"WebPage","name":"Articolo | Bruniano","url":"https://www.centromedicobruniano.it/articolo.html","isPartOf":{"@type":"WebSite","name":"Bruniano","url":"https://www.centromedicobruniano.it/"},"publisher":{"@type":"MedicalClinic","name":"Centro Medico Specialistico Bruniano","url":"https://www.centromedicobruniano.it/","telephone":"+39 081 2352977","address":{"@type":"PostalAddress","streetAddress":"Via Nazionale delle Puglie 283","postalCode":"80030","addressLocality":"San Vitaliano","addressRegion":"NA","addressCountry":"IT"}}}</script>
 </head>
 <body>
 <div id="site-header"></div>
@@ -33,7 +43,7 @@
 (async () => {
   const slug = new URLSearchParams(location.search).get('slug');
   const $ = (id) => document.getElementById(id);
-  const siteUrl = 'https://centromedicobruniano.it/';
+  const siteUrl = 'https://www.centromedicobruniano.it/';
   const clinic = {
     '@type': 'MedicalClinic',
     'name': 'Centro Medico Specialistico Bruniano',
@@ -49,7 +59,8 @@
     const canonical = `${siteUrl}articolo.html?slug=${encodeURIComponent(post.slug)}`;
     const image = post.cover_image_url || `${siteUrl}assets/logo-symbol.svg`;
     document.title = title;
-    $('canonical').href = canonical;
+    const canonicalEl = $('canonical') || (() => { const el=document.createElement('link'); el.id='canonical'; el.rel='canonical'; document.head.appendChild(el); return el; })();
+    canonicalEl.href = canonical;
     $('meta-robots').content = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
     setMeta('meta-description', description);
     setMeta('og-title', title); setMeta('og-description', description); setMeta('og-url', canonical); setMeta('og-image', image);
@@ -74,7 +85,8 @@
 
   function showError() {
     document.title = 'Articolo non trovato | Bruniano';
-    $('canonical').href = `${siteUrl}articolo.html`;
+    const canonicalEl = $('canonical') || (() => { const el=document.createElement('link'); el.id='canonical'; el.rel='canonical'; document.head.appendChild(el); return el; })();
+    canonicalEl.href = `${siteUrl}articolo.html`;
     $('meta-robots').content = 'noindex,follow';
     setMeta('meta-description', 'L’articolo richiesto non è disponibile sul sito Bruniano.');
     setMeta('og-title', 'Articolo non trovato | Bruniano');
