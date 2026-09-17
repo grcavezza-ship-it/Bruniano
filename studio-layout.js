@@ -2,7 +2,11 @@
    Rebuilds the Studio gallery with a responsive, dense mosaic inspired by the homepage language. */
 (function(){
   const API='/api/gallery';
-  const STYLE_ID='bruniano-studio-mosaic-v1';
+  const STYLE_ID='bruniano-studio-mosaic-v2';
+  let cachedItems=[];
+  let board=null;
+  let rendering=false;
+  let observer=null;
 
   function esc(v){
     return String(v ?? '').replace(/[&<>\"]/g, s => ({
@@ -29,7 +33,6 @@
     const style=document.createElement('style');
     style.id=STYLE_ID;
     style.textContent=`
-      /* Responsive dense mosaic for Studio — staging */
       .studio-page .studio-grid{
         display:grid!important;
         grid-template-columns:repeat(12,minmax(0,1fr))!important;
@@ -38,6 +41,9 @@
         gap:16px!important;
         align-items:stretch!important;
       }
+      .studio-page .studio-grid > .studio-row{
+        display:contents!important;
+      }
       .studio-page .studio-grid .studio-tile{
         grid-column:auto!important;
         grid-row:auto!important;
@@ -45,6 +51,10 @@
         min-height:0!important;
         width:auto!important;
         height:auto!important;
+        border-radius:24px!important;
+        overflow:hidden!important;
+        position:relative!important;
+        background:#dce6f2!important;
       }
       .studio-page .studio-grid .studio-tile:nth-child(1){grid-column:span 8!important;grid-row:span 5!important}
       .studio-page .studio-grid .studio-tile:nth-child(2){grid-column:span 4!important;grid-row:span 4!important}
@@ -54,12 +64,6 @@
       .studio-page .studio-grid .studio-tile:nth-child(6){grid-column:span 2!important;grid-row:span 2!important}
       .studio-page .studio-grid .studio-tile:nth-child(7){grid-column:span 2!important;grid-row:span 2!important}
       .studio-page .studio-grid .studio-tile:nth-child(n+8){grid-column:span 3!important;grid-row:span 2!important}
-      .studio-page .studio-grid .studio-tile{
-        border-radius:24px!important;
-        overflow:hidden!important;
-        position:relative!important;
-        background:#dce6f2!important;
-      }
       .studio-page .studio-grid .studio-tile:after{
         content:""!important;
         position:absolute!important;
@@ -105,50 +109,68 @@
         .studio-page .studio-grid .studio-tile:nth-child(6){grid-column:span 2!important;grid-row:span 2!important}
         .studio-page .studio-grid .studio-tile:nth-child(7){grid-column:span 2!important;grid-row:span 2!important}
       }
-      /* Phones: one image per row, no compressed multi-column tiles. */
       @media(max-width:760px){
-        .studio-page .studio-grid{
-          grid-template-columns:1fr!important;
-          grid-auto-rows:auto!important;
-          gap:14px!important;
-        }
+        .studio-page .studio-grid{grid-template-columns:1fr!important;grid-auto-rows:auto!important;gap:14px!important}
         .studio-page .studio-grid .studio-tile,
-        .studio-page .studio-grid .studio-tile:nth-child(n){
-          grid-column:1!important;
-          grid-row:auto!important;
-          aspect-ratio:4/3!important;
-          min-height:0!important;
-        }
+        .studio-page .studio-grid .studio-tile:nth-child(n){grid-column:1!important;grid-row:auto!important;height:auto!important;min-height:0!important;aspect-ratio:4/3!important}
+      }
+      @media(max-width:560px){
+        .studio-page .studio-grid{grid-template-columns:1fr!important;grid-auto-rows:auto!important;gap:18px!important}
+        .studio-page .studio-grid .studio-tile,
+        .studio-page .studio-grid .studio-tile:nth-child(n){grid-column:1!important;grid-row:auto!important;aspect-ratio:4/3!important}
       }
     `;
     document.head.appendChild(style);
   }
 
+  function render(items){
+    if(!board || !items.length || rendering)return;
+    rendering=true;
+    board.innerHTML=items.map(m=>{
+      const label=labelFor(m.title);
+      const video=String(m.media_type||'').startsWith('video');
+      if(video){
+        return `<div class="studio-tile">
+          <video src="${esc(m.media_url)}" muted loop autoplay playsinline preload="metadata" aria-label="${esc(m.alt_text||label)}"></video>
+          <span>BRUNIANO</span><small>${esc(label)}</small>
+        </div>`;
+      }
+      return `<div class="studio-tile">
+        <img src="${esc(m.media_url)}" alt="${esc(m.alt_text||label||'Ambiente Bruniano')}" loading="lazy" decoding="async">
+        <span>BRUNIANO</span><small>${esc(label)}</small>
+      </div>`;
+    }).join('');
+    board.dataset.count=String(items.length);
+    board.dataset.studioManaged='1';
+    board.classList.add('is-ready');
+    rendering=false;
+  }
+
+  function ensureMosaic(){
+    if(!board || !cachedItems.length || rendering)return;
+    const directTiles=[...board.children].every(el=>el.classList.contains('studio-tile'));
+    if(!directTiles || board.children.length!==cachedItems.length) render(cachedItems);
+  }
+
   async function load(){
-    const board=document.querySelector('.studio-page .studio-grid');
+    board=document.querySelector('.studio-page .studio-grid');
     if(!board)return;
     injectMosaicCss();
+
+    if(!observer){
+      observer=new MutationObserver(()=>{
+        if(rendering)return;
+        requestAnimationFrame(ensureMosaic);
+      });
+      observer.observe(board,{childList:true});
+    }
+
     try{
       const r=await fetch(API,{credentials:'same-origin',cache:'no-store'});
       if(!r.ok)throw new Error('gallery');
       const data=await r.json();
-      const items=(data.items||[]).filter(x=>x.is_published && x.media_url);
-      board.innerHTML=items.map(m=>{
-        const label=labelFor(m.title);
-        const video=String(m.media_type||'').startsWith('video');
-        if(video){
-          return `<div class="studio-tile">
-            <video src="${esc(m.media_url)}" muted loop autoplay playsinline preload="metadata" aria-label="${esc(m.alt_text||label)}"></video>
-            <span>BRUNIANO</span><small>${esc(label)}</small>
-          </div>`;
-        }
-        return `<div class="studio-tile">
-          <img src="${esc(m.media_url)}" alt="${esc(m.alt_text||label||'Ambiente Bruniano')}" loading="lazy" decoding="async">
-          <span>BRUNIANO</span><small>${esc(label)}</small>
-        </div>`;
-      }).join('');
-      board.dataset.count=String(items.length);
-      board.classList.add('is-ready');
+      cachedItems=(data.items||[]).filter(x=>x.is_published && x.media_url);
+      render(cachedItems);
     }catch(error){
       console.warn('Studio mosaic:',error);
     }
