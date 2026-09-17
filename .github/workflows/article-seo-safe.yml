@@ -1,0 +1,95 @@
+name: Article SEO safe patch
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/article-seo-safe.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply guarded article SEO improvements
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('articolo.html')
+          s = p.read_text(encoding='utf-8')
+          original = s
+
+          replacements = [
+              (
+                  '<title id="page-title">Articolo | Bruniano</title>',
+                  '<title id="page-title">Fisioterapia e riabilitazione | Blog Bruniano</title>',
+                  'default title'
+              ),
+              (
+                  '<meta property="og:title" id="og-title" content="Articolo | Bruniano">',
+                  '<meta property="og:title" id="og-title" content="Fisioterapia e riabilitazione | Blog Bruniano">',
+                  'og title'
+              ),
+              (
+                  '<meta name="twitter:title" id="twitter-title" content="Articolo | Bruniano">',
+                  '<meta name="twitter:title" id="twitter-title" content="Fisioterapia e riabilitazione | Blog Bruniano">',
+                  'twitter title'
+              ),
+              (
+                  '<div id="post-content"></div><p id="post-author" style="margin-top:30px;color:#667085;font-size:13px">',
+                  '<nav class="article-nav" aria-label="Navigazione articolo"><a href="blog.html">← Torna al Blog</a><span>Approfondimenti su fisioterapia e riabilitazione</span></nav><div id="post-content"></div><p id="post-author" style="margin-top:30px;color:#667085;font-size:13px">',
+                  'article navigation'
+              ),
+              (
+                  '<img id="post-cover-img" alt="" style="width:100%;height:100%;object-fit:cover">',
+                  '<img id="post-cover-img" alt="Copertina dell’articolo Bruniano" style="width:100%;height:100%;object-fit:cover">',
+                  'cover alt'
+              ),
+              (
+                  '  <style>\n    #post-content{white-space:normal;',
+                  '  <style>\n    .article-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 28px;padding:12px 0;border-bottom:1px solid #e5eaf1;color:#667085;font-size:13px;line-height:1.5}.article-nav a{color:#145cff;text-decoration:none;font-weight:800}.article-nav span{color:#8a94a6;text-align:right}\n    #post-content{white-space:normal;',
+                  'article navigation styles'
+              ),
+              (
+                  "$('post-content').innerHTML = post.content || '';\n    $('post-author').textContent = post.author ? `A cura di ${post.author}` : '';",
+                  "$('post-content').innerHTML = post.content || '';\n    $('post-content').querySelectorAll('img').forEach((img) => { if (!img.getAttribute('alt')) img.setAttribute('alt', post.title); });\n    $('post-author').textContent = post.author ? `A cura di ${post.author}` : '';",
+                  'dynamic image alt'
+              ),
+          ]
+
+          for old, new, label in replacements:
+              count = s.count(old)
+              if count != 1:
+                  raise SystemExit(f'Guard failed for {label}: expected 1 match, found {count}. Aborting without changes.')
+              s = s.replace(old, new, 1)
+
+          mobile_marker = '      .article-feedback-title{font-size:22px}\n    }'
+          mobile_insert = '      .article-feedback-title{font-size:22px}\n      .article-nav{align-items:flex-start;flex-direction:column}.article-nav span{text-align:left}\n    }'
+          if s.count(mobile_marker) != 1:
+              raise SystemExit('Guard failed for mobile article navigation styles. Aborting without changes.')
+          s = s.replace(mobile_marker, mobile_insert, 1)
+
+          if s == original:
+              raise SystemExit('No change produced; aborting.')
+
+          p.write_text(s, encoding='utf-8')
+          print('Guarded changes applied to articolo.html')
+          PY
+
+      - name: Commit only article template
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add articolo.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "SEO: improve article template safely"
+          git push
