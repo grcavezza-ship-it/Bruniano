@@ -41,10 +41,24 @@
     #post-content a{color:#145cff;text-decoration:underline;text-underline-offset:2px}
     #post-content img{display:block;max-width:100%;height:auto;margin:28px 0;border-radius:18px}
     #post-content blockquote{margin:26px 0;padding:18px 22px;border-left:3px solid #145cff;background:#f5f8ff;border-radius:0 16px 16px 0;color:#344054}
+    .article-feedback{margin-top:34px;padding:26px;border:1px solid #e3e9f2;border-radius:24px;background:#f8fafc}
+    .article-feedback-title{margin:0 0 6px;color:#111a2c;font-size:24px;line-height:1.25}
+    .article-feedback-subtitle{margin:0 0 22px;color:#667085;font-size:15px;line-height:1.6}
+    .feedback-question{padding:18px 0;border-top:1px solid #e5eaf1}
+    .feedback-question:first-of-type{border-top:0;padding-top:0}
+    .feedback-question:last-of-type{padding-bottom:0}
+    .feedback-question strong{display:block;color:#111a2c;font-size:16px;margin-bottom:12px}
+    .feedback-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .feedback-btn{border:1px solid #d8e0ea;background:#fff;color:#344054;border-radius:999px;padding:11px 15px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:border-color .2s ease,transform .2s ease,box-shadow .2s ease,background .2s ease}
+    .feedback-btn:hover:not(:disabled){border-color:#145cff;box-shadow:0 6px 18px rgba(20,92,255,.10);transform:translateY(-1px)}
+    .feedback-btn:disabled{opacity:.55;cursor:default}
+    .feedback-note{min-height:20px;margin:11px 0 0;color:#667085;font-size:13px}
     @media(max-width:700px){
       #post-content{font-size:16px;line-height:1.75}
       #post-content h2{font-size:24px}
       #post-content h3{font-size:20px}
+      .article-feedback{padding:20px;border-radius:20px}
+      .article-feedback-title{font-size:22px}
     }
   </style>
   <script type="application/ld+json" id="article-schema">{"@context":"https://schema.org","@type":"WebPage","name":"Articolo | Bruniano","url":"https://www.centromedicobruniano.it/articolo.html","isPartOf":{"@type":"WebSite","name":"Bruniano","url":"https://www.centromedicobruniano.it/"},"publisher":{"@type":"MedicalClinic","name":"Centro Medico Specialistico Bruniano","url":"https://www.centromedicobruniano.it/","telephone":"+39 081 2352977","address":{"@type":"PostalAddress","streetAddress":"Via Nazionale delle Puglie 283","postalCode":"80030","addressLocality":"San Vitaliano","addressRegion":"NA","addressCountry":"IT"}}}</script>
@@ -53,7 +67,28 @@
 <div id="site-header"></div>
 <main>
   <section class="page-hero"><div class="container"><p class="eyebrow" id="post-category">BRUNIANO</p><h1 id="post-title">Articolo</h1><p id="post-excerpt"></p></div></section>
-  <section class="content-section"><div class="container" style="max-width:820px"><article class="content-card"><div id="post-cover" style="display:none;margin:-30px -30px 30px;max-height:460px;overflow:hidden;border-radius:24px 24px 0 0"><img id="post-cover-img" alt="" style="width:100%;height:100%;object-fit:cover"></div><div id="post-content"></div><p id="post-author" style="margin-top:30px;color:#667085;font-size:13px"></p></article></div></section>
+  <section class="content-section"><div class="container" style="max-width:820px"><article class="content-card"><div id="post-cover" style="display:none;margin:-30px -30px 30px;max-height:460px;overflow:hidden;border-radius:24px 24px 0 0"><img id="post-cover-img" alt="" style="width:100%;height:100%;object-fit:cover"></div><div id="post-content"></div><p id="post-author" style="margin-top:30px;color:#667085;font-size:13px"></p>
+    <section id="article-feedback" class="article-feedback" aria-labelledby="article-feedback-title">
+      <h2 id="article-feedback-title" class="article-feedback-title">Il tuo parere ci aiuta</h2>
+      <p class="article-feedback-subtitle">Usiamo le risposte per capire quali temi approfondire nel blog e quali lasciare da parte.</p>
+      <div class="feedback-question" data-feedback-question="useful">
+        <strong>Questo articolo ti è stato utile?</strong>
+        <div class="feedback-actions">
+          <button class="feedback-btn" type="button" data-feedback-value="yes">Sì, mi è stato utile</button>
+          <button class="feedback-btn" type="button" data-feedback-value="no">Poco / per niente</button>
+        </div>
+        <p class="feedback-note" aria-live="polite"></p>
+      </div>
+      <div class="feedback-question" data-feedback-question="more">
+        <strong>Vorresti leggere altri articoli su questo argomento?</strong>
+        <div class="feedback-actions">
+          <button class="feedback-btn" type="button" data-feedback-value="yes">Sì, approfonditelo</button>
+          <button class="feedback-btn" type="button" data-feedback-value="no">No, preferisco altri temi</button>
+        </div>
+        <p class="feedback-note" aria-live="polite"></p>
+      </div>
+    </section>
+  </article></div></section>
 </main>
 <div id="site-footer"></div>
 <script src="shared.js"></script><script src="script.js"></script>
@@ -115,6 +150,68 @@
     $('post-title').textContent='Articolo non trovato';
     $('post-excerpt').textContent='';
     $('post-content').textContent='L’articolo richiesto non è disponibile.';
+    const feedback=$('article-feedback');
+    if (feedback) feedback.style.display='none';
+  }
+
+  function getFeedbackVisitorId() {
+    const key = 'bruniano_feedback_visitor_id';
+    try {
+      let id = localStorage.getItem(key);
+      if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem(key, id);
+      }
+      return id;
+    } catch {
+      return crypto.randomUUID();
+    }
+  }
+
+  function setupFeedback(post) {
+    const wrap = $('article-feedback');
+    if (!wrap || !post?.slug) return;
+    const storageKey = `bruniano_feedback_${post.slug}`;
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(storageKey) || '{}') || {}; } catch { saved = {}; }
+
+    const visitorId = getFeedbackVisitorId();
+    wrap.querySelectorAll('[data-feedback-question]').forEach((questionEl) => {
+      const question = questionEl.dataset.feedbackQuestion;
+      const buttons = Array.from(questionEl.querySelectorAll('[data-feedback-value]'));
+      const note = questionEl.querySelector('.feedback-note');
+      const previous = saved[question];
+
+      if (previous) {
+        buttons.forEach((button) => { button.disabled = true; });
+        if (note) note.textContent = 'Grazie, risposta registrata.';
+        return;
+      }
+
+      buttons.forEach((button) => button.addEventListener('click', async () => {
+        if (buttons.some((item) => item.disabled)) return;
+        const vote = button.dataset.feedbackValue;
+        buttons.forEach((item) => { item.disabled = true; });
+        if (note) note.textContent = 'Registrazione in corso…';
+        try {
+          const response = await fetch('/api/article-feedback', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({slug: post.slug, question, vote, visitorId})
+          });
+          if (response.ok || response.status === 409) {
+            saved[question] = vote;
+            try { localStorage.setItem(storageKey, JSON.stringify(saved)); } catch {}
+            if (note) note.textContent = response.status === 409 ? 'Risposta già registrata.' : 'Grazie, risposta registrata.';
+            return;
+          }
+          throw new Error('feedback');
+        } catch {
+          buttons.forEach((item) => { item.disabled = false; });
+          if (note) note.textContent = 'Non è stato possibile registrare la risposta. Riprova.';
+        }
+      }));
+    });
   }
 
   if (!slug) return showError();
@@ -129,6 +226,7 @@
     $('post-content').innerHTML = post.content || '';
     $('post-author').textContent = post.author ? `A cura di ${post.author}` : '';
     if (post.cover_image_url) { const wrap=$('post-cover'); $('post-cover-img').src=post.cover_image_url; $('post-cover-img').alt=post.title; wrap.style.display='block'; }
+    setupFeedback(post);
   } catch { showError(); }
 })();
 </script>
