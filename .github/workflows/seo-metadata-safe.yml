@@ -1,0 +1,59 @@
+name: SEO metadata safe patch
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/seo-metadata-safe.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply exact metadata fixes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              'recensioni.html': [
+                  ('<title>Recensioni | Bruniano</title>', '<title>Recensioni | Bruniano — Centro Medico Specialistico</title>'),
+                  ('<link rel="canonical" href="https://www.centromedicobruniano.it/recensioni.html"><title>', '<link rel="canonical" href="https://www.centromedicobruniano.it/recensioni.html">\n<meta name="description" content="Leggi le recensioni del Centro Medico Specialistico Bruniano e scopri l\'esperienza dei pazienti a San Vitaliano.">\n<title>'),
+              ],
+              'team.html': [
+                  ('<title>Team | Bruniano</title>', '<title>Team | Bruniano — Centro Medico Specialistico</title>'),
+              ],
+          }
+
+          for filename, pairs in replacements.items():
+              p = Path(filename)
+              s = p.read_text(encoding='utf-8')
+              original = s
+              for old, new in pairs:
+                  if old not in s:
+                      raise SystemExit(f'Expected snippet not found in {filename}; aborting without changes.')
+                  s = s.replace(old, new, 1)
+              if s == original:
+                  raise SystemExit(f'No change produced for {filename}.')
+              p.write_text(s, encoding='utf-8')
+
+          print('Applied exact SEO metadata fixes to recensioni.html and team.html')
+          PY
+
+      - name: Commit SEO-only changes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add recensioni.html team.html
+          git commit -m "SEO: improve review and team metadata"
+          git push
