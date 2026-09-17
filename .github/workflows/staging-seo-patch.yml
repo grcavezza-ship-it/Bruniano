@@ -1,0 +1,197 @@
+name: Staging SEO patch
+
+on:
+  push:
+    branches:
+      - staging/seo-completa-20260917
+    paths:
+      - .github/workflows/staging-seo-patch.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout staging branch
+        uses: actions/checkout@v4
+
+      - name: Apply guarded SEO baseline
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+
+          SITE = 'https://www.centromedicobruniano.it'
+          pages = {
+              'trattamenti.html': {
+                  'url': SITE + '/trattamenti.html',
+                  'name': 'Trattamenti | Bruniano — Centro Medico Specialistico',
+                  'description': 'Trattamenti Bruniano: terapie strumentali e manuali, riabilitazione, postura e movimento a San Vitaliano.',
+                  'type': 'WebPage',
+                  'links': [('studio.html','Lo studio'),('team.html','Il team'),('contatti.html','Contatti'),('blog.html','Blog')],
+              },
+              'studio.html': {
+                  'url': SITE + '/studio.html',
+                  'name': 'Lo studio | Bruniano — Centro Medico Specialistico',
+                  'description': 'Scopri il Centro Medico Specialistico Bruniano: ambienti, tecnologie, accoglienza e percorso di cura a San Vitaliano.',
+                  'type': 'WebPage',
+                  'links': [('trattamenti.html','Trattamenti'),('team.html','Il team'),('contatti.html','Contatti'),('blog.html','Blog')],
+              },
+              'team.html': {
+                  'url': SITE + '/team.html',
+                  'name': 'Team | Bruniano — Centro Medico Specialistico',
+                  'description': 'Conosci i professionisti del Centro Medico Specialistico Bruniano, le loro specializzazioni e il loro percorso professionale.',
+                  'type': 'CollectionPage',
+                  'links': [('trattamenti.html','Trattamenti'),('studio.html','Lo studio'),('contatti.html','Contatti'),('blog.html','Blog')],
+              },
+              'promozioni.html': {
+                  'url': SITE + '/promozioni.html',
+                  'name': 'Promozioni | Bruniano — Centro Medico Specialistico',
+                  'description': 'Promozioni e offerte del Centro Medico Specialistico Bruniano a San Vitaliano.',
+                  'type': 'CollectionPage',
+                  'links': [('trattamenti.html','Trattamenti'),('contatti.html','Contatti'),('blog.html','Blog'),('studio.html','Lo studio')],
+              },
+              'blog.html': {
+                  'url': SITE + '/blog.html',
+                  'name': 'Blog | Bruniano — Centro Medico Specialistico',
+                  'description': 'Approfondimenti del Centro Medico Specialistico Bruniano su fisioterapia, riabilitazione, postura, movimento e tecnologie.',
+                  'type': 'CollectionPage',
+                  'links': [('trattamenti.html','Trattamenti'),('studio.html','Lo studio'),('team.html','Il team'),('contatti.html','Contatti')],
+              },
+              'contatti.html': {
+                  'url': SITE + '/contatti.html',
+                  'name': 'Contatti | Bruniano — Centro Medico Specialistico',
+                  'description': 'Contatti, sede operativa e indicazioni per raggiungere il Centro Medico Specialistico Bruniano a San Vitaliano.',
+                  'type': 'ContactPage',
+                  'links': [('trattamenti.html','Trattamenti'),('studio.html','Lo studio'),('team.html','Il team'),('blog.html','Blog')],
+              },
+          }
+
+          clinic = {
+              '@type': 'MedicalClinic',
+              '@id': SITE + '/#clinic',
+              'name': 'Bruniano — Centro Medico Specialistico',
+              'url': SITE + '/',
+              'telephone': '+39 081 2352977',
+              'address': {
+                  '@type': 'PostalAddress',
+                  'streetAddress': 'Via Nazionale delle Puglie, 283',
+                  'postalCode': '80030',
+                  'addressLocality': 'San Vitaliano',
+                  'addressRegion': 'NA',
+                  'addressCountry': 'IT'
+              }
+          }
+          website = {
+              '@type': 'WebSite',
+              '@id': SITE + '/#website',
+              'url': SITE + '/',
+              'name': 'Bruniano',
+              'publisher': {'@id': SITE + '/#clinic'},
+              'inLanguage': 'it-IT'
+          }
+
+          def add_favicon(path):
+              s = path.read_text(encoding='utf-8')
+              if 'data-bruniano-static-favicon' in s:
+                  return s
+              marker = '<link rel="stylesheet"'
+              count = s.count(marker)
+              if count < 1:
+                  raise SystemExit(f'Guard failed: no stylesheet marker in {path}')
+              favicon = '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg?v=20260903" data-bruniano-static-favicon>\n'
+              return s.replace(marker, favicon + marker, 1)
+
+          def add_schema(path, page):
+              s = path.read_text(encoding='utf-8')
+              if 'data-seo-staging-schema' in s:
+                  return s
+              payload = {'@context':'https://schema.org','@graph':[clinic,website,{
+                  '@type': page['type'],
+                  '@id': page['url'] + '#webpage',
+                  'url': page['url'],
+                  'name': page['name'],
+                  'description': page['description'],
+                  'isPartOf': {'@id': SITE + '/#website'},
+                  'about': {'@id': SITE + '/#clinic'},
+                  'inLanguage': 'it-IT'
+              }]}
+              tag = '<script type="application/ld+json" data-seo-staging-schema>' + json.dumps(payload, ensure_ascii=False, separators=(',',':')) + '</script>\n'
+              count = s.count('</head>')
+              if count != 1:
+                  raise SystemExit(f'Guard failed: expected one </head> in {path}, found {count}')
+              return s.replace('</head>', tag + '</head>', 1)
+
+          def add_context_links(path, page):
+              s = path.read_text(encoding='utf-8')
+              if 'data-seo-staging-links' in s:
+                  return s
+              anchors = ''.join(f'<a href="{href}">{label}</a>' for href, label in page['links'])
+              block = (
+                  '<section data-seo-staging-links class="seo-context-links" aria-label="Scopri anche" '
+                  'style="padding:44px 0;background:#fff;border-top:1px solid #e5eaf1">'
+                  '<div class="container">'
+                  '<p style="margin:0 0 12px;font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#145cff">SCOPRI ANCHE</p>'
+                  '<nav aria-label="Collegamenti correlati" style="display:flex;gap:18px;flex-wrap:wrap">'
+                  + anchors +
+                  '</nav></div></section>'
+              )
+              count = s.count('</main>')
+              if count != 1:
+                  raise SystemExit(f'Guard failed: expected one </main> in {path}, found {count}')
+              return s.replace('</main>', block + '</main>', 1)
+
+          def add_missing_alt(path, fallback):
+              s = path.read_text(encoding='utf-8')
+              def repl(match):
+                  tag = match.group(0)
+                  if re.search(r'\balt\s*=', tag, flags=re.I):
+                      if re.search(r'\balt\s*=\s*["\']\s*["\']', tag, flags=re.I):
+                          return re.sub(r'\balt\s*=\s*["\']\s*["\']', f'alt="{fallback}"', tag, count=1, flags=re.I)
+                      return tag
+                  return tag[:-1] + f' alt="{fallback}">'
+              return re.sub(r'<img\b[^>]*>', repl, s, flags=re.I)
+
+          originals = {}
+          for filename, page in pages.items():
+              p = Path(filename)
+              originals[filename] = p.read_text(encoding='utf-8')
+              s = add_favicon(p)
+              p.write_text(s, encoding='utf-8')
+              s = add_schema(p, page)
+              p.write_text(s, encoding='utf-8')
+              s = add_context_links(p, page)
+              p.write_text(s, encoding='utf-8')
+
+          # Only fix images on pages where the live audit currently reports alt gaps.
+          for filename, fallback in {
+              'studio.html': 'Ambiente del Centro Medico Specialistico Bruniano',
+              'promozioni.html': 'Promozione del Centro Medico Specialistico Bruniano',
+          }.items():
+              p = Path(filename)
+              p.write_text(add_missing_alt(p, fallback), encoding='utf-8')
+
+          changed = []
+          for filename, old in originals.items():
+              if Path(filename).read_text(encoding='utf-8') != old:
+                  changed.append(filename)
+          if len(changed) != len(pages):
+              raise SystemExit(f'Guard failed: expected changes in all target pages, changed={changed}')
+          print('Guarded staging SEO patch applied:', ', '.join(changed))
+          PY
+
+      - name: Remove this one-shot workflow and commit staging
+        shell: bash
+        run: |
+          rm -f .github/workflows/staging-seo-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add trattamenti.html studio.html team.html promozioni.html blog.html contatti.html .github/workflows/staging-seo-patch.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "staging: complete SEO baseline safely"
+          git push origin staging/seo-completa-20260917
