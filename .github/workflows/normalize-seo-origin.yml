@@ -1,0 +1,53 @@
+name: Normalize SEO origin
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    if: ${{ !contains(github.event.head_commit.message, 'chore: normalize SEO origin') && !contains(github.event.head_commit.message, 'chore: remove SEO origin workflow') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Normalize canonical origin in shared.js
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('shared.js')
+          s = p.read_text()
+          old = "const SITE_ORIGIN = 'https://centromedicobruniano.it';"
+          new = "const SITE_ORIGIN = 'https://www.centromedicobruniano.it';"
+          count = s.count(old)
+          if count == 0:
+              print('Legacy SEO origin already absent; nothing to change.')
+          elif count != 1:
+              raise SystemExit(f'Expected exactly 1 legacy origin, found {count}. Aborting.')
+          else:
+              p.write_text(s.replace(old, new))
+              print('Updated shared.js SEO origin exactly once.')
+          PY
+
+      - name: Commit only the intended one-line SEO change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --quiet -- shared.js; then
+            echo 'No diff to commit.'
+            exit 0
+          fi
+          git diff -- shared.js
+          test "$(git diff --numstat -- shared.js | awk '{print $1}')" = "1"
+          test "$(git diff --numstat -- shared.js | awk '{print $2}')" = "1"
+          git add shared.js
+          git commit -m 'chore: normalize SEO origin'
+          git push
