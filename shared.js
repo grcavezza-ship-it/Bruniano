@@ -260,22 +260,17 @@
     const hero = document.querySelector('.studio-hero-media img');
     if (!grid) return;
     fetch('/api/gallery?admin=0', { cache: 'no-store' }).then((r) => r.ok ? r.json() : Promise.reject(new Error('gallery'))).then((data) => {
-      const items = (data.items || []).filter((x) => x.media_url).slice(0, 12);
-      if (!items.length) return;
-      const images = items.filter((x) => String(x.media_type).startsWith('image'));
-      if (hero && images[0]) {
-        hero.src = images[0].media_url;
-        hero.alt = images[0].alt_text || images[0].title || 'Ambiente Bruniano';
-      }
-      grid.dataset.count = String(Math.min(items.length, 12));
-      grid.innerHTML = items.map((m) => {
-        const media = String(m.media_type).startsWith('video') ? `<video src="${m.media_url}" autoplay muted loop playsinline preload="metadata" aria-label="${m.alt_text || m.title || 'Video Bruniano'}"></video>` : `<img src="${m.media_url}" alt="${m.alt_text || m.title || 'Ambiente Bruniano'}" loading="lazy">`;
-        const classes = 'studio-tile';
-        return `<div class="${classes}">${media}<div class="tile-copy"><small>${m.title || m.alt_text || 'BRUNIANO'}</small></div></div>`;
-      }).join('');
-      grid.querySelectorAll('img,video').forEach((el) => { el.style.width = '100%'; el.style.height = '100%'; el.style.objectFit = 'cover'; el.style.display = 'block'; });
+      const items=(data.items||[]).filter((x)=>x.media_url).slice(0,12);
+      if(!items.length)return;
+      const images=items.filter((x)=>String(x.media_type).startsWith('image'));
+      if(hero&&images[0]){hero.src=images[0].media_url;hero.alt=images[0].alt_text||images[0].title||'Ambiente Bruniano';}
+      const count=Math.min(items.length,12); grid.dataset.count=String(count);
+      const patterns={1:[[12]],2:[[8,4]],3:[[7,5]],4:[[7,5],[5,7]],5:[[7,5],[4,4,4]],6:[[7,5],[4,4,4]],7:[[7,5],[3,3,3,3],[6,3,3]],8:[[7,5],[3,3,3,3],[6,6]],9:[[7,5],[3,3,3,3],[4,4,4]],10:[[7,5],[3,3,3,3],[3,3,3,3]],11:[[7,5],[3,3,3,3],[3,3,2,2,2]],12:[[7,5],[3,3,3,3],[2,2,2,2,2,2]]};
+      const rows=patterns[count]||[[12]]; let index=0;
+      grid.innerHTML=rows.map((spans,rowIndex)=>{const tiles=spans.map((span)=>{const m=items[index++];const media=String(m.media_type).startsWith('video')?`<video src="${m.media_url}" autoplay muted loop playsinline preload="metadata" aria-label="${m.alt_text||m.title||'Video Bruniano'}"></video>`:`<img src="${m.media_url}" alt="${m.alt_text||m.title||'Ambiente Bruniano'}" loading="lazy">`;return `<div class="studio-tile" style="--tile-span:${span}">${media}<div class="tile-copy"><small>${m.title||m.alt_text||'BRUNIANO'}</small></div></div>`;}).join('');return `<div class="studio-row ${rowIndex===0?'tall':'medium'}">${tiles}</div>`;}).join('');
+      grid.querySelectorAll('img,video').forEach((el)=>{el.style.width='100%';el.style.height='100%';el.style.objectFit='cover';el.style.display='block';});
       grid.classList.add('is-ready');
-    }).catch(() => {});
+    }).catch(()=>{});
   }
   setupStudioGallery();
 
