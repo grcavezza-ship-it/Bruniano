@@ -30,10 +30,12 @@
 .studio-cta{padding:95px 0}.studio-cta-inner{border-radius:34px;padding:58px;background:linear-gradient(135deg,#edf4ff,#f8fbff);border:1px solid #dbe6f5;display:flex;justify-content:space-between;align-items:center;gap:32px}.studio-cta h2{font-size:clamp(38px,4.4vw,58px);line-height:1;letter-spacing:-.05em;margin:0 0 12px}.studio-cta h2 em{font-style:normal;color:var(--b2)}.studio-cta p{margin:0;color:#69768a;line-height:1.65;max-width:650px}
 @media(max-width:950px){.studio-hero-grid,.studio-story-grid,.experience-grid{grid-template-columns:1fr}.studio-grid{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:150px}.studio-tile{grid-column:span 3;grid-row:span 2}.studio-grid .studio-tile:nth-child(1){grid-column:span 3;grid-row:span 3}.tech-strip{grid-template-columns:1fr 1fr}.story-media,.story-media img{min-height:360px}}
 @media(max-width:760px){
-  .studio-page .studio-grid{display:flex!important;flex-direction:column!important;gap:14px!important;width:100%!important}
-  .studio-page .studio-grid > .studio-row{display:flex!important;flex-direction:column!important;gap:14px!important;width:100%!important;min-height:0!important;height:auto!important}
+  .studio-page .studio-grid{display:block!important;width:100%!important;height:auto!important;min-height:0!important;overflow:visible!important;margin:0!important;padding:0!important}
+  .studio-page .studio-grid > .studio-row{display:block!important;flex:none!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important}
   .studio-page .studio-grid > .studio-row > .studio-tile,
-  .studio-page .studio-grid > .studio-tile{display:block!important;flex:0 0 auto!important;width:100%!important;height:auto!important;min-width:0!important;min-height:0!important;aspect-ratio:4/3!important;grid-column:auto!important;grid-row:auto!important}
+  .studio-page .studio-grid > .studio-tile{display:block!important;position:relative!important;float:none!important;clear:both!important;box-sizing:border-box!important;flex:none!important;width:100%!important;max-width:100%!important;height:220px!important;min-width:0!important;min-height:220px!important;margin:0 0 14px 0!important;aspect-ratio:auto!important;grid-column:auto!important;grid-row:auto!important;transform:none!important;inset:auto!important}
+  .studio-page .studio-grid > .studio-row > .studio-tile:last-child,
+  .studio-page .studio-grid > .studio-tile:last-child{margin-bottom:0!important}
   .studio-page .studio-grid img,.studio-page .studio-grid video{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}
 }
 @media(max-width:650px){.studio-hero{padding:76px 0 58px}.studio-hero h1{font-size:52px}.studio-lead{font-size:17px}.studio-hero-media,.studio-hero-media img{min-height:315px}.studio-gallery,.studio-story,.studio-tech,.studio-experience{padding:72px 0}.studio-grid{grid-template-columns:1fr;grid-template-rows:none;grid-auto-rows:220px}.studio-grid .studio-tile,.studio-grid[data-count] .studio-tile{grid-column:auto !important;grid-row:auto !important}.tech-strip,.story-points,.experience-list{grid-template-columns:1fr}.studio-cta{padding:72px 0}.studio-cta-inner{padding:34px 25px;display:block}.studio-cta .button{margin-top:24px;width:100%}}
@@ -57,6 +59,6 @@
 <section data-seo-staging-links class="seo-context-links" aria-label="Scopri anche" style="padding:44px 0;background:#fff;border-top:1px solid #e5eaf1"><div class="container"><p style="margin:0 0 12px;font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#145cff">SCOPRI ANCHE</p><nav aria-label="Collegamenti correlati" style="display:flex;gap:18px;flex-wrap:wrap"><a href="trattamenti.html">Trattamenti</a><a href="team.html">Il team</a><a href="contatti.html">Contatti</a><a href="blog.html">Blog</a></nav></div></section></main>
 <div id="site-footer"></div>
 <script src="shared.js"></script><script src="script.js"></script>
-<script src="studio-layout.js?v=20260917-2"></script>
+<script src="studio-layout.js?v=20260918-4"></script>
 </body>
 </html>
