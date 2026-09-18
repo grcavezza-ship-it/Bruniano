@@ -256,26 +256,19 @@
 
   function setupStudioGallery() {
     if (!document.body.classList.contains('studio-page')) return;
-    const grid = document.querySelector('.studio-grid');
     const hero = document.querySelector('.studio-hero-media img');
-    if (!grid) return;
-    fetch('/api/gallery?admin=0', { cache: 'no-store' }).then((r) => r.ok ? r.json() : Promise.reject(new Error('gallery'))).then((data) => {
-      const items = (data.items || []).filter((x) => x.media_url).slice(0, 12);
-      if (!items.length) return;
-      const images = items.filter((x) => String(x.media_type).startsWith('image'));
-      if (hero && images[0]) {
-        hero.src = images[0].media_url;
-        hero.alt = images[0].alt_text || images[0].title || 'Ambiente Bruniano';
-      }
-      grid.dataset.count = String(Math.min(items.length, 12));
-      grid.innerHTML = items.map((m) => {
-        const media = String(m.media_type).startsWith('video') ? `<video src="${m.media_url}" autoplay muted loop playsinline preload="metadata" aria-label="${m.alt_text || m.title || 'Video Bruniano'}"></video>` : `<img src="${m.media_url}" alt="${m.alt_text || m.title || 'Ambiente Bruniano'}" loading="lazy">`;
-        const classes = 'studio-tile';
-        return `<div class="${classes}">${media}<div class="tile-copy"><small>${m.title || m.alt_text || 'BRUNIANO'}</small></div></div>`;
-      }).join('');
-      grid.querySelectorAll('img,video').forEach((el) => { el.style.width = '100%'; el.style.height = '100%'; el.style.objectFit = 'cover'; el.style.display = 'block'; });
-      grid.classList.add('is-ready');
-    }).catch(() => {});
+    if (!hero) return;
+    fetch('/api/gallery?admin=0', { cache: 'no-store' })
+      .then((r) => r.ok ? r.json() : Promise.reject(new Error('gallery')))
+      .then((data) => {
+        const items = (data.items || []).filter((x) => x.media_url && x.is_published !== false);
+        const images = items.filter((x) => String(x.media_type || '').startsWith('image'));
+        if (images[0]) {
+          hero.src = images[0].media_url;
+          hero.alt = images[0].alt_text || images[0].title || 'Ambiente Bruniano';
+        }
+      })
+      .catch(() => {});
   }
   setupStudioGallery();
 
