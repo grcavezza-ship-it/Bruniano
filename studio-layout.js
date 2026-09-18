@@ -182,14 +182,20 @@
   function render(items){
     if(!board||!items.length||rendering)return;
     rendering=true;
+    const mobileStack=window.matchMedia('(max-width:760px)').matches;
     board.innerHTML=items.map(m=>{
       const label=labelFor(m.title);
       const video=String(m.media_type||'').startsWith('video');
       const media=video
         ? `<video src="${esc(m.media_url)}" muted loop autoplay playsinline preload="metadata" aria-label="${esc(m.alt_text||label)}"></video>`
         : `<img src="${esc(m.media_url)}" alt="${esc(m.alt_text||label)}" loading="lazy" decoding="async">`;
-      return `<div class="studio-tile">${media}<span>BRUNIANO</span><small>${esc(label)}</small></div>`;
+      const mobileStyle=mobileStack ? 'style="display:block!important;box-sizing:border-box!important;width:100%!important;max-width:100%!important;height:220px!important;min-height:220px!important;margin:0 0 14px 0!important;padding:0!important;position:relative!important;float:none!important;clear:both!important;inset:auto!important;transform:none!important;aspect-ratio:auto!important;grid-column:auto!important;grid-row:auto!important;"' : '';
+      return `<div class="studio-tile" ${mobileStyle}>${media}<span>BRUNIANO</span><small>${esc(label)}</small></div>`;
     }).join('');
+    if(mobileStack){
+      const tiles=[...board.querySelectorAll('.studio-tile')];
+      if(tiles.length) tiles[tiles.length-1].style.setProperty('margin-bottom','0','important');
+    }
     board.dataset.count=String(items.length);
     board.dataset.studioManaged='1';
     board.classList.add('is-ready');
@@ -234,4 +240,24 @@
   }else{
     load();
   }
+  window.addEventListener('resize',()=>{
+    if(!board||!cachedItems.length||rendering)return;
+    const mobile=window.matchMedia('(max-width:760px)').matches;
+    const tiles=[...board.querySelectorAll('.studio-tile')];
+    tiles.forEach((tile,index)=>{
+      if(mobile){
+        tile.style.setProperty('display','block','important');
+        tile.style.setProperty('width','100%','important');
+        tile.style.setProperty('height',window.innerWidth<=560?'205px':'220px','important');
+        tile.style.setProperty('margin-bottom',index===tiles.length-1?'0':'14px','important');
+        tile.style.setProperty('position','relative','important');
+        tile.style.setProperty('float','none','important');
+        tile.style.setProperty('clear','both','important');
+        tile.style.setProperty('grid-column','auto','important');
+        tile.style.setProperty('grid-row','auto','important');
+      }else{
+        ['display','width','height','margin-bottom','position','float','clear','grid-column','grid-row'].forEach(p=>tile.style.removeProperty(p));
+      }
+    });
+  });
 })();
